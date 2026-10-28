@@ -11,6 +11,14 @@
   var fullMap = false;
   var fontSize = 16;
   var tiltX = 0;
+  var gameSpeed = 1;
+  var initializing = false;
+  var gameTimers = {};
+  var nextGameTimer = -1;
+  var nativeTimeout = window.setTimeout.bind(window);
+  var nativeClearTimeout = window.clearTimeout.bind(window);
+  var nativeInterval = window.setInterval.bind(window);
+  var nativeClearInterval = window.clearInterval.bind(window);
   try { fontSize = Math.max(16, Math.min(22, Number(localStorage.offlineFontSize) || 16)); } catch (error) {}
   document.documentElement.style.setProperty('--offline-font-size', fontSize + 'px');
 
@@ -25,6 +33,39 @@
     },
     prepareRestore: function () { skipSaving = true; OfflineGame.releaseControls(); },
     cancelRestore: function () { skipSaving = false; },
+    getSpeed: function () { return gameSpeed; },
+    setSpeed: function (value) {
+      var next = Number(value);
+      if ([1, 2, 3, 4].indexOf(next) < 0) { return false; }
+      var previous = gameSpeed;
+      var now = performance.now();
+      gameSpeed = next;
+      Engine.options.doubleTime = next > 1;
+      if (window.State) {
+        State.config.offlineSpeed = next;
+        State.config.hyperMode = next > 1;
+      }
+      Object.keys(gameTimers).forEach(function (id) {
+        var task = gameTimers[id];
+        if (task.running) { return; }
+        task.remaining = Math.max(0, task.remaining - (now - task.started) * task.rate);
+        nativeClearTimeout(task.nativeId);
+        scheduleGameTimer(task);
+      });
+      // Retain the same percentage of every active cooldown when changing speed.
+      var animationNow = Date.now();
+      ($.timers || []).forEach(function (timer) {
+        if (!timer.anim || !$(timer.elem).hasClass('cooldown')) { return; }
+        var animation = timer.anim;
+        animation.startTime = animationNow - (animationNow - animation.startTime) * previous / next;
+        animation.duration *= previous / next;
+      });
+      $('#offline-speed-controls button').each(function () {
+        $(this).attr('aria-pressed', Number(this.getAttribute('data-speed')) === next ? 'true' : 'false');
+      });
+      OfflineGame.save();
+      return true;
+    },
     pause: function () {
       if (pausedAt === null) { pausedAt = Date.now(); }
       OfflineGame.save();
@@ -48,6 +89,7 @@
           }
         });
         Space.lastMove = Date.now();
+        Object.keys(gameTimers).forEach(function (id) { gameTimers[id].started += elapsed; });
         pausedAt = null;
       }
       if (AudioEngine._audioContext && AudioEngine._audioContext.state === 'suspended') {
@@ -69,6 +111,61 @@
       applyTilt();
     },
     refresh: scheduleLayout
+  };
+
+  function scheduleGameTimer(task) {
+    task.started = performance.now();
+    task.rate = gameSpeed;
+    task.nativeId = nativeTimeout(function () {
+      if (!gameTimers[task.id]) { return; }
+      if (!task.repeat) { delete gameTimers[task.id]; }
+      task.running = true;
+      try { task.callback.call(window); }
+      finally {
+        task.running = false;
+        if (task.repeat && gameTimers[task.id]) {
+          task.remaining = task.delay;
+          scheduleGameTimer(task);
+        }
+      }
+    }, Math.max(1, task.remaining / gameSpeed));
+  }
+
+  function gameTimer(callback, delay, repeat) {
+    var id = nextGameTimer--;
+    var duration = Math.max(0, Number(delay) || 0);
+    var task = gameTimers[id] = { id: id, callback: callback, delay: duration, remaining: duration, repeat: repeat };
+    scheduleGameTimer(task);
+    return id;
+  }
+
+  function clearGameTimer(id) {
+    if (!gameTimers[id]) { return false; }
+    nativeClearTimeout(gameTimers[id].nativeId);
+    delete gameTimers[id];
+    return true;
+  }
+  window.clearTimeout = function (id) { if (!clearGameTimer(id)) { nativeClearTimeout(id); } };
+  window.clearInterval = function (id) { if (!clearGameTimer(id)) { nativeClearInterval(id); } };
+  Engine.setTimeout = function (callback, delay, unscaled) {
+    return unscaled ? nativeTimeout(callback, delay) : gameTimer(callback, delay, false);
+  };
+  Engine.setInterval = function (callback, delay, unscaled) {
+    return unscaled ? nativeInterval(callback, delay) : gameTimer(callback, delay, true);
+  };
+  Engine.getSpeed = OfflineGame.getSpeed;
+  var originalLoadGame = Engine.loadGame;
+  Engine.loadGame = function () {
+    originalLoadGame.apply(Engine, arguments);
+    if (!State.config || typeof State.config !== 'object') { State.config = {}; }
+    var saved = Number(State.config.offlineSpeed);
+    gameSpeed = [1, 2, 3, 4].indexOf(saved) >= 0 ? saved : (State.config.hyperMode ? 2 : 1);
+    Engine.options.doubleTime = gameSpeed > 1;
+    State.config.offlineSpeed = gameSpeed;
+    State.config.hyperMode = gameSpeed > 1;
+  };
+  Engine.triggerHyperMode = function () {
+    if (!initializing) { OfflineGame.setSpeed(gameSpeed === 1 ? 2 : 1); }
   };
 
   Engine.isMobile = function () { return false; };
@@ -192,7 +289,9 @@
 
   var originalInit = Engine.init;
   Engine.init = function (options) {
-    originalInit.call(Engine, options);
+    initializing = true;
+    try { originalInit.call(Engine, options); }
+    finally { initializing = false; }
     $('.menu').remove();
     createShell();
     changeFont(0);
@@ -237,7 +336,6 @@
     }
     action('offline-sound', 'volume', $SM.get('config.soundOn') ? '关闭音效' : '开启音效', Engine.toggleVolume);
     action('offline-lights', 'lightsOff', Engine.isLightsOff() ? '日间模式' : '夜间模式', Engine.turnLightsOff);
-    action('offline-speed', 'hyper', Engine.options.doubleTime ? '正常速度' : '加速', Engine.confirmHyperMode);
     action('offline-save', '', '存档代码', Engine.exportImport);
     $('<a>').attr({ id: 'offline-backup', href: 'adr-offline://backup' }).text('备份到文件').appendTo(settings);
     $('<a>').attr({ id: 'offline-restore', href: 'adr-offline://restore' }).text('从文件恢复').appendTo(settings);
@@ -245,6 +343,13 @@
     $('<a>').attr({ id: 'offline-about', href: 'about.html' }).text('关于与许可')
       .on('click', function () { OfflineGame.save(); closeSheets(); }).appendTo(settings);
     settings.children('a').on('click', closeSheets);
+    var speeds = $('<div>').attr('id', 'offline-speed-controls').appendTo(menu);
+    $('<div>').attr('id', 'offline-speed-label').text('游戏速度').appendTo(speeds);
+    var choices = $('<div>').addClass('offline-speed-options').attr({ role: 'group', 'aria-labelledby': 'offline-speed-label' }).appendTo(speeds);
+    [1, 2, 3, 4].forEach(function (speed) {
+      $('<button>').attr({ type: 'button', 'data-speed': speed, 'aria-pressed': gameSpeed === speed ? 'true' : 'false' })
+        .text(speed + ' 倍').on('click', function () { OfflineGame.setSpeed(speed); }).appendTo(choices);
+    });
     var fonts = $('<div>').attr('id', 'offline-font-controls').appendTo(menu);
     $('<span>').text('文字大小').appendTo(fonts);
     $('<button>').attr({ id: 'offline-font-smaller', type: 'button', 'aria-label': '缩小字号' })
@@ -358,7 +463,7 @@
     disclosure('#blueprints', 'offline-blueprints', '已掌握的蓝图');
     disclosure('#perks', 'offline-perks', '能力');
     disclosure('#village', 'offline-village', '村庄');
-    disclosure('#storesContainer', 'offline-inventory', '库存与武器');
+    disclosure('#storesContainer', 'offline-inventory', '仓库');
     $('#offline-inventory').prop('hidden', !$('#storesContainer .storeRow').length);
     var outer = $('#worldOuter');
     if (outer.length && !document.getElementById('offline-world-status')) {
@@ -473,7 +578,11 @@
   }
 
   var originalLights = Engine.turnLightsOff;
-  Engine.turnLightsOff = function () { originalLights(); scheduleLayout(); };
+  Engine.turnLightsOff = function () {
+    originalLights();
+    $('#offline-lights').text($SM.get('config.lightsOff') ? '日间模式' : '夜间模式');
+    scheduleLayout();
+  };
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('blur', OfflineGame.releaseControls);
   window.addEventListener('pagehide', OfflineGame.save);

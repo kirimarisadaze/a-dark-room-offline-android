@@ -643,7 +643,7 @@ var Events = {
 
 				if (venomous && !shielded) {
 					clearInterval(Events._dotTimer);
-					Events._dotTimer = setInterval(() => {
+					Events._dotTimer = Engine.setInterval(() => {
 						Events.dotDamage(enemy, Math.floor(dmg / 2));
 					}, Events.DOT_TICK);
 				}
@@ -673,7 +673,7 @@ var Events = {
 			if(dmg == 'stun') {
 				msg = _('stunned');
 				enemy.data('stunned', true);
-				setTimeout(() => enemy.data('stunned', false), Events.STUN_DURATION);
+				Engine.setTimeout(() => enemy.data('stunned', false), Events.STUN_DURATION);
 			}
 		}
 
