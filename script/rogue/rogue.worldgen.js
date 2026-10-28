@@ -158,60 +158,94 @@
     }
     R.worldgen = {
         flood: flood,
-        /** Creates a seeded connected nine-region graph with gentle traversable difficulty steps. */
+        /** Grows nine connected regions in random directions rather than a fixed square. */
         buildRegionGraph: function (seed) {
-            var random = R.random(seed);
-            var layout = N.GRAPH_LAYOUTS[R.integer(random, 0, N.GRAPH_LAYOUTS.length - 1)];
-            var graph = { nodes: [], edges: [], blocked: [], tier: {}, spawn: '0,0', ship: '', scaffold: [] };
-            var x;
-            var y;
+            var random = R.random(R.hash(seed, 'world-layout'));
+            var graph = { layout: 2, nodes: ['0,0'], edges: [], blocked: [], tier: {}, spawn: '0,0', ship: '', scaffold: [] };
+            var occupied = { '0,0': true };
             var i;
             var j;
-            for (y = -1; y <= 1; y++) { for (x = -1; x <= 1; x++) { graph.nodes.push(x + ',' + y); } }
+            while (graph.nodes.length < N.WORLD_REGIONS) {
+                var frontier = [];
+                for (i = 0; i < graph.nodes.length; i++) {
+                    var origin = graph.nodes[i].split(',');
+                    for (j = 0; j < directions.length; j++) {
+                        var target = (Number(origin[0]) + directions[j][0]) + ',' + (Number(origin[1]) + directions[j][1]);
+                        if (!occupied[target]) { frontier.push([graph.nodes[i], target]); }
+                    }
+                }
+                var edge = frontier[R.integer(random, 0, frontier.length - 1)];
+                graph.nodes.push(edge[1]); occupied[edge[1]] = true; graph.edges.push(edge);
+            }
             for (i = 0; i < graph.nodes.length; i++) {
                 var a = graph.nodes[i].split(',');
                 for (j = i + 1; j < graph.nodes.length; j++) {
                     var b = graph.nodes[j].split(',');
-                    if (Math.abs(Number(a[0]) - Number(b[0])) + Math.abs(Number(a[1]) - Number(b[1])) === 1) {
-                        graph.edges.push([graph.nodes[i], graph.nodes[j]]);
+                    if (Math.abs(Number(a[0]) - Number(b[0])) + Math.abs(Number(a[1]) - Number(b[1])) === 1 && !this.linked(graph, graph.nodes[i], graph.nodes[j])) {
+                        var extra = [graph.nodes[i], graph.nodes[j]];
+                        graph.edges.push(extra);
+                        if (random() < 0.65) { graph.blocked.push(extra); graph.scaffold.push(extra.join('|')); }
                     }
                 }
             }
-            for (i = 0; i < layout.blocked.length; i++) {
-                var edge = graph.edges[layout.blocked[i]].slice();
-                graph.blocked.push(edge);
-                if (random() < 0.5) { graph.scaffold.push(edge.join('|')); }
-            }
-            for (i = 0; i < layout.order.length; i++) { graph.tier[graph.nodes[layout.order[i]]] = i + 1; }
-            graph.ship = graph.nodes[layout.order[layout.order.length - 1]];
-            this.assertGraph(graph);
-            return graph;
-        },
-        /** Asserts connectivity, tier uniqueness and the difficulty bound on open roads. */
-        assertGraph: function (graph) {
-            var seen = {};
-            var tiers = {};
             var queue = [graph.spawn];
+            var seen = { '0,0': true };
+            for (i = 0; i < queue.length; i++) {
+                graph.tier[queue[i]] = i + 1;
+                for (j = 0; j < graph.edges.length; j++) {
+                    var road = graph.edges[j];
+                    if (this.isBlocked(graph, road[0], road[1])) { continue; }
+                    var next = road[0] === queue[i] ? road[1] : road[1] === queue[i] ? road[0] : null;
+                    if (next && !seen[next]) { seen[next] = true; queue.push(next); }
+                }
+            }
+            graph.ship = queue[queue.length - 1];
+            this.assertGraph(graph); return graph;
+        },
+        /** Validates coordinate adjacency, unique tiers and connectivity for new and legacy worlds. */
+        assertGraph: function (graph) {
+            if (!graph || !Array.isArray(graph.nodes) || graph.nodes.length !== N.WORLD_REGIONS || !Array.isArray(graph.edges) || !Array.isArray(graph.blocked) || !Array.isArray(graph.scaffold) || !graph.tier || graph.tier[graph.spawn] !== 1 || graph.tier[graph.ship] !== N.WORLD_REGIONS) { throw new Error('Invalid region graph'); }
+            var seen = {};
+            var nodes = {};
+            var tiers = {};
+            var roads = {};
             var i;
             var j;
-            seen[graph.spawn] = true;
-            if (graph.nodes.length !== 9 || graph.blocked.length < 2 || graph.blocked.length > 3 || graph.tier[graph.spawn] !== 1) { throw new Error('Invalid region graph'); }
             for (i = 0; i < graph.nodes.length; i++) {
-                var tier = graph.tier[graph.nodes[i]];
-                if (tier < 1 || tier > 9 || tiers[tier]) { throw new Error('Invalid region tier'); }
-                tiers[tier] = true;
+                var node = graph.nodes[i]; var tier = graph.tier[node];
+                if (!/^-?[0-9]+,-?[0-9]+$/.test(node) || nodes[node] || tier < 1 || tier > N.WORLD_REGIONS || tier % 1 || tiers[tier]) { throw new Error('Invalid region tier'); }
+                var pos = node.split(',');
+                if (Math.abs(Number(pos[0])) >= N.WORLD_REGIONS || Math.abs(Number(pos[1])) >= N.WORLD_REGIONS) { throw new Error('Invalid coordinate'); }
+                nodes[node] = true; tiers[tier] = true;
             }
+            for (i = 0; i < graph.edges.length; i++) {
+                var edge = graph.edges[i];
+                if (!Array.isArray(edge) || edge.length !== 2 || !nodes[edge[0]] || !nodes[edge[1]]) { throw new Error('Invalid edge'); }
+                var a = edge[0].split(','); var b = edge[1].split(','); var token = edge.slice().sort().join('|');
+                if (Math.abs(Number(a[0]) - Number(b[0])) + Math.abs(Number(a[1]) - Number(b[1])) !== 1 || roads[token]) { throw new Error('Invalid edge'); }
+                roads[token] = true;
+            }
+            for (i = 0; i < graph.blocked.length; i++) {
+                var block = graph.blocked[i];
+                if (!Array.isArray(block) || block.length !== 2 || !roads[block.slice().sort().join('|')]) { throw new Error('Invalid blocked road'); }
+            }
+            var queue = [graph.spawn]; seen[graph.spawn] = true;
             for (i = 0; i < queue.length; i++) {
                 for (j = 0; j < graph.edges.length; j++) {
-                    var edge = graph.edges[j];
-                    if (this.isBlocked(graph, edge[0], edge[1])) { continue; }
-                    if (Math.abs(graph.tier[edge[0]] - graph.tier[edge[1]]) > 2) { throw new Error('Invalid difficulty step'); }
-                    var target = edge[0] === queue[i] ? edge[1] : edge[1] === queue[i] ? edge[0] : null;
-                    if (target && !seen[target]) { seen[target] = true; queue.push(target); }
+                    var road = graph.edges[j];
+                    if (this.isBlocked(graph, road[0], road[1])) { continue; }
+                    var next = road[0] === queue[i] ? road[1] : road[1] === queue[i] ? road[0] : null;
+                    if (next && !seen[next]) { seen[next] = true; queue.push(next); }
                 }
             }
             if (queue.length !== graph.nodes.length) { throw new Error('Disconnected region graph'); }
             return true;
+        },
+        /** Checks whether two regions share a physical road, including a blocked one. */
+        linked: function (graph, a, b) {
+            var i;
+            for (i = 0; i < graph.edges.length; i++) { if (graph.edges[i].indexOf(a) >= 0 && graph.edges[i].indexOf(b) >= 0) { return true; } }
+            return false;
         },
         /** Checks whether a region edge is currently impassable. */
         isBlocked: function (graph, a, b) {
@@ -233,7 +267,7 @@
             var d;
             for (d = 0; d < directions.length; d++) {
                 var target = (Number(coordinate[0]) + directions[d][0]) + ',' + (Number(coordinate[1]) + directions[d][1]);
-                if (save.regionGraph.nodes.indexOf(target) < 0) { continue; }
+                if (!this.linked(save.regionGraph, key, target)) { continue; }
                 var ex = directions[d][0] < 0 ? 1 : directions[d][0] > 0 ? size - 2 : middle;
                 var ey = directions[d][1] < 0 ? 1 : directions[d][1] > 0 ? size - 2 : middle;
                 corridor(tiles, size, middle, middle, ex, ey);
@@ -242,9 +276,20 @@
             connect(tiles, size, middle, middle);
             var region = { key: key, generated: true, theme: theme.id, tier: tier,
                 tiles: '', size: size, mask: R.mask.empty(size), sites: [] };
+            var refuge = { x: middle, y: middle };
+            if (tier === 1) {
+                var refugeRandom = R.random(R.hash(save.seed, 'refuge:' + key));
+                var candidates = [];
+                var rx;
+                var ry;
+                for (ry = 12; ry < size - 12; ry++) { for (rx = 12; rx < size - 12; rx++) { if (tiles[ry * size + rx] === '.') { candidates.push({ x: rx, y: ry }); } } }
+                refuge = candidates[R.integer(refugeRandom, 0, candidates.length - 1)];
+                corridor(tiles, size, middle, middle, refuge.x, refuge.y);
+                region.refuge = refuge;
+            }
             var quota = N.SITE_QUOTAS[tier <= 3 ? 0 : tier <= 6 ? 1 : 2];
             var used = {};
-            used[middle + ',' + middle] = true;
+            used[refuge.x + ',' + refuge.y] = true; used[middle + ',' + middle] = true;
             var i;
             for (i = 0; i < quota[0] + quota[1] + quota[2] + (tier === 9 ? 1 : 0); i++) {
                 var type = i < quota[0] ? theme.resources[i % theme.resources.length] : i < quota[0] + quota[1] ? 'threat' : i < quota[0] + quota[1] + quota[2] ? 'dungeon' : 'ship';
@@ -253,8 +298,8 @@
                 var attempt;
                 for (attempt = 0; attempt < size * size; attempt++) {
                     if (tier === 1 && i < quota[0] && attempt === 0) {
-                        sx = middle + [-3, 4, 0, 0][i]; sy = middle + [0, 0, -5, 5][i];
-                        corridor(tiles, size, middle, middle, sx, sy);
+                        sx = refuge.x + [-3, 4, 0, 0][i]; sy = refuge.y + [0, 0, -5, 5][i];
+                        corridor(tiles, size, refuge.x, refuge.y, sx, sy);
                     } else {
                         var radius = type === 'threat' ? N.THREAT_RADIUS : type === 'dungeon' || type === 'ship' ? N.DUNGEON_RADIUS : N.SITE_RADIUS;
                         sx = R.integer(random, middle - radius, middle + radius); sy = R.integer(random, middle - radius, middle + radius);
@@ -265,14 +310,15 @@
                     for (s = 0; s < region.sites.length; s++) {
                         if (Math.abs(region.sites[s].x - sx) + Math.abs(region.sites[s].y - sy) < N.SITE_SEPARATION) { near = true; }
                     }
-                    if (!near && Math.abs(sx - middle) + Math.abs(sy - middle) >= 3) { break; }
+                    var origin = tier === 1 && i < quota[0] ? refuge : { x: middle, y: middle };
+                    if (!near && Math.abs(sx - origin.x) + Math.abs(sy - origin.y) >= 3) { break; }
                 }
                 used[sx + ',' + sy] = true;
                 if (type === 'threat' || type === 'dungeon' || type === 'ship') { corridor(tiles, size, middle, middle, sx, sy); }
                 var site = { id: key + ':' + i, type: type, x: sx, y: sy, state: 'unknown', workers: 0, ownerCamp: null };
                 if (type === 'dungeon') {
-                    site.dungeon = tier === 4 ? 'archive' : tier === 6 ? 'foundry' : tier === 8 ? 'reactor' : tier === 9 ? 'vault' : 'shelter';
-                    if (i > quota[0] + quota[1]) { site.dungeon = 'vault'; }
+                    var pool = [null, ['clinic'], ['market'], ['tenement'], ['archive', 'clinic'], ['metro', 'shelter'], ['foundry', 'market'], ['tenement', 'vault'], ['reactor', 'shelter'], ['vault', 'metro']];
+                    site.dungeon = pool[tier][(i - quota[0] - quota[1]) % pool[tier].length];
                 }
                 region.sites.push(site);
             }

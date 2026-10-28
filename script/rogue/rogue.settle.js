@@ -56,6 +56,10 @@
     }
     R.settle = {
         employed: employed,
+        /** Checks outdoor empty ground shared by permanent and temporary camp placement. */
+        canPitch: function (save) {
+            return !save.flags.insideDungeon && !R.atCamp(save) && !R.map.here(save) && R.map.current(save).tiles[save.party.y * N.REGION_SIZE + save.party.x] === '.';
+        },
         /** Finds the nearest camp in global tile coordinates for transport and road length. */
         distance: function (save, region, site) {
             var nearest = Infinity;
@@ -114,6 +118,10 @@
                         var y = N.REGION_CENTER;
                         var occupied = false;
                         for (i = 0; i < region.sites.length; i++) { if (region.sites[i].x === x && region.sites[i].y === y) { occupied = true; } }
+                        for (i = 0; i < save.camps.length; i++) { if (save.camps[i].region === key && save.camps[i].x === x && save.camps[i].y === y) { occupied = true; } }
+                        var temp = save.flags.tempCamp;
+                        if (temp && temp.region === key && temp.x === x && temp.y === y) { occupied = true; }
+                        if (save.party.region === key && save.party.x === x && save.party.y === y) { occupied = true; }
                         if (!occupied && tiles[y * region.size + x] === '.') {
                             region.sites.push({ id: key + ':wolf:' + save.day, type: 'threat', x: x, y: y, state: 'unknown', workers: 0, ownerCamp: null });
                             R.log(save, 'log.wolves');
@@ -217,7 +225,7 @@
                 R.pay(save, N.ROAD_COST); site.road = true; site.roadLength = this.distance(save, roadRegion, site);
                 R.log(save, 'log.road');
             } else if (action.type === 'newCamp') {
-                if (camp || save.flags.insideDungeon) { return false; }
+                if (!this.canPitch(save)) { return R.fail('err.campGround'); }
                 if (save.camps.length >= N.MAX_CAMPS) { return R.fail('err.campLimit'); }
                 var sites = save.regions[party.region].sites;
                 for (i = 0; i < sites.length; i++) { if (sites[i].type === 'threat' && sites[i].state !== 'cleared') { return R.fail('err.campThreat'); } }
@@ -229,6 +237,23 @@
                 save.camps[0].pop -= 1; rebalance(save, save.camps[0]);
                 save.camps.push({ id: nextId, region: party.region, x: party.x, y: party.y, fire: 1, pop: 1, jobs: {}, stores: {}, buildings: {} });
                 save.activeCamp = save.camps.length - 1; R.log(save, 'log.camp');
+                if (R.atTemp(save)) { delete save.flags.tempCamp; }
+            } else if (action.type === 'deployTemp') {
+                if (!this.canPitch(save)) { return R.fail('err.campGround'); }
+                if (!party.bag.campKit) { return R.fail('err.tempKit'); }
+                party.bag.campKit -= 1;
+                save.flags.tempCamp = { region: party.region, x: party.x, y: party.y, expiresAt: save.turn + N.TEMP_TURNS + 1 };
+                R.log(save, 'log.tempBuilt');
+            } else if (action.type === 'restTemp') {
+                if (!R.atTemp(save)) { return R.fail('err.tempAway'); }
+                if (party.water < N.TEMP_REST_SUPPLY || party.food < N.TEMP_REST_SUPPLY) { return R.fail('err.supplies'); }
+                party.water -= N.TEMP_REST_SUPPLY; party.food -= N.TEMP_REST_SUPPLY;
+                party.hp = Math.min(party.maxHp, party.hp + N.TEMP_REST_HP);
+                for (i = 0; i < party.companions.length; i++) { party.companions[i].hp = Math.min(party.companions[i].maxHp, party.companions[i].hp + N.TEMP_REST_HP); }
+                R.log(save, 'log.tempRest'); return { turns: N.TEMP_REST_TURNS };
+            } else if (action.type === 'packTemp') {
+                if (!R.atTemp(save)) { return R.fail('err.tempAway'); }
+                delete save.flags.tempCamp; R.log(save, 'log.tempPacked');
             } else if (action.type === 'dismantle') {
                 if (!camp || camp.id === 0) { return R.fail('err.mainCamp'); }
                 R.add(stores, N.CAMP_UNLOCK, N.CAMP_REFUND); save.camps[0].pop += camp.pop;
@@ -239,6 +264,12 @@
                 }
                 save.camps.splice(save.camps.indexOf(camp), 1); save.activeCamp = 0;
                 rebalance(save, save.camps[0]); R.log(save, 'log.moveCamp');
+            } else if (action.type === 'drop') {
+                item = C.items[action.item];
+                if (!item || item.kind !== 'resource' || !(party.bag[action.item] > 0)) { return false; }
+                var discarded = Math.min(N.DROP_BUNDLE, party.bag[action.item]);
+                party.bag[action.item] -= discarded;
+                R.log(save, 'log.dropped', { name: R.t('item.' + action.item), n: discarded });
             } else if (action.type === 'equip') {
                 item = C.items[action.item];
                 if (!item || !party.bag[action.item] || (item.kind !== 'weapon' && item.kind !== 'armour')) { return false; }
@@ -281,7 +312,7 @@
                     var refillFood = Math.min(N.SUPPLY_FOOD - party.food, Math.floor(stores.food || 0));
                     party.food += refillFood; stores.food = Math.max(0, (stores.food || 0) - refillFood);
                     var capacity = (party.bag.pack ? N.BAG_UPGRADED : N.BAG_BASE) - R.bagWeight(save);
-                    var foodReserve = Math.min(N.FOOD_RESERVE, Math.floor(stores.food || 0), capacity);
+                    var foodReserve = Math.min(party.bag.pack ? N.FOOD_RESERVE_PACK : N.FOOD_RESERVE, Math.floor(stores.food || 0), capacity);
                     if (foodReserve > 0) { party.bag.food = foodReserve; stores.food -= foodReserve; }
                     var maximumReserve = party.bag.pack ? N.TRAVEL_RESERVE : N.TRAVEL_RESERVE_SMALL;
                     var reserve = Math.min(maximumReserve, capacity - foodReserve, camp.buildings.well ? maximumReserve : Math.floor(stores.water || 0));

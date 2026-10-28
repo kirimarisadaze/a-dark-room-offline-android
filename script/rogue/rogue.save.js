@@ -39,10 +39,10 @@
         /** Validates the root model, nested maps, inventories and resumable combat. */
         validate: function (save) {
             try {
-                if (!save || save.version !== N.VERSION || !number(save.slot) || save.slot % 1 || save.slot < 0 || save.slot >= N.SLOTS || !number(save.seed) || save.seed < 0 || save.seed > 4294967295 || save.seed % 1) { return false; }
+                if (!save || [1, N.VERSION].indexOf(save.version) < 0 || !number(save.slot) || save.slot % 1 || save.slot < 0 || save.slot >= N.SLOTS || !number(save.seed) || save.seed < 0 || save.seed > 4294967295 || save.seed % 1) { return false; }
                 if (!number(save.turn) || save.turn < 0 || save.turn % 1 || save.day !== Math.floor(save.turn / N.TURNS_PER_DAY) || [1, 2, 3].indexOf(save.speed) < 0) { return false; }
                 if (typeof save.over !== 'boolean' || typeof save.cheat !== 'boolean' || !number(save.createdAt)) { return false; }
-                if (!Array.isArray(save.camps) || save.camps.length < 1 || save.camps.length > N.MAX_CAMPS || !number(save.activeCamp) || save.activeCamp % 1 || save.activeCamp < 0 || save.activeCamp >= save.camps.length) { return false; }
+                if (!Array.isArray(save.camps) || save.camps.length < 1 || save.camps.length > (save.version === 1 ? 3 : N.MAX_CAMPS) || !number(save.activeCamp) || save.activeCamp % 1 || save.activeCamp < 0 || save.activeCamp >= save.camps.length) { return false; }
                 var p = save.party;
                 if (!p || !number(p.hp) || p.hp < 0 || !number(p.maxHp) || p.maxHp < N.BASE_HP || p.hp > p.maxHp || !CWeapon(p.weapon) || (p.armour && (!R.CONTENT.items[p.armour] || R.CONTENT.items[p.armour].kind !== 'armour'))) { return false; }
                 if (!number(p.water) || p.water < 0 || !number(p.food) || p.food < 0 || !inventory(p.bag) || !Array.isArray(p.companions) || p.companions.length > N.MAX_COMPANIONS) { return false; }
@@ -66,17 +66,17 @@
                 }
                 for (i = 0; i < save.blueprints.length; i++) { if (!R.CONTENT.items[save.blueprints[i]]) { return false; } }
                 var graph = save.regionGraph;
-                if (!Array.isArray(graph.nodes) || graph.nodes.length !== 9 || !Array.isArray(graph.edges) || graph.edges.length !== 12 || !Array.isArray(graph.blocked) || graph.blocked.length > 3 || !graph.tier || graph.tier[graph.spawn] !== 1 || graph.tier[graph.ship] !== 9) { return false; }
+                R.worldgen.assertGraph(graph);
                 var knownNodes = {};
                 var knownTiers = {};
                 for (i = 0; i < graph.nodes.length; i++) {
                     var node = graph.nodes[i];
-                    if (!/^-?[01],-?[01]$/.test(node) || knownNodes[node] || !number(graph.tier[node]) || graph.tier[node] < 1 || graph.tier[node] > 9 || graph.tier[node] % 1 || knownTiers[graph.tier[node]]) { return false; }
+                    if (knownNodes[node] || !number(graph.tier[node]) || graph.tier[node] < 1 || graph.tier[node] > 9 || graph.tier[node] % 1 || knownTiers[graph.tier[node]]) { return false; }
                     knownNodes[node] = true; knownTiers[graph.tier[node]] = true;
                 }
                 for (key in save.regions) {
                     var region = save.regions[key];
-                    if (!region || region.key !== key || region.size !== N.REGION_SIZE || !R.CONTENT.themes[region.tier] || !Array.isArray(region.sites)) { return false; }
+                    if (!region || region.key !== key || !knownNodes[key] || region.tier !== graph.tier[key] || region.size !== N.REGION_SIZE || !R.CONTENT.themes[region.tier] || !Array.isArray(region.sites)) { return false; }
                     R.rle.decode(region.tiles, region.size);
                     if (R.mask.decode(region.mask).length !== Math.ceil(region.size * region.size / 8)) { return false; }
                     for (i = 0; i < region.sites.length; i++) {
@@ -84,6 +84,10 @@
                         if (!R.CONTENT.sites[site.type] || !number(site.workers) || site.workers < 0 || site.workers % 1 || !position(site, region.size) || ['unknown', 'seen', 'cleared', 'occupied'].indexOf(site.state) < 0) { return false; }
                         if (site.type === 'dungeon' && !R.CONTENT.dungeons[site.dungeon]) { return false; }
                     }
+                }
+                if (save.flags.tempCamp) {
+                    var temp = save.flags.tempCamp;
+                    if (!save.regions[temp.region] || !position(temp, N.REGION_SIZE) || !number(temp.expiresAt) || temp.expiresAt % 1 || temp.expiresAt < 0) { return false; }
                 }
                 if (save.flags.insideDungeon) {
                     var dungeon = save.dungeons[save.flags.insideDungeon];
@@ -107,11 +111,34 @@
         serialize: function (save) { return JSON.stringify(save); },
         /** Parses and validates a saved run, returning null while preserving damaged input. */
         deserialize: function (raw) {
-            try { var save = JSON.parse(raw); return this.validate(save) ? save : null; }
+            try { var save = JSON.parse(raw); return this.validate(save) ? this.upgrade(save) : null; }
             catch (error) { return null; }
+        },
+        /** Preserves legacy terrain and folds surplus settlements into the main camp on upgrade. */
+        upgrade: function (save) {
+            if (save.version === N.VERSION) { return save; }
+            while (save.camps.length > N.MAX_CAMPS) {
+                var old = save.camps.pop();
+                save.camps[0].pop += old.pop;
+                save.camps[0].jobs.guard = (save.camps[0].jobs.guard || 0) + (old.jobs.guard || 0);
+                R.add(R.stores(save), old.stores);
+                R.add(R.stores(save), N.CAMP_UNLOCK, N.CAMP_REFUND);
+                var id;
+                for (id in old.buildings) { R.add(R.stores(save), R.CONTENT.buildings[id].cost, old.buildings[id]); }
+                for (id in save.regions) {
+                    var sites = save.regions[id].sites;
+                    var i;
+                    for (i = 0; i < sites.length; i++) { if (sites[i].ownerCamp === old.id) { sites[i].ownerCamp = save.camps[0].id; } }
+                }
+                save.flags.tempCamp = { region: old.region, x: old.x, y: old.y, expiresAt: save.turn + N.TEMP_TURNS };
+                R.log(save, 'log.campMigrated');
+            }
+            save.activeCamp = Math.min(save.activeCamp, save.camps.length - 1);
+            save.version = N.VERSION; return save;
         },
         /** Reads one slot and leaves its raw data untouched on any failure. */
         load: function (slot) {
+            this.lastError = null;
             if (slot < 0 || slot >= N.SLOTS || slot % 1) { return null; }
             try {
                 var raw = localStorage.getItem('rogueSlot' + slot);

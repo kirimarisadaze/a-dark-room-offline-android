@@ -15,6 +15,42 @@
         directions: directions,
         /** Releases map caches when switching to a different run. */
         reset: function () { terrainCache = {}; },
+        /** Returns only real gateways, optionally restricted to tiles the player has explored. */
+        exits: function (save, knownOnly) {
+            var region = save.regions[save.party.region];
+            var bytes = R.mask.decode(region.mask);
+            var origin = save.party.region.split(',');
+            var result = [];
+            var dir;
+            for (dir in directions) {
+                var delta = directions[dir];
+                var target = (Number(origin[0]) + delta[0]) + ',' + (Number(origin[1]) + delta[1]);
+                if (!R.worldgen.linked(save.regionGraph, save.party.region, target)) { continue; }
+                var x = delta[0] < 0 ? 1 : delta[0] > 0 ? N.REGION_SIZE - 2 : N.REGION_CENTER;
+                var y = delta[1] < 0 ? 1 : delta[1] > 0 ? N.REGION_SIZE - 2 : N.REGION_CENTER;
+                if (!knownOnly || R.mask.has(bytes, y * region.size + x)) { result.push({ dir: dir, target: target, x: x, y: y, blocked: R.worldgen.isBlocked(save.regionGraph, save.party.region, target) }); }
+            }
+            return result;
+        },
+        /** Describes nearby traces inside the current region without revealing a future map. */
+        clues: function (save) {
+            var region = save.regions[save.party.region];
+            var result = [{ key: 'clue.' + region.theme, values: {} }];
+            var nearest = null;
+            var distance = N.CLUE_RADIUS + 1;
+            var i;
+            for (i = 0; i < region.sites.length; i++) {
+                var site = region.sites[i];
+                var steps = Math.abs(site.x - save.party.x) + Math.abs(site.y - save.party.y);
+                if (site.state === 'unknown' && steps < distance) { nearest = site; distance = steps; }
+            }
+            if (nearest) {
+                var dx = nearest.x - save.party.x; var dy = nearest.y - save.party.y;
+                var dir = Math.abs(dx) > Math.abs(dy) ? dx < 0 ? 'west' : 'east' : dy < 0 ? 'north' : 'south';
+                result.push({ key: nearest.type === 'dungeon' || nearest.type === 'ship' ? 'clue.building' : nearest.type === 'threat' ? 'clue.tracks' : 'clue.resources', values: { direction: R.t('ui.' + dir) } });
+            } else { result.push({ key: 'clue.keepExploring', values: {} }); }
+            return result;
+        },
         /** Returns the current map and mutable local position. */
         current: function (save) {
             if (save.flags.insideDungeon) {
@@ -100,7 +136,9 @@
                     R.combat.encounter(save, { kind: 'dungeon', depth: view.map.depth });
                 }
             } else {
-                var distance = Math.abs(x - N.REGION_CENTER) + Math.abs(y - N.REGION_CENTER);
+                var distance = Infinity;
+                var c;
+                for (c = 0; c < save.camps.length; c++) { if (save.camps[c].region === save.party.region) { distance = Math.min(distance, Math.abs(x - save.camps[c].x) + Math.abs(y - save.camps[c].y)); } }
                 var site = this.here(save);
                 if (!site && distance > N.VIEW_RADIUS && save.flags.moves % N.ENCOUNTER_CHECK === 0 && R.roll(save) < N.FIGHT_CHANCE) {
                     R.combat.encounter(save, { kind: 'wild' });
@@ -120,7 +158,7 @@
             if (!gateway) { return 'none'; }
             var coordinate = p.region.split(',');
             var target = (Number(coordinate[0]) + delta[0]) + ',' + (Number(coordinate[1]) + delta[1]);
-            if (save.regionGraph.nodes.indexOf(target) < 0) { return 'none'; }
+            if (!R.worldgen.linked(save.regionGraph, p.region, target)) { return 'none'; }
             if (R.worldgen.isBlocked(save.regionGraph, p.region, target)) {
                 if (!p.bag.scaffold) { return 'blocked'; }
                 var scaffold = false;
@@ -194,6 +232,8 @@
                     var camp = save.camps[i];
                     if (camp.region === save.party.region) { overlays[camp.x + ',' + camp.y] = { symbol: 'B', cls: 'camp' }; }
                 }
+                var shelter = save.flags.tempCamp;
+                if (shelter && shelter.region === save.party.region) { overlays[shelter.x + ',' + shelter.y] = { symbol: '^', cls: 'camp' }; }
             }
             for (y = view.position.y - half; y <= view.position.y + half; y++) {
                 var row = [];

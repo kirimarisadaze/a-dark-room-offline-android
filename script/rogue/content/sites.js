@@ -18,6 +18,10 @@
         abyss: { symbol: 'V', kind: 'dungeon' }
     };
     C.dungeons = {
+        clinic: { afterClear: 'resource', resource: 'spring', reward: { medicine: 3, food: 6 } },
+        market: { afterClear: 'resource', resource: 'hunting', reward: { food: 20, water: 12 } },
+        metro: { afterClear: 'infinite', reward: { iron: 10, coal: 12 } },
+        tenement: { afterClear: 'closed', reward: { fur: 8, food: 12 } },
         archive: { afterClear: 'resource', blueprint: 'hull', resource: 'iron', reward: { iron: 12, food: 8 } },
         foundry: { afterClear: 'resource', blueprint: 'drive', resource: 'coal', reward: { steel: 8, coal: 12 } },
         reactor: { afterClear: 'resource', blueprint: 'core', resource: 'crystal', reward: { crystal: 8, sulphur: 8 } },

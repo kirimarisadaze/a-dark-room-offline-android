@@ -55,6 +55,11 @@
         }
         return null;
     };
+    /** Returns the active temporary shelter only at its outdoor position. */
+    R.atTemp = function (save) {
+        var camp = save.flags.tempCamp;
+        return !save.flags.insideDungeon && camp && camp.expiresAt > save.turn && camp.region === save.party.region && camp.x === save.party.x && camp.y === save.party.y ? camp : null;
+    };
     /** Sums the effects of completed technologies. */
     R.bonus = function (save, effect) {
         var total = 0;
@@ -125,6 +130,9 @@
                 flags: { rng: seed || 1831565813, log: [], moves: 0, dungeonMoves: 0, memorial: [], abyssBest: 0 }
             };
             save.regions['0,0'] = R.worldgen.buildRegion(save, '0,0');
+            var refuge = save.regions['0,0'].refuge;
+            save.party.x = refuge.x; save.party.y = refuge.y;
+            save.camps[0].x = refuge.x; save.camps[0].y = refuge.y;
             R.map.reveal(save);
             R.log(save, 'log.begin');
             return save;
@@ -155,6 +163,7 @@
             for (i = 0; i < count; i++) {
                 if (save.over && !save.flags.abyss) { break; }
                 save.turn += 1;
+                if (save.flags.tempCamp && save.flags.tempCamp.expiresAt <= save.turn) { delete save.flags.tempCamp; R.log(save, 'log.tempExpired'); }
                 if (!save.flags.abyss) { R.settle.settleCamps(save); }
                 this.tickPartyEffects(save);
                 save.day = Math.floor(save.turn / N.TURNS_PER_DAY);

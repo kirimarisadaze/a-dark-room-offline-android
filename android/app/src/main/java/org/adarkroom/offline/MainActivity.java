@@ -340,7 +340,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
                         : new String(Base64.decode(encoded.replaceAll("\\s", ""), Base64.DEFAULT), StandardCharsets.UTF_8);
                 JSONObject save = new JSONObject(json);
                 if (isRoguePage()) {
-                    if (save.optInt("version", -1) != 1 || !(save.opt("party") instanceof JSONObject)
+                    if ((save.optInt("version", -1) != 1 && save.optInt("version", -1) != 2) || !(save.opt("party") instanceof JSONObject)
                             || !(save.opt("regions") instanceof JSONObject) || !save.has("camps")) throw new Exception();
                 } else {
                     for (String key : new String[]{"stores", "features", "game", "config"}) {
@@ -390,7 +390,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void showAbout() {
-        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.1.0")
+        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.2.0")
                 .setMessage("A Dark Room 网页版的独立中文离线封装\n原作：Michael Townsend / doublespeak games 及贡献者\n\n游戏、中文翻译、音效均在安装包中。无需服务器；没有联网权限。进度保存在应用内部，卸载或清除数据前请备份。\n\n上游：github.com/doublespeakgames/adarkroom\n源码基线：1fada4620b6c\n许可：Mozilla Public License 2.0\n\n本封装不属于官方商店版本。")
                 .setPositiveButton("关闭", null)
                 .setNeutralButton("开源许可", (dialog, which) -> showLicense()).show();

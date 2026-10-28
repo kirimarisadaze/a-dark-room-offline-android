@@ -35,11 +35,14 @@ function hash(save) { return createHash('sha256').update(JSON.stringify(save)).d
 function mark(name) { checks.push(name); console.log('PASS ' + name); }
 const env = realm();
 const { R } = env;
+const shapes = new Set();
 for (let seed = 0; seed < 10000; seed++) {
     const graph = R.worldgen.buildRegionGraph(seed);
     assert.equal(R.worldgen.assertGraph(graph), true);
+    shapes.add(Array.from(graph.nodes).sort().join('|'));
 }
-mark('T5: 10,000 seeds preserve all nine reachable regions, unique tiers and open-road difficulty bounds');
+assert(shapes.size > 1000, 'worlds must grow into varied arrangements');
+mark('T5: 10,000 seeds preserve nine reachable regions with unique tiers and over 1,000 distinct arrangements');
 const maps = [];
 for (let repeat = 0; repeat < 3; repeat++) {
     const save = run(env);
@@ -63,6 +66,7 @@ for (let repeat = 0; repeat < 3; repeat++) {
 }
 assert.equal(maps[0], maps[1]); assert.equal(maps[1], maps[2]);
 mark('T1/T6: seed 42 generates identical maps in three runs; all floors/sites connect and every boundary stays sealed');
+const startingPositions = new Set();
 for (let seed = 0; seed < 100; seed++) {
     const graph = R.worldgen.buildRegionGraph(seed);
     for (const key of graph.nodes) {
@@ -75,9 +79,25 @@ for (let seed = 0; seed < 100; seed++) {
             assert(!occupied.has(site.x + ',' + site.y)); occupied.add(site.x + ',' + site.y);
         }
         for (let i = 0; i < tiles.length; i++) if (tiles[i] !== '#') assert.notEqual(reachable[i], undefined);
+        if (region.tier === 1) { assert.notEqual(reachable[region.refuge.y * region.size + region.refuge.x], undefined); startingPositions.add(region.refuge.x + ',' + region.refuge.y); }
     }
 }
+assert(startingPositions.size > 75, 'the starting refuge must vary within its region');
 mark('900 additional regional maps have reachable unique sites and no isolated walkable terrain');
+const fogged = run(env);
+assert.equal(fogged.camps.length, 1);
+assert.equal(fogged.party.x, fogged.regions['0,0'].refuge.x);
+assert.equal(fogged.party.y, fogged.camps[0].y);
+assert.equal(Object.keys(fogged.regions).length, 1);
+assert.equal(R.map.exits(fogged, true).length, 0);
+const fogBytes = R.mask.decode(fogged.regions['0,0'].mask);
+let revealed = 0;
+for (let i = 0; i < R.NUM.REGION_SIZE * R.NUM.REGION_SIZE; i++) if (R.mask.has(fogBytes, i)) revealed++;
+assert(revealed <= 61);
+const beforeClues = hash(fogged);
+assert(R.map.clues(fogged).length >= 1);
+assert.equal(hash(fogged), beforeClues);
+mark('random initial refuge, lazy world exploration and read-only local clues preserve undiscovered terrain');
 const replay = [];
 for (let repeat = 0; repeat < 2; repeat++) {
     const isolated = realm();
@@ -102,22 +122,108 @@ for (let i = 0; i < 600; i++) R.state.act({ type: 'forage' });
 assert.equal(env.storage.getItem('gameState'), normalBefore);
 mark('T4 model: 600 player actions never change the normal gameState bytes');
 const sharing = run(env);
-sharing.camps.push({ id: 1, region: '0,0', x: 31, y: 30, fire: 1, pop: 1, jobs: {}, stores: {}, buildings: {} });
-sharing.camps.push({ id: 2, region: '0,0', x: 32, y: 30, fire: 1, pop: 1, jobs: {}, stores: {}, buildings: {} });
+sharing.camps.push({ id: 1, region: '0,0', x: sharing.party.x + 1, y: sharing.party.y, fire: 1, pop: 1, jobs: {}, stores: {}, buildings: {} });
 R.stores(sharing).wood = 123;
 sharing.party.bag.wood = 7;
 assert.equal(R.state.act({ type: 'deposit' }), true);
 assert.equal(R.stores(sharing).wood, 130);
 sharing.activeCamp = 1;
-sharing.party.x = 31;
+sharing.party.x += 1;
 assert.equal(R.state.act({ type: 'craft', item: 'spear' }), true);
 assert.equal(R.stores(sharing).wood, 118);
-sharing.activeCamp = 2;
-sharing.party.x = 32;
+sharing.activeCamp = 0;
 assert.equal(R.stores(sharing).wood, 118);
 assert.equal(Object.keys(sharing.camps[1].stores).length, 0);
-assert.equal(Object.keys(sharing.camps[2].stores).length, 0);
-mark('T7: deposit at camp A funds crafting at B and the remaining warehouse is immediately available at C');
+mark('T7: both permanent settlements use one shared warehouse without duplicate inventories');
+/** Places a test party on reachable empty outdoor ground without invoking a game action. */
+function emptyGround(save, region = save.party.region) {
+    save.party.region = region;
+    if (!save.regions[region]) save.regions[region] = R.worldgen.buildRegion(save, region);
+    const tiles = R.rle.decode(save.regions[region].tiles, R.NUM.REGION_SIZE);
+    for (let i = 0; i < tiles.length; i++) {
+        if (tiles[i] !== '.') continue;
+        save.party.x = i % R.NUM.REGION_SIZE; save.party.y = Math.floor(i / R.NUM.REGION_SIZE);
+        if (R.settle.canPitch(save) && !R.atTemp(save)) { R.map.reveal(save); return; }
+    }
+    assert.fail('expected reachable empty ground');
+}
+const expansion = run(env);
+R.stores(expansion).wood = 500; R.stores(expansion).stone = 300; R.stores(expansion).food = 500;
+emptyGround(expansion);
+assert.equal(R.state.act({ type: 'newCamp' }), false);
+assert.equal(expansion.turn, 0);
+for (const site of expansion.regions['0,0'].sites) if (site.type === 'threat') site.state = 'cleared';
+assert.equal(R.state.act({ type: 'newCamp' }), true);
+assert.equal(expansion.camps.length, 2);
+assert.equal(R.stores(expansion).wood, 500 - R.NUM.CAMP_UNLOCK.wood);
+assert.equal(R.stores(expansion).stone, 300 - R.NUM.CAMP_UNLOCK.stone);
+emptyGround(expansion, expansion.regionGraph.nodes[1]);
+const beforeThird = hash(expansion);
+assert.equal(R.state.act({ type: 'newCamp' }), false);
+assert.equal(hash(expansion), beforeThird);
+assert.equal(R.save.validate(expansion), true);
+expansion.party.region = expansion.camps[0].region; expansion.party.x = expansion.camps[0].x; expansion.party.y = expansion.camps[0].y;
+assert.equal(R.state.act({ type: 'dismantle' }), false);
+for (const protectedPlace of ['camp', 'temporary', 'party']) {
+    const isolated = realm(), state = run(isolated), region = state.regions['0,0'];
+    const target = { region: '0,0', x: isolated.R.NUM.REGION_CENTER + isolated.R.NUM.VIEW_RADIUS + 1, y: isolated.R.NUM.REGION_CENTER };
+    const tiles = isolated.R.rle.decode(region.tiles, region.size);
+    tiles[target.y * region.size + target.x] = '.'; region.tiles = isolated.R.rle.encode(tiles); region.sites = [];
+    if (protectedPlace === 'camp') Object.assign(state.camps[0], target);
+    if (protectedPlace === 'temporary') state.flags.tempCamp = { ...target, expiresAt: 100 };
+    if (protectedPlace === 'party') Object.assign(state.party, target);
+    isolated.R.roll = () => 0;
+    isolated.R.settle.onNewDay(state);
+    assert.equal(region.sites.length, 0, 'threats must not spawn under ' + protectedPlace);
+}
+mark('two camps is a world-wide limit; invalid construction charges nothing and threats never spawn underneath a refuge, temporary camp or party');
+const temporary = run(env);
+temporary.party.bag.campKit = 3; temporary.party.bag.wood = 3;
+R.stores(temporary).food = 500;
+assert.equal(R.state.act({ type: 'deployTemp' }), false);
+emptyGround(temporary);
+assert.equal(R.state.act({ type: 'deployTemp' }), true);
+assert.equal(temporary.camps.length, 1);
+assert.equal(temporary.party.bag.campKit, 2);
+assert.equal(temporary.flags.tempCamp.expiresAt - temporary.turn, R.NUM.TEMP_TURNS);
+assert.equal(R.save.validate(R.save.load(0)), true);
+const beforeDeposit = hash(temporary);
+assert.equal(R.state.act({ type: 'deposit' }), false);
+assert.equal(hash(temporary), beforeDeposit);
+temporary.party.hp = 2; temporary.party.water = 8; temporary.party.food = 8;
+const restTurn = temporary.turn;
+assert.equal(R.state.act({ type: 'restTemp' }), true);
+assert.equal(temporary.turn, restTurn + R.NUM.TEMP_REST_TURNS);
+assert.equal(temporary.party.water, 6); assert.equal(temporary.party.food, 6); assert.equal(temporary.party.hp, 6);
+temporary.party.water = 1;
+const beforeFailedRest = hash(temporary);
+assert.equal(R.state.act({ type: 'restTemp' }), false); assert.equal(hash(temporary), beforeFailedRest);
+const previousTemp = JSON.stringify(temporary.flags.tempCamp);
+emptyGround(temporary);
+assert.equal(R.state.act({ type: 'deployTemp' }), true);
+assert.notEqual(JSON.stringify(temporary.flags.tempCamp), previousTemp);
+assert.equal(temporary.party.bag.campKit, 1);
+assert.equal(R.state.act({ type: 'packTemp' }), true);
+assert.equal(temporary.flags.tempCamp, undefined); assert.equal(temporary.party.bag.campKit, 1);
+assert.equal(R.state.act({ type: 'deployTemp' }), true);
+R.state.advance(R.NUM.TEMP_TURNS);
+assert.equal(temporary.flags.tempCamp, undefined);
+assert.equal(temporary.camps.length, 1);
+mark('temporary camp deployment, replacement, paid rest, save/load, dismantling and expiry never create a warehouse or permanent slot');
+const legacyRaw = fs.readFileSync(path.join(root, 'scripts/fixtures/rogue-v1.json'), 'utf8');
+const legacy = JSON.parse(legacyRaw);
+env.storage.setItem('rogueSlot0', legacyRaw);
+const upgraded = R.save.load(0);
+assert(upgraded); assert.equal(upgraded.version, 2); assert.equal(upgraded.camps.length, 2);
+assert.equal(env.storage.getItem('rogueSlot0'), legacyRaw, 'loading must not rewrite an existing slot');
+assert.equal(JSON.stringify(upgraded.regionGraph), JSON.stringify(legacy.regionGraph));
+assert.equal(JSON.stringify(upgraded.party), JSON.stringify(legacy.party));
+assert.equal(JSON.stringify(upgraded.regions), JSON.stringify(legacy.regions).replaceAll('"ownerCamp":' + legacy.camps[2].id, '"ownerCamp":' + legacy.camps[0].id));
+assert.equal(upgraded.camps[0].pop, legacy.camps[0].pop + legacy.camps[2].pop);
+assert.equal(upgraded.flags.tempCamp.x, legacy.camps[2].x);
+assert.equal(R.save.validate(upgraded), true);
+assert.equal(env.storage.getItem('gameState'), normalBefore);
+mark('authentic v1 completed run upgrades without rerolling terrain/RNG/progress, relocates surplus villagers and preserves the raw slot until saved');
 const starving = run(env);
 starving.camps[0].pop = 2; starving.camps[0].stores.food = 0;
 R.state.advance(1); assert.equal(starving.camps[0].pop, 1);
@@ -250,6 +356,30 @@ if (process.argv.includes('--playthrough')) {
     gatherResource('hunting', 2);
     for (let i = 0; i < 5 && expedition.camps[0].pop < 4; i++) act({ type: 'night' });
     while (expedition.party.companions.length < 2) act({ type: 'recruit' });
+    /** Makes room for survival supplies using the same deliberate cargo action as the UI. */
+    function clearCargo(spare) {
+        const capacity = expedition.party.bag.pack ? G.NUM.BAG_UPGRADED : G.NUM.BAG_BASE;
+        const resources = ['wood', 'stone', 'iron', 'coal', 'fur', 'crystal', 'steel', 'sulphur'];
+        while (G.bagWeight(expedition) > capacity - spare) {
+            const item = resources.find(item => expedition.party.bag[item] > 0);
+            assert(item, 'survival supplies need free cargo space');
+            act({ type: 'drop', item });
+        }
+    }
+    /** Uses regional resource sites as supply stops on long routes between two bases. */
+    function wildSupply() {
+        const sites = expedition.regions[expedition.party.region].sites;
+        const hunting = sites.find(site => site.type === 'hunting');
+        if (hunting && expedition.party.food + (expedition.party.bag.food || 0) < 80) {
+            walkTo(hunting.x, hunting.y);
+            for (let i = 0; i < 12 && (expedition.party.bag.food || 0) < 56; i++) { clearCargo(6); act({ type: 'gather' }); }
+        }
+        const spring = sites.find(site => site.type === 'spring');
+        if (spring && expedition.party.water + (expedition.party.bag.water || 0) < 120) {
+            walkTo(spring.x, spring.y);
+            for (let i = 0; i < 8 && (expedition.party.bag.water || 0) < 40; i++) { clearCargo(8); act({ type: 'gather' }); }
+        }
+    }
     /** Moves between regions through their real interior exits using an open graph route. */
     function travel(target) {
         const graph = expedition.regionGraph;
@@ -268,19 +398,23 @@ if (process.argv.includes('--playthrough')) {
             const dir = bx < ax ? 'west' : bx > ax ? 'east' : by < ay ? 'north' : 'south';
             walkTo(bx < ax ? 1 : bx > ax ? G.NUM.REGION_SIZE - 2 : G.NUM.REGION_CENTER, by < ay ? 1 : by > ay ? G.NUM.REGION_SIZE - 2 : G.NUM.REGION_CENTER);
             act({ type: 'move', dir });
-            if (next !== target && expedition.camps.some(camp => camp.region === next)) homeAndSupply();
+            if (next !== target) {
+                if (expedition.camps.some(camp => camp.region === next)) homeAndSupply();
+                else wildSupply();
+            }
         }
     }
     /** Establishes a legal outpost only after clearing every local threat. */
     function settleLocal() {
         let attempts = 0;
-        while (expedition.regions[expedition.party.region].sites.some(site => site.type === 'threat' && site.state !== 'cleared')) {
+        while (true) {
+            walkTo(G.NUM.REGION_CENTER, G.NUM.REGION_CENTER);
+            if (!expedition.regions[expedition.party.region].sites.some(site => site.type === 'threat' && site.state !== 'cleared')) break;
             assert(attempts++ < 20);
             const threat = expedition.regions[expedition.party.region].sites.find(site => site.type === 'threat' && site.state !== 'cleared');
             walkTo(threat.x, threat.y); act({ type: 'clear' });
         }
-        walkTo(G.NUM.REGION_CENTER, G.NUM.REGION_CENTER);
-        if (expedition.camps.length >= 3) {
+        if (expedition.camps.length >= G.NUM.MAX_CAMPS) {
             const disposable = expedition.camps.find(camp => camp.id && camp.region !== expedition.party.region);
             travel(disposable.region); walkTo(disposable.x, disposable.y); act({ type: 'dismantle' });
             travel(Object.keys(expedition.regions).find(key => expedition.regions[key].tier === currentTier));
@@ -292,9 +426,9 @@ if (process.argv.includes('--playthrough')) {
     for (currentTier = 2; currentTier <= 9; currentTier++) {
         homeAndSupply();
         prepare({ wood: 180, stone: 80 });
-        if (expedition.camps.length >= 3 && G.atCamp(expedition).id !== 0) act({ type: 'dismantle' });
+        if (expedition.camps.length >= G.NUM.MAX_CAMPS && G.atCamp(expedition).id !== 0) act({ type: 'dismantle' });
         const key = expedition.regionGraph.nodes.find(key => expedition.regionGraph.tier[key] === currentTier);
-        travel(key); settleLocal();
+        travel(key); wildSupply(); settleLocal();
         if (currentTier === 2) { gatherResource('iron', 8); craft('sword'); craft('mail'); }
         if (currentTier === 3) { gatherResource('coal', 8); }
         if (currentTier >= 3 && !expedition.party.bag.blade) { for (let i = 0; i < 3; i++) craft('steel'); craft('blade'); }

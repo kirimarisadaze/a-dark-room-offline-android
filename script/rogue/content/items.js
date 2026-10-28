@@ -17,6 +17,7 @@
         waterskin: { kind: 'tool', cost: { fur: 4, wood: 5 } },
         canteen: { kind: 'tool', cost: { iron: 10, steel: 4 }, blueprint: 'canteen', workshop: true },
         pack: { kind: 'tool', cost: { fur: 8, wood: 12 } },
+        campKit: { kind: 'tool', cost: { wood: 10, fur: 2 } },
         scaffold: { kind: 'tool', cost: { wood: 30, iron: 6 }, workshop: true },
         medicine: { kind: 'consume', heal: 12, cost: { food: 8, sulphur: 2 } },
         steel: { kind: 'resource', quantity: 4, cost: { iron: 6, coal: 4 }, workshop: true },
