@@ -226,8 +226,8 @@
     $('<span>').addClass('offline-bar-label').text('消息').appendTo(messagesButton);
     $('<span>').attr('id', 'offline-message-preview').appendTo(messagesButton);
     $('<button>').attr({ id: 'offline-menu-button', type: 'button', 'aria-controls': 'offline-menu-panel',
-      'aria-expanded': 'false' }).text('菜单').appendTo(bar).on('click', function () { toggleSheet('menu'); });
-    messagesButton.on('click', function () { toggleSheet('messages'); });
+      'aria-expanded': 'false' }).text('菜单').appendTo(bar).on('click', function (event) { toggleSheet('menu', event); });
+    messagesButton.on('click', function (event) { toggleSheet('messages', event); });
 
     var menu = makeSheet('menu', '菜单');
     var settings = $('<div>').addClass('offline-settings-grid').appendTo(menu);
@@ -267,7 +267,7 @@
     return $('<div>').addClass('offline-sheet-content').appendTo(panel);
   }
 
-  function toggleSheet(name) {
+  function toggleSheet(name, event) {
     var panel = document.getElementById('offline-' + name + '-panel');
     var opening = panel && panel.hidden;
     closeSheets();
@@ -277,7 +277,10 @@
       document.getElementById('offline-sheet-backdrop').hidden = false;
       document.getElementById('offline-' + name + '-button').setAttribute('aria-expanded', 'true');
       document.body.classList.add('offline-sheet-open');
-      document.getElementById('offline-' + name + '-close').focus();
+      // Only keyboard activation moves focus; touch must not outline the close control.
+      if (!event || (event.originalEvent || event).detail === 0) {
+        document.getElementById('offline-' + name + '-close').focus();
+      }
     }
   }
 

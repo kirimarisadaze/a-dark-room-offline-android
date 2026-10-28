@@ -704,14 +704,14 @@
   {
     "apkPath": "assets/game/mobile.css",
     "archivePath": "game/mobile.css",
-    "bytes": 18115,
-    "sha256": "fe41200cfd045b4588e794db3edba4fd9c1f8e1cffc63125979aa4629a244e22"
+    "bytes": 18441,
+    "sha256": "8f54cf26d237ac87824ac8d8360a626becf566bd67dc6828093ad228e38f60cd"
   },
   {
     "apkPath": "assets/game/offline.js",
     "archivePath": "game/offline.js",
-    "bytes": 23458,
-    "sha256": "e8d64c0225ca993b432b88fb2cbc2f373011a9f58f83778ccafd9b55ae3cbcb2"
+    "bytes": 23655,
+    "sha256": "0e4eb3a56a1b104a32a6d1d4c49b273748735c9411949ca3688b4bd03fbc0788"
   },
   {
     "apkPath": "assets/game/script/audio.js",
