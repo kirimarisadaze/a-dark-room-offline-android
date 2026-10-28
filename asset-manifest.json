@@ -1,0 +1,878 @@
+[
+  {
+    "apkPath": "assets/game/LICENSE.md",
+    "archivePath": "game/LICENSE.md",
+    "bytes": 16734,
+    "sha256": "d7fc444cae8da4b95b9d0356b145dfc530d45b16965da953fa02dbb9ce004572"
+  },
+  {
+    "apkPath": "assets/game/about.html",
+    "archivePath": "game/about.html",
+    "bytes": 19468,
+    "sha256": "18a13ba40d0ec566f7649b516008b99de6dad97ab5a927194bb0b60a5fc1a917"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-1.flac",
+    "archivePath": "game/audio/asteroid-hit-1.flac",
+    "bytes": 12220,
+    "sha256": "00ac27ef7382f93bdcf0192a9479f622c8b5bc0a92fb7df0b20d133515c52383"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-2.flac",
+    "archivePath": "game/audio/asteroid-hit-2.flac",
+    "bytes": 16516,
+    "sha256": "5659647274862a3e171e949dc95378070b1627d97283324f759530894517f035"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-3.flac",
+    "archivePath": "game/audio/asteroid-hit-3.flac",
+    "bytes": 14529,
+    "sha256": "ab6c0d85b952e83a7f0bd86841e146840e29e11e98d7cdf99c186bc241112157"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-4.flac",
+    "archivePath": "game/audio/asteroid-hit-4.flac",
+    "bytes": 17693,
+    "sha256": "69268f3326135f0e5d02a1e85118c8b8c73a5751ab6a14111819cdc15b684be0"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-5.flac",
+    "archivePath": "game/audio/asteroid-hit-5.flac",
+    "bytes": 21555,
+    "sha256": "7a194408fca97d0b5e23fcc547d52564337092f3ae304aa664e373df258c9321"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-6.flac",
+    "archivePath": "game/audio/asteroid-hit-6.flac",
+    "bytes": 28101,
+    "sha256": "3b8f0f0fe0fb73496172d303976b05df26c9ebe2ae60974763ed28093dc3ece4"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-7.flac",
+    "archivePath": "game/audio/asteroid-hit-7.flac",
+    "bytes": 27784,
+    "sha256": "3e8ca50c20c92954fb56de6e0e1d3815b2b469f7313c563422a0df5417a21e82"
+  },
+  {
+    "apkPath": "assets/game/audio/asteroid-hit-8.flac",
+    "archivePath": "game/audio/asteroid-hit-8.flac",
+    "bytes": 24940,
+    "sha256": "b8c1d318f464732ea1d5f8f056244ba3b240de05718bb2b3e592919261777f76"
+  },
+  {
+    "apkPath": "assets/game/audio/build.flac",
+    "archivePath": "game/audio/build.flac",
+    "bytes": 13095,
+    "sha256": "8a052a6e2f2a9c8cf239bf53fb4566388de3d819e822f4e2b95a701c9499c231"
+  },
+  {
+    "apkPath": "assets/game/audio/buy.flac",
+    "archivePath": "game/audio/buy.flac",
+    "bytes": 2471,
+    "sha256": "33fa584c7f6d3063b658c93d4254621c32d41fe6744c4fc560170e52ce2fe922"
+  },
+  {
+    "apkPath": "assets/game/audio/check-traps.flac",
+    "archivePath": "game/audio/check-traps.flac",
+    "bytes": 8615,
+    "sha256": "cdd65163f9a11659a12cca34453f9f877b00f6ccea5da9d0145b30f96f5d2ae6"
+  },
+  {
+    "apkPath": "assets/game/audio/craft.flac",
+    "archivePath": "game/audio/craft.flac",
+    "bytes": 9295,
+    "sha256": "b3f469eb9d871691d6cf837342b95516ed22631cbd1e3c313dd9eaf07e1f51e2"
+  },
+  {
+    "apkPath": "assets/game/audio/crash.flac",
+    "archivePath": "game/audio/crash.flac",
+    "bytes": 38102,
+    "sha256": "077c20d2375e9b43e80f8ec1aa0a9a7be74201f16a29e76bd6ddbd7971e30d86"
+  },
+  {
+    "apkPath": "assets/game/audio/death.flac",
+    "archivePath": "game/audio/death.flac",
+    "bytes": 9382,
+    "sha256": "14927ec1a836e7b5b4d847cac342507b435fb8ccd0973b5031d4beb18b400274"
+  },
+  {
+    "apkPath": "assets/game/audio/dusty-path.flac",
+    "archivePath": "game/audio/dusty-path.flac",
+    "bytes": 101488,
+    "sha256": "ecc489d51b00eb8c42183e2fa77fadc00c430731e011c749b63b9ac4e2dd58e8"
+  },
+  {
+    "apkPath": "assets/game/audio/eat-meat.flac",
+    "archivePath": "game/audio/eat-meat.flac",
+    "bytes": 5684,
+    "sha256": "029a482210aa5966750893c719fc348ceecc3f310d22c8cbeb6a3ff9ec6e6d13"
+  },
+  {
+    "apkPath": "assets/game/audio/embark.flac",
+    "archivePath": "game/audio/embark.flac",
+    "bytes": 5975,
+    "sha256": "61fe584bcd27afcd4e8fedd2995d4b896b7386c1738204073c4c99769dfede5b"
+  },
+  {
+    "apkPath": "assets/game/audio/encounter-tier-1.flac",
+    "archivePath": "game/audio/encounter-tier-1.flac",
+    "bytes": 78947,
+    "sha256": "d394a86adc8db12c8a4c5a64a79a0e974f2898678bf1f1c2f57ba4de28224ffd"
+  },
+  {
+    "apkPath": "assets/game/audio/encounter-tier-2.flac",
+    "archivePath": "game/audio/encounter-tier-2.flac",
+    "bytes": 79994,
+    "sha256": "8dbb976a1d777154630fa840857427aa60e528037bc09e87472ab0307e9f598e"
+  },
+  {
+    "apkPath": "assets/game/audio/encounter-tier-3.flac",
+    "archivePath": "game/audio/encounter-tier-3.flac",
+    "bytes": 75465,
+    "sha256": "fc1c53ffe6027971deb1dacf390888ba8993da4c22266be3ee12201680955c81"
+  },
+  {
+    "apkPath": "assets/game/audio/ending.flac",
+    "archivePath": "game/audio/ending.flac",
+    "bytes": 123233,
+    "sha256": "b2a36c7f4a24c5b075d7039f85963a54c7d7218ea4b105d99c283ae77ce65d34"
+  },
+  {
+    "apkPath": "assets/game/audio/event-beast-attack.flac",
+    "archivePath": "game/audio/event-beast-attack.flac",
+    "bytes": 56847,
+    "sha256": "e04a0e247d9fe50d3feba791ad608c81fdf4521744829fd8197b55c33277f4d7"
+  },
+  {
+    "apkPath": "assets/game/audio/event-beggar.flac",
+    "archivePath": "game/audio/event-beggar.flac",
+    "bytes": 64440,
+    "sha256": "1155ec61bb49efa1b392c2fe5b1f67e19bd6a7859f0a1dd860718ce85076f553"
+  },
+  {
+    "apkPath": "assets/game/audio/event-hut-fire.flac",
+    "archivePath": "game/audio/event-hut-fire.flac",
+    "bytes": 89478,
+    "sha256": "c6aae0af0a3e7c434ac7440fd3f3055e038efbf32192eaa39443c69c49935286"
+  },
+  {
+    "apkPath": "assets/game/audio/event-mysterious-wanderer.flac",
+    "archivePath": "game/audio/event-mysterious-wanderer.flac",
+    "bytes": 79726,
+    "sha256": "097ae60cefad90d22921f9417f985eb4267b4777b08ac687e6cbeafce7e387c0"
+  },
+  {
+    "apkPath": "assets/game/audio/event-noises-inside.flac",
+    "archivePath": "game/audio/event-noises-inside.flac",
+    "bytes": 63455,
+    "sha256": "4c730c661c0654a2889c847c04655ca5306c96ef23a937d6e945e028b5f46e03"
+  },
+  {
+    "apkPath": "assets/game/audio/event-noises-outside.flac",
+    "archivePath": "game/audio/event-noises-outside.flac",
+    "bytes": 54170,
+    "sha256": "339fe475bc158196df129a100f3692780593effd10e8824e59f3bc7ce66c9bcd"
+  },
+  {
+    "apkPath": "assets/game/audio/event-nomad.flac",
+    "archivePath": "game/audio/event-nomad.flac",
+    "bytes": 60772,
+    "sha256": "ba67a8009b413c373d20b702928fb7d0bb147f77bd0876f946427dc22b91edeb"
+  },
+  {
+    "apkPath": "assets/game/audio/event-plague.flac",
+    "archivePath": "game/audio/event-plague.flac",
+    "bytes": 54244,
+    "sha256": "52847c1191ef02532f2e64e1bd106c098dcc6d4d83c0b5f34fc4aff23b104a56"
+  },
+  {
+    "apkPath": "assets/game/audio/event-ruined-trap.flac",
+    "archivePath": "game/audio/event-ruined-trap.flac",
+    "bytes": 84707,
+    "sha256": "22dbf4200888802b97255121c903dcbc1a77053bb8c14f405e5c553db9a00ca0"
+  },
+  {
+    "apkPath": "assets/game/audio/event-scout.flac",
+    "archivePath": "game/audio/event-scout.flac",
+    "bytes": 52864,
+    "sha256": "0cd612e53ad719c1d75bb49e6aa5fa009b3a0f5e70283db1491b518d33a6eea9"
+  },
+  {
+    "apkPath": "assets/game/audio/event-shady-builder.flac",
+    "archivePath": "game/audio/event-shady-builder.flac",
+    "bytes": 67035,
+    "sha256": "512a48f8867056396e5ee6082f560f8efb807783caefc73cde20c433c7d33eeb"
+  },
+  {
+    "apkPath": "assets/game/audio/event-sick-man.flac",
+    "archivePath": "game/audio/event-sick-man.flac",
+    "bytes": 49411,
+    "sha256": "143016da283b4b0fbca8f011cf561689f49eff185cf3280f675c2d2483802e0c"
+  },
+  {
+    "apkPath": "assets/game/audio/event-sickness.flac",
+    "archivePath": "game/audio/event-sickness.flac",
+    "bytes": 53011,
+    "sha256": "6651f47857271393fd13b16e96ba2470e8c1b6e21dd371f071d5e8f61444e374"
+  },
+  {
+    "apkPath": "assets/game/audio/event-soldier-attack.flac",
+    "archivePath": "game/audio/event-soldier-attack.flac",
+    "bytes": 87871,
+    "sha256": "87f848e070cfef81acb73245d5d75f46df6a9cb184e3bd96947d5799ac1732b2"
+  },
+  {
+    "apkPath": "assets/game/audio/event-thief.flac",
+    "archivePath": "game/audio/event-thief.flac",
+    "bytes": 69339,
+    "sha256": "429c7e52c4889244534258694451774bb9e18d6b791d979007ddf759bdad76e2"
+  },
+  {
+    "apkPath": "assets/game/audio/event-wandering-master.flac",
+    "archivePath": "game/audio/event-wandering-master.flac",
+    "bytes": 71396,
+    "sha256": "e4226823519b521384f04512fab7e41e9c07bde38316cab110c1ca832194c85d"
+  },
+  {
+    "apkPath": "assets/game/audio/fire-burning.flac",
+    "archivePath": "game/audio/fire-burning.flac",
+    "bytes": 98455,
+    "sha256": "7636842445e17eb4247a7cf5edd234e573183fa88b1ed8b416b31583e9a84109"
+  },
+  {
+    "apkPath": "assets/game/audio/fire-dead.flac",
+    "archivePath": "game/audio/fire-dead.flac",
+    "bytes": 72346,
+    "sha256": "477f0bf09d70f659a26200eae1575200b87ee5959df61a1b81fe7b90c5bdbdf6"
+  },
+  {
+    "apkPath": "assets/game/audio/fire-flickering.flac",
+    "archivePath": "game/audio/fire-flickering.flac",
+    "bytes": 77954,
+    "sha256": "81e190801df4069f7a264db4dade6abf243784ab4c6d4702ec0aa1845927fe03"
+  },
+  {
+    "apkPath": "assets/game/audio/fire-roaring.flac",
+    "archivePath": "game/audio/fire-roaring.flac",
+    "bytes": 75249,
+    "sha256": "c2d035a4416e5a18f620bcece05e348c5aeae61348a94e0be3024759f10b6e2b"
+  },
+  {
+    "apkPath": "assets/game/audio/fire-smoldering.flac",
+    "archivePath": "game/audio/fire-smoldering.flac",
+    "bytes": 70579,
+    "sha256": "8e2566170c343f22a2228540f4b781dbf2bfe4dfd9cc2adab247fa8bcac65b4d"
+  },
+  {
+    "apkPath": "assets/game/audio/footsteps-1.flac",
+    "archivePath": "game/audio/footsteps-1.flac",
+    "bytes": 1314,
+    "sha256": "2a184897621c45c949b60ec7110d7fd49d014254f83efeb90ef63ded5e85ee65"
+  },
+  {
+    "apkPath": "assets/game/audio/footsteps-2.flac",
+    "archivePath": "game/audio/footsteps-2.flac",
+    "bytes": 1415,
+    "sha256": "d4d017c4d639c23451c2b17e4f16c8fa772b73952aa32c46eb9c845a162aa390"
+  },
+  {
+    "apkPath": "assets/game/audio/footsteps-3.flac",
+    "archivePath": "game/audio/footsteps-3.flac",
+    "bytes": 1457,
+    "sha256": "b16e83b06bea11c6e9bcac4b835464db07fea5d0e29490c6881f9024b6705bcf"
+  },
+  {
+    "apkPath": "assets/game/audio/footsteps-4.flac",
+    "archivePath": "game/audio/footsteps-4.flac",
+    "bytes": 1659,
+    "sha256": "209ff980399652ac2cecf0fc0b73c96930d24507ac929bb143642775290c5f72"
+  },
+  {
+    "apkPath": "assets/game/audio/footsteps-5.flac",
+    "archivePath": "game/audio/footsteps-5.flac",
+    "bytes": 1436,
+    "sha256": "bf5bdedba8f5ff51baed8147097b0cdbb142ddb8cba7748af7c874b1d79f77bf"
+  },
+  {
+    "apkPath": "assets/game/audio/footsteps-6.flac",
+    "archivePath": "game/audio/footsteps-6.flac",
+    "bytes": 1593,
+    "sha256": "f5960191d19ad008702e892cee51a9e46303df818780bfc72463574c7bf5753e"
+  },
+  {
+    "apkPath": "assets/game/audio/gather-wood.flac",
+    "archivePath": "game/audio/gather-wood.flac",
+    "bytes": 6705,
+    "sha256": "2ec03d28a4eceb7248f5d5f82b63320a9122345c185f440207b7a417dbbb8cc9"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-battlefield.flac",
+    "archivePath": "game/audio/landmark-battlefield.flac",
+    "bytes": 74839,
+    "sha256": "fc30a91ec66bbd20feda17a861c13f7d9ad100876b596233b0ec64a131833371"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-borehole.flac",
+    "archivePath": "game/audio/landmark-borehole.flac",
+    "bytes": 110871,
+    "sha256": "4c31474b0e0c0e4f21c67c3312b8c482be09ea5b5d117a897a976c6eb9916591"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-cave.flac",
+    "archivePath": "game/audio/landmark-cave.flac",
+    "bytes": 96332,
+    "sha256": "54963a131c1fab0bae6866b1dfc7fd59e4b1bfb98bb58ae4fd6184876d5a1919"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-city.flac",
+    "archivePath": "game/audio/landmark-city.flac",
+    "bytes": 95899,
+    "sha256": "fb7796783ebd2a07a262c1b3f87bdb125bb58d5f513c4dcda925284ef9b635de"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-coalmine.flac",
+    "archivePath": "game/audio/landmark-coalmine.flac",
+    "bytes": 76795,
+    "sha256": "dd5ae8f0b135aa2cb7e16ba1bbacb9d632adf96dbd0067ba8bef7405a16e17a3"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-crashed-ship.flac",
+    "archivePath": "game/audio/landmark-crashed-ship.flac",
+    "bytes": 118544,
+    "sha256": "f614f5580e0d4ecba342fcc30a05453f4d67da72607bf3962ca3399d066136b7"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-destroyed-village.flac",
+    "archivePath": "game/audio/landmark-destroyed-village.flac",
+    "bytes": 101298,
+    "sha256": "8da643c7c1a53533f6e1375370b1beaab9583d9f036a9d538f5a762cc95bc530"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-friendly-outpost.flac",
+    "archivePath": "game/audio/landmark-friendly-outpost.flac",
+    "bytes": 108958,
+    "sha256": "5bd2162f03d2c16bc5441cdcea955bc766736144161fad8b61e7bd8abb895578"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-house.flac",
+    "archivePath": "game/audio/landmark-house.flac",
+    "bytes": 91479,
+    "sha256": "a3d462fd4a8f3fa0962a2e99b7c5aa2134ff121fc86673685022a761c2385cf9"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-ironmine.flac",
+    "archivePath": "game/audio/landmark-ironmine.flac",
+    "bytes": 119474,
+    "sha256": "cea5f14d117588905a753d11efb84c040dd187bb499c7fb14c9eaac230e3ef7f"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-sulphurmine.flac",
+    "archivePath": "game/audio/landmark-sulphurmine.flac",
+    "bytes": 98373,
+    "sha256": "684d2274b9f576d7cf91cff9bcc94ce975430e1aa99939ee75289d4df885cb52"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-swamp.flac",
+    "archivePath": "game/audio/landmark-swamp.flac",
+    "bytes": 105904,
+    "sha256": "dadc0e42caf6863673fd607d86c1496e6286a5b95e503e00b19a80e0a663c6b2"
+  },
+  {
+    "apkPath": "assets/game/audio/landmark-town.flac",
+    "archivePath": "game/audio/landmark-town.flac",
+    "bytes": 160856,
+    "sha256": "268a5b064fa7111abc0f5bec9161461bb87f2b9ac7f6934a6e3e51172c197fd2"
+  },
+  {
+    "apkPath": "assets/game/audio/large-village.flac",
+    "archivePath": "game/audio/large-village.flac",
+    "bytes": 187026,
+    "sha256": "0f9abf0548d230d7d8b3973c6b19e6ccdc1e0f8ada14d28ee127859619fdf9de"
+  },
+  {
+    "apkPath": "assets/game/audio/lift-off.flac",
+    "archivePath": "game/audio/lift-off.flac",
+    "bytes": 19865,
+    "sha256": "3f2028375650a559e9c00d861c4a2974a79b4814b6412c8f425470f8b99f6235"
+  },
+  {
+    "apkPath": "assets/game/audio/light-fire.flac",
+    "archivePath": "game/audio/light-fire.flac",
+    "bytes": 7823,
+    "sha256": "f8472175c25cf020bf6e69072c2fd8958b277080ce94982224ca6a4f3188a314"
+  },
+  {
+    "apkPath": "assets/game/audio/lonely-hut.flac",
+    "archivePath": "game/audio/lonely-hut.flac",
+    "bytes": 140188,
+    "sha256": "a17ee15d65c6bfa0094d183779eef14b008b6ac942bff2135bbdd55c7bf53755"
+  },
+  {
+    "apkPath": "assets/game/audio/modest-village.flac",
+    "archivePath": "game/audio/modest-village.flac",
+    "bytes": 155762,
+    "sha256": "48b87ec5742dcc3ec921ce48ad2890dde6882f18afda9475b220593ec1da51b3"
+  },
+  {
+    "apkPath": "assets/game/audio/raucous-village.flac",
+    "archivePath": "game/audio/raucous-village.flac",
+    "bytes": 202129,
+    "sha256": "a8e3d004a46505ff9157df37e8cddcb25656e7e05e75fc7aa27869ce88042a1e"
+  },
+  {
+    "apkPath": "assets/game/audio/reinforce-hull.flac",
+    "archivePath": "game/audio/reinforce-hull.flac",
+    "bytes": 13631,
+    "sha256": "fdcd112c2c769dcd77da12a21ceed7d234311004522d9a0269873c7a62c0c251"
+  },
+  {
+    "apkPath": "assets/game/audio/ship.flac",
+    "archivePath": "game/audio/ship.flac",
+    "bytes": 120735,
+    "sha256": "019dbc863f8b6e0a509a09404f830ddb60bcb474b0379106143abf58f9b5e971"
+  },
+  {
+    "apkPath": "assets/game/audio/silent-forest.flac",
+    "archivePath": "game/audio/silent-forest.flac",
+    "bytes": 136367,
+    "sha256": "78cee0963b1bd73780630496b4793f202cf02f4b685b059ed8bd94eda956716a"
+  },
+  {
+    "apkPath": "assets/game/audio/space.flac",
+    "archivePath": "game/audio/space.flac",
+    "bytes": 43483,
+    "sha256": "e2c82d466b14abc2338cb2f01f836dffe20dfcb609ee3c3f66111eb752840af4"
+  },
+  {
+    "apkPath": "assets/game/audio/stoke-fire.flac",
+    "archivePath": "game/audio/stoke-fire.flac",
+    "bytes": 6721,
+    "sha256": "c38bc7c9e7dceca7274a9d8f6f0a572abea5527b9a4c65f72a40039b0f39c8f6"
+  },
+  {
+    "apkPath": "assets/game/audio/tiny-village.flac",
+    "archivePath": "game/audio/tiny-village.flac",
+    "bytes": 160616,
+    "sha256": "0e893ad5476cb9423219104b734713d3dd2def2c89005ede74871baf41cc8475"
+  },
+  {
+    "apkPath": "assets/game/audio/upgrade-engine.flac",
+    "archivePath": "game/audio/upgrade-engine.flac",
+    "bytes": 20511,
+    "sha256": "05e5d14ac870b930c8297099e93c96d13a846c836c9a1a5c6ef269aa58bba18e"
+  },
+  {
+    "apkPath": "assets/game/audio/use-meds.flac",
+    "archivePath": "game/audio/use-meds.flac",
+    "bytes": 4164,
+    "sha256": "72bc77ea8a2800755a5316e764fb4a3069b887faefdea76afeed84ce1b2d451c"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-melee-1.flac",
+    "archivePath": "game/audio/weapon-melee-1.flac",
+    "bytes": 6160,
+    "sha256": "f886b41c40b4276f45ff93e3105edb772365c254d9c7eb874e9b2698205cffac"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-melee-2.flac",
+    "archivePath": "game/audio/weapon-melee-2.flac",
+    "bytes": 6476,
+    "sha256": "977436ed54ce36af458a697a767ce41b4662f1131c501c48002c37e3866fb173"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-melee-3.flac",
+    "archivePath": "game/audio/weapon-melee-3.flac",
+    "bytes": 6946,
+    "sha256": "547e7eb47eccff84299fd7603b2e99622aa851bdabda1be26562d68705df86bb"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-ranged-1.flac",
+    "archivePath": "game/audio/weapon-ranged-1.flac",
+    "bytes": 10649,
+    "sha256": "52a7920c85933b6ab61ab88cf72e691f41a76927ba5fc4a0ab3ff5d09b434922"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-ranged-2.flac",
+    "archivePath": "game/audio/weapon-ranged-2.flac",
+    "bytes": 11593,
+    "sha256": "1d7b7ce811f6eb7e713ce7d3ea7b25290ac0ff558fd84aa27477aa08d7fdb75d"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-ranged-3.flac",
+    "archivePath": "game/audio/weapon-ranged-3.flac",
+    "bytes": 11810,
+    "sha256": "f63e8aa73e95cfdcf895c598fc9993a2622bb793be9da7e4e2863e43bfc3d9ea"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-unarmed-1.flac",
+    "archivePath": "game/audio/weapon-unarmed-1.flac",
+    "bytes": 4546,
+    "sha256": "80a268d20411aefdb6be26815b817953eddfb78f8c0c92f621d66fa900e79193"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-unarmed-2.flac",
+    "archivePath": "game/audio/weapon-unarmed-2.flac",
+    "bytes": 4563,
+    "sha256": "574a8329453dd75d69f4e3e33e16ce8c3e7ecf470a6e68d1b1029eee45d2bc8b"
+  },
+  {
+    "apkPath": "assets/game/audio/weapon-unarmed-3.flac",
+    "archivePath": "game/audio/weapon-unarmed-3.flac",
+    "bytes": 4502,
+    "sha256": "9643546b8e88c5445b1980e3a40b9e9ce412c3b6e6fc5ae829525aa72500cee0"
+  },
+  {
+    "apkPath": "assets/game/audio/world.flac",
+    "archivePath": "game/audio/world.flac",
+    "bytes": 146151,
+    "sha256": "51db6e96ed2f54fc2cdd5e7cc8acd76cee9deede8945d19f667951ab27ed53c2"
+  },
+  {
+    "apkPath": "assets/game/css/dark.css",
+    "archivePath": "game/css/dark.css",
+    "bytes": 2895,
+    "sha256": "55ac0881eabefd93c52de20b30c24bdcd4cd7a920ce280f81ece08844990fa65"
+  },
+  {
+    "apkPath": "assets/game/css/fabricator.css",
+    "archivePath": "game/css/fabricator.css",
+    "bytes": 517,
+    "sha256": "0bd6da695b481e3cb50fd4c30b84987500b1b349277978fd28e6d9320dd254fd"
+  },
+  {
+    "apkPath": "assets/game/css/main.css",
+    "archivePath": "game/css/main.css",
+    "bytes": 9899,
+    "sha256": "3edf4abb6b552ecbbce55e682ae89d68ccc7e809448c27a8a6e5e8cd11b59ec1"
+  },
+  {
+    "apkPath": "assets/game/css/outside.css",
+    "archivePath": "game/css/outside.css",
+    "bytes": 855,
+    "sha256": "d8b24f9f615566aa55fe769e06a6e71fe2d1ad8a473c346d7047bdb36a024ca5"
+  },
+  {
+    "apkPath": "assets/game/css/path.css",
+    "archivePath": "game/css/path.css",
+    "bytes": 1025,
+    "sha256": "4ec1137963c8d782baeba60077886d7a42663725a4b48cb7b5c2650298368485"
+  },
+  {
+    "apkPath": "assets/game/css/room.css",
+    "archivePath": "game/css/room.css",
+    "bytes": 848,
+    "sha256": "62afc8795417c0d2f0eaaab5025b60048689dcbfd6b13c8fec3fbee1379239b5"
+  },
+  {
+    "apkPath": "assets/game/css/ship.css",
+    "archivePath": "game/css/ship.css",
+    "bytes": 85,
+    "sha256": "8f5f3209d2be1ddec55c2686294f736f86230c15614c2b1e20cfef782fdd965b"
+  },
+  {
+    "apkPath": "assets/game/css/space.css",
+    "archivePath": "game/css/space.css",
+    "bytes": 2809,
+    "sha256": "215871b3bcce91dfe0e6cbab4cfb6b34510300fbb8b0dea565140fe62f0821fd"
+  },
+  {
+    "apkPath": "assets/game/css/world.css",
+    "archivePath": "game/css/world.css",
+    "bytes": 1265,
+    "sha256": "c6da8f48e5b5ed797c6e5503862db3d4396014e7129fe64f140f1296c6e62b70"
+  },
+  {
+    "apkPath": "assets/game/favicon.ico",
+    "archivePath": "game/favicon.ico",
+    "bytes": 318,
+    "sha256": "e86c144b7c64691cce21c58f84e563a368e7eb4b6b2635c45b0ed04657bea9f2"
+  },
+  {
+    "apkPath": "assets/game/img/Logo1.jpg",
+    "archivePath": "game/img/Logo1.jpg",
+    "bytes": 36459,
+    "sha256": "6063447e9b56d743b56f539afdb5bf679152f4429a6f2328c74fecca243ee048"
+  },
+  {
+    "apkPath": "assets/game/img/adr.png",
+    "archivePath": "game/img/adr.png",
+    "bytes": 5648,
+    "sha256": "40608090deee30737626d6d28f5ca41a091029ef4690d20f122269b345d01557"
+  },
+  {
+    "apkPath": "assets/game/img/chrome.png",
+    "archivePath": "game/img/chrome.png",
+    "bytes": 122169,
+    "sha256": "c0e62b9671b6186283074a91e262f26ca70714208f2390e00dc438e733931c8e"
+  },
+  {
+    "apkPath": "assets/game/img/firefox.png",
+    "archivePath": "game/img/firefox.png",
+    "bytes": 195147,
+    "sha256": "f44384e76d674ce1734e4a467fdd7627d207e16354a01a8ba9dc9b4f09cccd17"
+  },
+  {
+    "apkPath": "assets/game/img/ie.png",
+    "archivePath": "game/img/ie.png",
+    "bytes": 21010,
+    "sha256": "c090566aa782e9277eb1edc3e283d20de410879d4ace39722c5ca5ce9c7d99b0"
+  },
+  {
+    "apkPath": "assets/game/img/opera.png",
+    "archivePath": "game/img/opera.png",
+    "bytes": 44441,
+    "sha256": "0e3bee0e7111428c60175b103c0d463b1719e1a01e004458604f4349ecb7eeb0"
+  },
+  {
+    "apkPath": "assets/game/img/safari.png",
+    "archivePath": "game/img/safari.png",
+    "bytes": 89216,
+    "sha256": "f334249ce8af68951edfe066af9dc8e8b0e77fe4acaa876d26f1519a6da94aad"
+  },
+  {
+    "apkPath": "assets/game/index.html",
+    "archivePath": "game/index.html",
+    "bytes": 4853,
+    "sha256": "8faaf79ac1a73ecff400f76d294bcada9f866aa4c42068186bdbae0aaae7317a"
+  },
+  {
+    "apkPath": "assets/game/lang/langs.js",
+    "archivePath": "game/lang/langs.js",
+    "bytes": 40,
+    "sha256": "a31f0a51def11c29d783680fd2e5e230b934e9012cb9801f07cb4867fdf36dc3"
+  },
+  {
+    "apkPath": "assets/game/lang/zh_cn/main.css",
+    "archivePath": "game/lang/zh_cn/main.css",
+    "bytes": 129,
+    "sha256": "c6b96c1b01d4c7f8728739221d78213ae812c9aad1d5d37db09806f4d047309a"
+  },
+  {
+    "apkPath": "assets/game/lang/zh_cn/strings.js",
+    "archivePath": "game/lang/zh_cn/strings.js",
+    "bytes": 67429,
+    "sha256": "96e517f5cfc6b17d2d1be9d3c4a79b37b7e1029ccd3ec9536c94e9098b9d866c"
+  },
+  {
+    "apkPath": "assets/game/lang/zh_cn/strings.po",
+    "archivePath": "game/lang/zh_cn/strings.po",
+    "bytes": 89758,
+    "sha256": "ce19a1cf5f389d8ce4a3e8dec59c2c2689b5b5d350ce95e2fe90ed800a024485"
+  },
+  {
+    "apkPath": "assets/game/lib/base64.js",
+    "archivePath": "game/lib/base64.js",
+    "bytes": 2963,
+    "sha256": "f649ef327b59653164e4f19576a65edf14d463f8d10f3b1002188e06beba7182"
+  },
+  {
+    "apkPath": "assets/game/lib/icu.js",
+    "archivePath": "game/lib/icu.js",
+    "bytes": 3213,
+    "sha256": "fda068c6f611d78a57f3bf436c239200f6b92465a7e0b39c8385ce72653ab198"
+  },
+  {
+    "apkPath": "assets/game/lib/jquery.color-2.1.2.min.js",
+    "archivePath": "game/lib/jquery.color-2.1.2.min.js",
+    "bytes": 6604,
+    "sha256": "1f6f127715ab677f3b2dd9f4aa8802cc58940c3c5f3e2348c895fb0440909031"
+  },
+  {
+    "apkPath": "assets/game/lib/jquery.event.move.js",
+    "archivePath": "game/lib/jquery.event.move.js",
+    "bytes": 14595,
+    "sha256": "8b29f58063911f56ffddaa34f5910d9b248d31312721f528f14648a049ba0407"
+  },
+  {
+    "apkPath": "assets/game/lib/jquery.event.swipe.js",
+    "archivePath": "game/lib/jquery.event.swipe.js",
+    "bytes": 3236,
+    "sha256": "fe97d5929ac75f91d307d831d1e58843912f490f4143b971960cdba28c395f20"
+  },
+  {
+    "apkPath": "assets/game/lib/jquery.min.js",
+    "archivePath": "game/lib/jquery.min.js",
+    "bytes": 93057,
+    "sha256": "8bf150f6b29d6c9337de6c945a8f63c929b203442040688878bc2753fe13e007"
+  },
+  {
+    "apkPath": "assets/game/lib/translate.js",
+    "archivePath": "game/lib/translate.js",
+    "bytes": 1649,
+    "sha256": "8c27c075103f8f2018513f517af80cd507155c60c3bc5a97d4e08794293cffff"
+  },
+  {
+    "apkPath": "assets/game/mobile.css",
+    "archivePath": "game/mobile.css",
+    "bytes": 9127,
+    "sha256": "f69f1f2696984211806c94c2266b0d4f0bc26c524bf5902846d6d711a408e455"
+  },
+  {
+    "apkPath": "assets/game/offline.js",
+    "archivePath": "game/offline.js",
+    "bytes": 14229,
+    "sha256": "b690155e53309e99227ebdcdd7a4abdb36849812112a8b6cdcef5ac3ec6a7c57"
+  },
+  {
+    "apkPath": "assets/game/script/Button.js",
+    "archivePath": "game/script/Button.js",
+    "bytes": 3466,
+    "sha256": "5f572fafc93dddf3619142b24864fe6ccca21a42482a5fcfb0717b2e98c49533"
+  },
+  {
+    "apkPath": "assets/game/script/audio.js",
+    "archivePath": "game/script/audio.js",
+    "bytes": 12163,
+    "sha256": "d56b5621fc0a2d73d7edfd6cd5c4df5f4ebdb91dce5cfff10c7ade4b20cf89bb"
+  },
+  {
+    "apkPath": "assets/game/script/audioLibrary.js",
+    "archivePath": "game/script/audioLibrary.js",
+    "bytes": 4261,
+    "sha256": "3ef3f660b65ce72cdad46a2c9cdcf1be84e878fbf11fc6bda1925bbc804588ac"
+  },
+  {
+    "apkPath": "assets/game/script/dropbox.js",
+    "archivePath": "game/script/dropbox.js",
+    "bytes": 10361,
+    "sha256": "7fcd8b4b35fb1486de0f471e5a142fec0514e7ab72a9529899d14f888176cb5f"
+  },
+  {
+    "apkPath": "assets/game/script/engine.js",
+    "archivePath": "game/script/engine.js",
+    "bytes": 27168,
+    "sha256": "e3ab30d0c34cb8cef6a7ab67f88085509eb831ce2b9448a61125cb570a737d88"
+  },
+  {
+    "apkPath": "assets/game/script/events.js",
+    "archivePath": "game/script/events.js",
+    "bytes": 39078,
+    "sha256": "c09f55a8821ea47c1015eb275c72b299528d21bb6bf9e05aa8ef8556a9c3cde2"
+  },
+  {
+    "apkPath": "assets/game/script/events/encounters.js",
+    "archivePath": "game/script/events/encounters.js",
+    "bytes": 8356,
+    "sha256": "85d7b26d76003e517a2cbcee074ba92f310a1c058afe093069464cdb4506de3a"
+  },
+  {
+    "apkPath": "assets/game/script/events/executioner.js",
+    "archivePath": "game/script/events/executioner.js",
+    "bytes": 58104,
+    "sha256": "bbac88cc64da20b9d80a44544c1c12fa60a4f29004f1418eb84e6d1b4d50369b"
+  },
+  {
+    "apkPath": "assets/game/script/events/global.js",
+    "archivePath": "game/script/events/global.js",
+    "bytes": 1636,
+    "sha256": "e0057233548faaac2f87325066cd676d5ba7a320981abb6cde994f50d8b7053e"
+  },
+  {
+    "apkPath": "assets/game/script/events/marketing.js",
+    "archivePath": "game/script/events/marketing.js",
+    "bytes": 994,
+    "sha256": "1dccab6d1ada98d929ae9b20ae12c45c5c61412c83e6271611171153f645e67a"
+  },
+  {
+    "apkPath": "assets/game/script/events/outside.js",
+    "archivePath": "game/script/events/outside.js",
+    "bytes": 7298,
+    "sha256": "f3cd0b0d882258db3dcd21e8eea46276fdbe9e32e6de6039fca3381e4ab5449f"
+  },
+  {
+    "apkPath": "assets/game/script/events/room.js",
+    "archivePath": "game/script/events/room.js",
+    "bytes": 16140,
+    "sha256": "b9360390b89aec740b6bb17838c0a22500f35ddf2961a6c506369b6a1cf887d7"
+  },
+  {
+    "apkPath": "assets/game/script/events/setpieces.js",
+    "archivePath": "game/script/events/setpieces.js",
+    "bytes": 67718,
+    "sha256": "d16d5602299ff212ea18b0b1701b2b63666917b6c8e5e806134d206400bb7906"
+  },
+  {
+    "apkPath": "assets/game/script/fabricator.js",
+    "archivePath": "game/script/fabricator.js",
+    "bytes": 7162,
+    "sha256": "0e7ef3884c82db125221c8c15ba5e167da3e46723b0765de64784635dd40b4b5"
+  },
+  {
+    "apkPath": "assets/game/script/header.js",
+    "archivePath": "game/script/header.js",
+    "bytes": 707,
+    "sha256": "214b91dfc7c347e17e96779ba95441f50c4037cb15dfcb9f518a3f730970385a"
+  },
+  {
+    "apkPath": "assets/game/script/localization.js",
+    "archivePath": "game/script/localization.js",
+    "bytes": 1371,
+    "sha256": "5bb15cc74cd399f6b221db80d70a74e2c962c8e95a162bf32cf940a2b5401d38"
+  },
+  {
+    "apkPath": "assets/game/script/notifications.js",
+    "archivePath": "game/script/notifications.js",
+    "bytes": 2015,
+    "sha256": "c103d1715423009b6650aa1a794bb58e7224fb32b1326818ed61c1e0fa92cebc"
+  },
+  {
+    "apkPath": "assets/game/script/outside.js",
+    "archivePath": "game/script/outside.js",
+    "bytes": 18489,
+    "sha256": "3f770f7da741b964e016c78801722ca8a58980f1eb6f9748f922b573d341f451"
+  },
+  {
+    "apkPath": "assets/game/script/path.js",
+    "archivePath": "game/script/path.js",
+    "bytes": 10780,
+    "sha256": "5f332dd65d74919eeeef97126dd5fc9031661c593355041f160a5ed40c922850"
+  },
+  {
+    "apkPath": "assets/game/script/prestige.js",
+    "archivePath": "game/script/prestige.js",
+    "bytes": 2369,
+    "sha256": "6c1253534ccb6405d4271bbf6ffe7a5a0c082a11063a6026903c14a231e26c9c"
+  },
+  {
+    "apkPath": "assets/game/script/room.js",
+    "archivePath": "game/script/room.js",
+    "bytes": 33594,
+    "sha256": "1ab0ba74c5463f451bad9e6d8e5c6e871b3e0301878f0283f779b4d1bc6c5e81"
+  },
+  {
+    "apkPath": "assets/game/script/scoring.js",
+    "archivePath": "game/script/scoring.js",
+    "bytes": 849,
+    "sha256": "228a55d5bb91173d12a9f82a7c506c03247d9092902c8f0c818500436de21db4"
+  },
+  {
+    "apkPath": "assets/game/script/ship.js",
+    "archivePath": "game/script/ship.js",
+    "bytes": 4798,
+    "sha256": "efde525a884fed3cc1f3f6d84d66bc02fa47a123beb4e91c30c86e2b5377ef1c"
+  },
+  {
+    "apkPath": "assets/game/script/space.js",
+    "archivePath": "game/script/space.js",
+    "bytes": 16115,
+    "sha256": "5ac2f472b40c68ce9149e904c543f0991ead45f9a2e7326e4d52be26b612602b"
+  },
+  {
+    "apkPath": "assets/game/script/state_manager.js",
+    "archivePath": "game/script/state_manager.js",
+    "bytes": 12672,
+    "sha256": "85441d6f3143c99818938644dc15f0ba0a1fb740a4904b02d5d96347015e5826"
+  },
+  {
+    "apkPath": "assets/game/script/world.js",
+    "archivePath": "game/script/world.js",
+    "bytes": 33825,
+    "sha256": "330c0498855588d07c67da7361b6f02dfaa06da9c240a684998eb75629611855"
+  },
+  {
+    "apkPath": "assets/game/zh-cn-extra.js",
+    "archivePath": "game/zh-cn-extra.js",
+    "bytes": 24705,
+    "sha256": "899c9eacfe171c3b2f8105adf73f4f17a3e64b0000194058fd66664f9b71b8e9"
+  }
+]
