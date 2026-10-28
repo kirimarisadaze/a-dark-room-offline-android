@@ -6,6 +6,8 @@
   var frame = null;
   var held = {};
   var repeatTimer = null;
+  var worldPointer = null;
+  var ignoreNavigationClick = false;
   var pausedAt = null;
   var resetScroll = false;
   var fullMap = false;
@@ -102,8 +104,10 @@
     releaseControls: function () {
       Object.keys(held).forEach(function (key) { Engine.keyUp({ which: Number(key) }); });
       held = {};
+      worldPointer = null;
       clearInterval(repeatTimer);
       repeatTimer = null;
+      $('#offline-controls .offline-direction').removeClass('offline-held').attr('aria-pressed', 'false');
       tiltX = 0;
       if (typeof Space !== 'undefined') { Space.left = Space.right = Space.up = Space.down = false; }
     },
@@ -289,12 +293,14 @@
       toggle.setAttribute('aria-pressed', String(fullMap));
     }
     tiles.style.transform = '';
-    if (fullMap) { map.style.height = ''; return; }
     var menu = document.getElementById('offline-bottom-bar');
     var menuTop = menu ? menu.getBoundingClientRect().top : document.documentElement.clientHeight - 100;
     var mapTop = map.getBoundingClientRect().top;
-    // Reserve the direction row below the viewport, outside the map itself.
-    map.style.height = Math.min(360, Math.max(150, menuTop - mapTop - 84)) + 'px';
+    var controls = document.getElementById('offline-controls');
+    var controlTop = controls && !controls.hidden ? controls.getBoundingClientRect().top : menuTop - 180;
+    // The map ends above the cross-shaped controls even on short viewports.
+    map.style.height = Math.max(72, Math.floor(controlTop - mapTop - 12)) + 'px';
+    if (fullMap) { return; }
     var wanderer = Array.prototype.find.call(tiles.querySelectorAll('.landmark'), function (node) {
       return node.firstChild && node.firstChild.nodeValue === '@';
     });
@@ -583,21 +589,138 @@
   Path.updateOutfitting = function () { var result = originalOutfitting.apply(Path, arguments); scheduleLayout(); return result; };
   Notifications.clearHidden = function () { $('#notifications .notification').slice(60).remove(); };
   var originalStartEvent = Events.startEvent;
-  Events.startEvent = function () { closeSheets(); return originalStartEvent.apply(Events, arguments); };
+  Events.startEvent = function () {
+    var navigationTouch = worldPointer !== null;
+    closeSheets(); OfflineGame.releaseControls();
+    if (navigationTouch) { ignoreNavigationClick = true; }
+    var result = originalStartEvent.apply(Events, arguments);
+    scheduleLayout();
+    return result;
+  };
   var originalStartCombat = Events.startCombat;
   Events.startCombat = function () {
     var result = originalStartCombat.apply(Events, arguments);
-    Events.eventPanel().addClass('offline-combat');
+    Events.eventPanel().removeClass('offline-loot').addClass('offline-combat');
     return result;
   };
   var originalStartStory = Events.startStory;
   Events.startStory = function () {
-    if (Events.activeEvent()) { Events.eventPanel().removeClass('offline-combat'); }
+    if (Events.activeEvent()) { Events.eventPanel().removeClass('offline-combat offline-loot'); }
     return originalStartStory.apply(Events, arguments);
   };
+
+  // Keep the upstream inventory/capacity rules and button handlers. Only the
+  // loot presentation and the separate collect/leave interaction change.
+  var originalDrawLoot = Events.drawLoot;
+  Events.drawLoot = function () {
+    Events.eventPanel().removeClass('offline-combat').addClass('offline-loot');
+    var result = originalDrawLoot.apply(Events, arguments);
+    arrangeLoot(); scheduleLayout();
+    return result;
+  };
+  var originalLootRow = Events.drawLootRow;
+  Events.drawLootRow = function () {
+    var row = originalLootRow.apply(Events, arguments);
+    $('<div>').addClass('offline-loot-item').append($('<span>').addClass('offline-loot-name'))
+      .append($('<span>').addClass('offline-loot-count')).prependTo(row);
+    row.children('.lootTake').off('mouseenter');
+    return row;
+  };
+  var originalSetTakeAll = Events.setTakeAll;
+  Events.setTakeAll = function () {
+    var result = originalSetTakeAll.apply(Events, arguments);
+    arrangeLoot();
+    return result;
+  };
+  var originalCanLeave = Events.canLeave;
+  Events.canLeave = function (button) {
+    if (!button.closest('#lootButtons').length) { return originalCanLeave.apply(Events, arguments); }
+    button.data('canLeave', false);
+    arrangeLoot();
+  };
+  var originalGetLoot = Events.getLoot;
+  Events.getLoot = function () {
+    $('#dropMenu').remove();
+    var result = originalGetLoot.apply(Events, arguments);
+    arrangeLoot(); scheduleLayout();
+    return result;
+  };
+  var originalDrawDrop = Events.drawDrop;
+  Events.drawDrop = function (button) {
+    originalDrawDrop.apply(Events, arguments);
+    var menu = $('#dropMenu');
+    if (!menu.length) { return; }
+    // A full backpack opens choices below the item, never a hover overlay.
+    button.off('mouseleave');
+    menu.data('offline-target', button).attr('data-legend', '选择换出物品，腾出空间')
+      .appendTo(button.closest('.lootRow'));
+    menu.children('#no_drop').text('取消替换');
+    menu.children('div').attr({ role: 'button', tabindex: '0' }).off('keydown.offline').on('keydown.offline', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); $(this).trigger('click'); }
+    });
+  };
+  var originalDropStuff = Events.dropStuff;
+  Events.dropStuff = function () {
+    var menu = $(this).closest('#dropMenu'), target = menu.data('offline-target');
+    // The original handler locates the target via its nearest button. Restore
+    // that relationship during the synchronous exchange, before the next paint.
+    if (target && target.length) { menu.appendTo(target); }
+    var result = originalDropStuff.apply(this, arguments);
+    arrangeLoot(); scheduleLayout();
+    return result;
+  };
+
+  function arrangeLoot() {
+    if (!Events.activeEvent()) { return; }
+    var panel = Events.eventPanel(), loot = panel.find('#lootButtons');
+    var summary = panel.find('#offline-loot-summary');
+    if (!loot.length && !summary.length) { return; }
+    panel.removeClass('offline-combat').addClass('offline-loot');
+    var exits = panel.find('#exitButtons');
+    exits.toggleClass('offline-single-exit', exits.children('.button').length === 1);
+    if (!summary.length) {
+      summary = $('<div>').attr('id', 'offline-loot-summary').insertBefore(loot);
+      $('<span>').addClass('offline-loot-heading').appendTo(summary);
+      $('<span>').attr('id', 'offline-loot-capacity').appendTo(summary);
+    }
+    var free = Math.max(0, Math.round(Path.getFreeSpace() * 10) / 10);
+    summary.children('.offline-loot-heading').text(loot.find('.lootRow').length ? '获得物品' : '没有待拾取物品');
+    summary.children('#offline-loot-capacity').text('背包剩余 ' + free + ' / ' + Path.getCapacity());
+    loot.children('.lootRow').each(function () {
+      var row = $(this), name = row.data('item'), take = row.children('.lootTake'), all = row.children('.lootTakeAll');
+      var count = Number(take.data('numLeft')) || 0;
+      row.find('.offline-loot-name').text(_(name));
+      row.find('.offline-loot-count').text('×' + count);
+      var fits = Path.getWeight(name) <= free;
+      var text = fits ? '拿 1' : '替换';
+      if (take.text() !== text) { take.text(text); }
+      take.attr({ role: 'button', tabindex: '0', 'aria-label': (fits ? '拾取一件' : '换出物品以拾取') + _(name) });
+      all.contents().filter(function () { return this.nodeType === 3; }).remove();
+      var amount = Math.max(0, Number(all.data('numLeft')) || 0);
+      all.children('span').first().text(amount === 0 ? '装不下' : amount >= count ? '全拿' : '拿 ' + amount);
+      all.attr({ role: 'button', tabindex: '0', 'aria-disabled': String(all.hasClass('disabled')), 'aria-label': '拾取' + _(name) + ' ' + amount + ' 件' });
+    });
+    var everything = loot.find('#loot_takeEverything');
+    everything.data('canLeave', false).attr({ role: 'button', tabindex: '0', 'aria-disabled': String(everything.hasClass('disabled')) });
+    everything.children('span').first().text(everything.hasClass('disabled') ? '背包已满' : everything.data('canTakeEverything') ? '全部拾取' : '拾取能装下的物品');
+    loot.find('.lootTake,.lootTakeAll,#loot_takeEverything').off('keydown.offline').on('keydown.offline', function (event) {
+      if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); $(this).trigger('click'); }
+    });
+  }
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') { OfflineGame.back(); }
   });
+  // A landmark can open a modal underneath a finger that is still holding a
+  // direction. Its release must not activate the newly appeared leave button.
+  document.addEventListener('pointerdown', function (event) {
+    if (event.isPrimary) { ignoreNavigationClick = false; }
+  }, true);
+  document.addEventListener('click', function (event) {
+    if (ignoreNavigationClick && event.isTrusted && event.detail !== 0) {
+      ignoreNavigationClick = false;
+      event.preventDefault(); event.stopImmediatePropagation();
+    }
+  }, true);
 
   function compactStoreCount(value) {
     var count = Math.max(0, Math.floor(Number(value) || 0));
@@ -879,6 +1002,7 @@
     document.body.classList.toggle('offline-world', inWorld);
     document.body.classList.toggle('offline-space', inSpace);
     arrangePanels();
+    arrangeLoot();
     $('.location').removeClass('offline-active');
     if (activeModule.panel) { activeModule.panel.addClass('offline-active'); }
     var controls = document.getElementById('offline-controls');
@@ -926,15 +1050,23 @@
       button.setAttribute('data-direction', direction[0]);
       button.textContent = direction[1];
       button.setAttribute('aria-label', direction[3]);
+      button.setAttribute('aria-pressed', 'false');
       button.addEventListener('pointerdown', function (event) {
         event.preventDefault();
         if (Engine.keyLock || document.body.classList.contains('offline-sheet-open') || (activeModule !== World && activeModule !== Space)) { return; }
+        if (activeModule === World) {
+          if (!event.isPrimary) { return; }
+          OfflineGame.releaseControls();
+          worldPointer = event.pointerId;
+        }
         button.setPointerCapture(event.pointerId);
         held[direction[2]] = true;
+        button.classList.add('offline-held');
+        button.setAttribute('aria-pressed', 'true');
         Engine.keyDown({ which: direction[2], keyCode: direction[2] });
         applyTilt();
         // World movement repeats slowly; flight has its own 30fps movement loop.
-        if (activeModule === World && !repeatTimer) {
+        if (activeModule === World && !Engine.keyLock && !repeatTimer) {
           repeatTimer = setInterval(function () {
             if (activeModule !== World || Engine.keyLock) { return; }
             Object.keys(held).forEach(function (key) { Engine.keyDown({ which: Number(key) }); });
@@ -943,6 +1075,9 @@
       });
       function release(event) {
         if (event) { event.preventDefault(); }
+        if (worldPointer !== null && (!event || event.pointerId === worldPointer)) { OfflineGame.releaseControls(); return; }
+        button.classList.remove('offline-held');
+        button.setAttribute('aria-pressed', 'false');
         if (!held[direction[2]]) { return; }
         delete held[direction[2]];
         Engine.keyUp({ which: direction[2] });
@@ -952,7 +1087,26 @@
       button.addEventListener('pointerup', release);
       button.addEventListener('pointercancel', release);
       button.addEventListener('lostpointercapture', release);
+      button.addEventListener('click', function (event) {
+        if (event.detail !== 0 || activeModule !== World || Engine.keyLock || document.body.classList.contains('offline-sheet-open')) { return; }
+        Engine.keyDown({ which: direction[2], keyCode: direction[2] });
+        Engine.keyUp({ which: direction[2] });
+      });
       controls.appendChild(button);
+    });
+    controls.addEventListener('pointermove', function (event) {
+      if (activeModule !== World || worldPointer !== event.pointerId || Engine.keyLock) { return; }
+      var hit = document.elementFromPoint(event.clientX, event.clientY);
+      var next = hit && hit.closest('#offline-controls .offline-direction');
+      var key = next && Number({ up: 38, left: 37, down: 40, right: 39 }[next.getAttribute('data-direction')]);
+      if (key && held[key]) { return; }
+      Object.keys(held).forEach(function (code) { Engine.keyUp({ which: Number(code) }); });
+      held = {};
+      $('#offline-controls .offline-direction').removeClass('offline-held').attr('aria-pressed', 'false');
+      if (!key) { return; }
+      held[key] = true;
+      next.classList.add('offline-held'); next.setAttribute('aria-pressed', 'true');
+      Engine.keyDown({ which: key, keyCode: key });
     });
     document.body.appendChild(controls);
   }

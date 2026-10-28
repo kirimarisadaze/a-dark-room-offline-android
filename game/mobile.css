@@ -205,37 +205,65 @@ div.tooltip { max-width: min(240px,65vw); font-size: 14px; line-height: 1.5; }
 .offline-combat #buttons > #healButtons { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; flex: none; margin: 0; padding-top: 10px; border-top: 1px solid var(--offline-line); }
 .offline-combat #buttons > #exitButtons { flex: none; margin: 0; }
 .offline-combat .button { padding: 8px 4px; min-height: 44px; }
+/* Loot is a compact list, independent of the combat panel's fixed height. */
+.eventPanel.offline-loot { display: flex; flex-direction: column; height: auto; overflow: hidden; }
+.offline-loot .eventTitle { flex: none; margin-bottom: 14px; }
+.offline-loot #description { flex: 0 1 auto; min-height: 0; overflow-y: auto; }
+.offline-loot #description > div { padding-bottom: 8px; }
+#offline-loot-summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 16px; justify-content: space-between; }
+#offline-loot-capacity { color: var(--offline-muted); font-size: max(12px,calc(var(--offline-font-size,16px) - 3px)); font-variant-numeric: tabular-nums; }
+.offline-loot #description #lootButtons { margin: 8px 0 0; padding: 0; }
+.offline-loot #lootButtons::before { display: none; }
+.offline-loot #lootButtons .lootRow { display: grid; grid-template-columns: minmax(0,1fr) 48px 56px; align-items: center; gap: 6px 8px; padding: 6px 0; }
+.offline-loot-item { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 8px; min-width: 0; }
+.offline-loot-name { overflow-wrap: anywhere; }
+.offline-loot-count { color: var(--offline-muted); font-size: max(13px,calc(var(--offline-font-size,16px) - 3px)); font-variant-numeric: tabular-nums; }
+.offline-loot #lootButtons .lootTake, .offline-loot #lootButtons .lootTakeAll { min-height: 44px; padding: 6px 2px; font-size: 14px; }
+.offline-loot #lootButtons .takeETrow { margin-top: 10px; }
+.offline-loot #lootButtons .clear { display: none; }
+.offline-loot #buttons { display: flex; flex: none; flex-direction: column; gap: 12px; margin-top: 14px; }
+.offline-loot #buttons > #exitButtons { order: 1; margin-top: 0; }
+.offline-loot #buttons > #exitButtons.offline-single-exit { grid-template-columns: minmax(0,1fr); }
+.offline-loot #buttons > #healButtons { order: 0; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; margin-top: 0; }
+.offline-loot #buttons > #healButtons .button { padding: 8px 2px; font-size: 14px; }
+.offline-loot #dropMenu { box-sizing: border-box; position: static; display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-column: 1/-1; gap: 8px; width: 100%; max-height: min(200px,32vh); overflow-y: auto; margin: 4px 0 8px; padding: 12px; border: 1px solid var(--offline-line); background: var(--offline-surface); color: var(--offline-ink); box-shadow: none; font-size: 14px; }
+.offline-loot #dropMenu::before { grid-column: 1/-1; margin: 0; padding: 0 0 4px; border: 0; }
+.offline-loot #dropMenu > div { box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-height: 44px; margin: 0; padding: 6px; border: 1px solid var(--offline-line); text-align: center; }
+.offline-loot #dropMenu > div:hover { text-decoration: none; }
+.offline-loot #dropMenu > div:active { background: var(--offline-fill); }
+.offline-loot #dropMenu > #no_drop { grid-column: 1/-1; }
 /* A readable viewport onto the unchanged world grid. */
 .offline-world #main, .offline-space #main { display: none; }
 .offline-space div#content, .offline-space div#outerSlider { overflow: hidden; }
 #worldOuter { display: block; width: 100%; max-width: 700px; font-size: 16px; }
-#offline-world-status { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 6px 16px; margin: 0 0 12px; padding: 0 0 12px; border-bottom: 1px solid var(--offline-line); }
+#offline-world-status { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 4px 16px; margin: 0 0 8px; padding: 0 0 8px; border-bottom: 1px solid var(--offline-line); }
 #offline-world-status #backpackTitle, #offline-world-status #backpackSpace, #offline-world-status #healthCounter { display: block; position: static; top: auto; left: auto; right: auto; background: transparent; z-index: auto; white-space: normal; }
 #backpackTitle { grid-column: 1; }
 #healthCounter { grid-column: 2; grid-row: 1; text-align: right; }
-#backpackSpace { grid-column: 1/-1; }
-#bagspace-world { box-sizing: border-box; width: 100% !important; height: auto; min-height: 0; margin: 0 0 16px; padding: 0; border: 0; overflow: visible; }
-#bagspace-world > div { display: flex; flex-wrap: wrap; gap: 8px 12px; padding: 0; }
-div.supplyItem { float: none; margin: 0; padding: 0 0 2px; border: 0; border-bottom: 1px solid var(--offline-line); }
-#offline-map-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 8px; font-size: 14px; }
+#backpackSpace { grid-column: 1/-1; color: var(--offline-muted); font-size: 14px; }
+#worldOuter #bagspace-world { box-sizing: border-box; width: 100% !important; height: auto; min-height: 0; max-height: 60px; margin: 0 0 4px; padding: 0; border: 0; overflow-y: auto; }
+#worldOuter #bagspace-world > div { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0; }
+#worldOuter #bagspace-world div.supplyItem { float: none; margin: 0; padding: 0; border: 0; color: var(--offline-muted); font-size: 14px; line-height: 1.6; }
+#offline-map-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 4px; font-size: 14px; }
 #offline-map-toggle { border: 0; background: transparent; color: inherit; font: inherit; min-height: 40px; padding: 6px 0 6px 12px; text-decoration: underline; }
-#map { box-sizing: border-box; display: block; width: 100%; max-width: 100%; height: 240px; font-size: 16px; line-height: 10px; letter-spacing: 0; white-space: nowrap; cursor: default; }
+#worldOuter #map { box-sizing: border-box; display: block; width: 100%; max-width: 100%; height: 240px; border-color: var(--offline-line); font-size: 20px; line-height: 14px; letter-spacing: 0; white-space: nowrap; cursor: default; }
 #map .offline-map-tiles { position: absolute; top: 0; left: 0; display: inline-block; width: max-content; font: inherit; letter-spacing: inherit; }
-#map.offline-map-full { width: fit-content; height: auto; font-size: min(2.25vw,12px); line-height: .65; }
+#worldOuter #map.offline-map-full { width: 100%; overflow: auto; font-size: min(2.25vw,12px); line-height: .65; }
 #map.offline-map-full .offline-map-tiles { position: relative; transform: none !important; }
 #offline-controls { display: grid; position: fixed; bottom: 76px; right: 20px; z-index: 45; grid-template-columns: repeat(3,48px); grid-template-rows: repeat(2,48px); gap: 6px; user-select: none; touch-action: none; }
 .offline-direction { color: var(--offline-ink); background: var(--offline-surface); border: 1px solid var(--offline-line); border-radius: 0; font: 24px Georgia,serif; padding: 0; touch-action: none; }
-.offline-direction:active { background: #ddd; }
+.offline-direction:active, .offline-direction.offline-held { background: var(--offline-fill); border-color: var(--offline-ink); }
 .offline-direction.up { grid-column: 2; grid-row: 1; }
 .offline-direction.left { grid-column: 1; grid-row: 2; }
 .offline-direction.down { grid-column: 2; grid-row: 2; }
 .offline-direction.right { grid-column: 3; grid-row: 2; }
-.offline-world #offline-controls { grid-template-columns: repeat(4,48px); grid-template-rows: 48px; left: 20px; right: 20px; justify-content: center; }
-.offline-world .offline-direction { grid-row: 1; }
-.offline-world .offline-direction.left { grid-column: 1; }
-.offline-world .offline-direction.up { grid-column: 2; }
-.offline-world .offline-direction.down { grid-column: 3; }
-.offline-world .offline-direction.right { grid-column: 4; }
+.offline-world #offline-controls { grid-template-columns: repeat(3,52px); grid-template-rows: repeat(3,52px); left: 20px; right: 20px; justify-content: center; }
+.offline-world #offline-controls::before { content: '移动'; grid-column: 2; grid-row: 2; align-self: center; justify-self: center; color: var(--offline-muted); font-size: 12px; pointer-events: none; }
+.offline-world .offline-direction { font-size: 28px; }
+.offline-world .offline-direction.left { grid-column: 1; grid-row: 2; }
+.offline-world .offline-direction.up { grid-column: 2; grid-row: 1; }
+.offline-world .offline-direction.down { grid-column: 2; grid-row: 3; }
+.offline-world .offline-direction.right { grid-column: 3; grid-row: 2; }
 #spacePanel { transform-origin: top left; width: 700px !important; height: 700px !important; top: 0 !important; left: 0 !important; }
 #spacePanel #hullRemaining { visibility: hidden; }
 #offline-flight-status { display: none; position: fixed; top: 16px; left: 20px; right: 20px; z-index: 35; justify-content: space-between; gap: 16px; font-size: 16px; line-height: 1.5; pointer-events: none; }
@@ -246,7 +274,7 @@ div.supplyItem { float: none; margin: 0; padding: 0 0 2px; border: 0; border-bot
 .endGame { font-size: 28px; }
 .outro { font-size: 20px; }
 body.offline-dark { --offline-surface: #272823; --offline-ink: #eee; --offline-line: #62635a; --offline-muted: #b1b2a9; --offline-fill: #42443b; color-scheme: dark; }
-body.offline-dark .offline-direction:active { background: #555; }
+body.offline-dark .offline-direction:active { background: var(--offline-fill); }
 body.noMask .eventPanel { background: var(--offline-surface); color: var(--offline-ink); box-shadow: 0 0 0 200vmax rgba(0,0,0,.25); }
 body.noMask .eventPanel .eventTitle, body.noMask .eventPanel #description { color: var(--offline-ink); background: transparent; }
 body.noMask .eventPanel .button, body.noMask .eventPanel #buttons > .button { color: var(--offline-ink); border-color: var(--offline-line); }
@@ -258,4 +286,7 @@ body.offline-dark.noMask .eventPanel #buttons .button { color: var(--offline-ink
   div#wrapper { padding-left: 32px; padding-right: 32px; }
   #offline-bottom-bar { padding-left: 32px; padding-right: 32px; }
   #offline-controls { right: 32px; }
+}
+@media (max-height: 600px) {
+  .offline-world #offline-controls { grid-template-columns: repeat(3,44px); grid-template-rows: repeat(3,44px); gap: 4px; }
 }
