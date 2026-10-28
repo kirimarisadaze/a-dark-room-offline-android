@@ -1,0 +1,305 @@
+# 小黑屋 · 纯离线 Android 中文版
+
+**纯 AI 项目**：本仓库的 Android 封装、移动端适配、附加功能、测试脚本、文档与发布整理，均由 AI 根据用户需求和反馈完成。游戏原作、上游代码、翻译、音效及第三方库来自各自原作者，署名与许可保留，不能将这些上游成果归为 AI 原创。
+
+基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的非官方安卓移植。游戏和资源全部装在 APK 中，固定简体中文，安装后可直接断网游玩。
+
+[下载最新版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.0.12.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+
+| 项目 | 说明 |
+| --- | --- |
+| 当前版本 | **1.0.12**，versionCode **13** |
+| 应用名称 / 包名 | 小黑屋 · 离线 / `org.adarkroom.offline` |
+| 运行要求 | Android **6.0+**，Android System WebView **80+** |
+| 语言 | 安装包仅含简体中文 |
+| 联网与权限 | 无 `INTERNET` 权限，无存储读写权限，无运行时权限请求 |
+| 存档 | 本地自动保存，支持文件备份 / 恢复和存档代码 |
+| 许可 | [MPL-2.0](LICENSE.md)，保留上游及第三方署名 |
+
+## 目录
+
+- [安装与升级](#安装与升级)
+- [功能与操作](#功能与操作)
+- [界面预览](#界面预览)
+- [存档与备份](#存档与备份)
+- [完全离线如何实现](#完全离线如何实现)
+- [从源码构建](#从源码构建)
+- [测试与验证范围](#测试与验证范围)
+- [版本与源码归档](#版本与源码归档)
+- [常见问题](#常见问题)
+- [目录结构](#目录结构)
+- [来源、许可与贡献](#来源许可与贡献)
+
+## 安装与升级
+
+1. 从 [最新 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest) 下载 `.apk`，无需下载源码包。
+2. 把 APK 保存到安卓手机，允许当前浏览器或文件管理器“安装未知应用”，打开安装。
+3. 启动“小黑屋 · 离线”。首次启动也不需要网络、账号、服务器或额外资源下载。
+4. 安装后可开启飞行模式游玩。旧系统如使用过旧的 WebView，请在断网前先将其更新到 80 或以上。
+
+本项目发布的各版包名与签名一致，可直接覆盖升级并保留本机存档。升级前建议先导出一份存档。其他作者的安卓版可能使用不同的包名、签名和存档位置，需要先导出兼容的存档代码再导入。
+
+最新版安装包约 **5.4 MiB**；SHA-256：
+
+```text
+b6b03b8de104a6fc6027446c5a68f4708f10776beaf41eb110611b5013a6c510
+```
+
+Release 附有同名 `.sha256`。Windows 可用以下命令检查下载文件：
+
+```powershell
+Get-FileHash .\a-dark-room-offline-1.0.12.apk -Algorithm SHA256
+```
+
+## 功能与操作
+
+### 手机界面
+
+- 顶部标签切换已解锁场景；在场景空白处左右滑动也可切换。竖向滑动用于滚动，地图、飞船、按钮和弹窗区域使用各自的操作。
+- 建筑、制作、交易、制造与飞船升级在点击前直接显示材料需求和缺少数量，卡片尺寸稳定，分类可折叠。
+- 仓库采用紧凑名称 / 数量表；大数量显示“万 / 亿”，内部计算和存档保留完整数值。
+- 村民管理汇总总人数、已分工人数和自动伐木人数，可每次增减 **1 人 / 10 人**，职业旁直接显示产出与消耗。
+- 事件、消息历史和战斗居中显示；战斗采用紧凑弹窗，武器多时攻击区单独滚动，治疗操作保持可见。
+- 底部“菜单”集中提供日夜主题、**16–22px** 字号、声音、存档与其他设置；前台游玩时保持屏幕常亮。
+
+### 探索与收获
+
+- 探索方向键为十字布局：点击走一格，按住连续走，按住后滑向其他方向可直接换向。
+- 松手、移出按键、触摸取消或触发事件时停止；事件出现后松手不会误点弹窗。
+- 附近地图跟随 `@` 玩家位置，可切换为可滚动的全图。
+- 收获页显示背包余量、地面剩余数量、单件 / 整组拾取；“全部拾取”和继续 / 离开分开操作。
+- 背包满时可在物品下方选择换出物品；换出的物资仍可从地上拾回。
+- 飞船支持屏幕方向键和左右倾斜；没有传感器时也能使用方向键。
+
+### 可调速度
+
+“菜单 → 游戏速度”可选择 **1 / 2 / 3 / 4 倍**，设置随存档保存。倍率影响生产、人口与事件等待、战斗计时和操作冷却，中途修改保留已等待的进度。飞船操控和声音保留独立计时。上游旧存档的加速模式会转换为 2 倍。
+
+### 可选作弊模式
+
+作弊默认关闭，在菜单中主动打开后可使用：
+
+| 功能 | 效果 |
+| --- | --- |
+| 常用物资 +1000 | 添加常用物资 |
+| 恢复生命与水 | 补充当前探索的生命与水 |
+| 行动免冷却 | 清除 / 跳过操作冷却，仍检查材料与建造上限 |
+| 探索保护 | 保护探索与战斗中的生命和水，行走不消耗食物；不作用于飞船 |
+| 地图全开 | 解锁“漫漫尘途”后，一次揭开并保存整张地图的迷雾 |
+
+开启时底栏显示“作弊已开”。关闭总开关后恢复正常规则，已经添加的物资和已经揭开的地图会保留。
+
+地图全开同时更新当前出征和已保存的地图迷雾，探索失败、关闭作弊或重启应用后仍保留；不会移动角色、提前完成地标、领取奖励或提交尚未带回的探索成果。
+
+### 地标图鉴
+
+普通模式也可使用，从菜单或地图旁打开。图鉴收录 **19 种地标 / 地形符号及玩家标记 `@`，共 20 项**，提供中文用途说明，支持按名称、符号或说明内容搜索。解锁地图后显示当前已揭开区域的数量；地点清理后变成哨站时按当前符号统计。查阅不会揭开迷雾，输入搜索内容也不会控制背后的角色。
+
+## 界面预览
+
+以下为离线浏览器自动化测试中生成的游戏画面，使用后期测试存档；并非手机实拍，可能包含剧情与后期装备信息。各图取自对应功能完成时的版本。
+
+<table>
+  <tr>
+    <td align="center">材料需求<br><img src="docs/screenshots/materials.png" width="240" alt="建造前显示材料需求与不足数量"></td>
+    <td align="center">村民管理<br><img src="docs/screenshots/workers.png" width="240" alt="村民分工与一人十人调整"></td>
+    <td align="center">地图探索<br><img src="docs/screenshots/exploration.png" width="240" alt="局部地图与十字方向键"></td>
+  </tr>
+  <tr>
+    <td align="center">收获与背包<br><img src="docs/screenshots/loot.png" width="240" alt="收获列表与背包交换"></td>
+    <td align="center">紧凑战斗<br><img src="docs/screenshots/combat.png" width="240" alt="居中战斗弹窗与治疗操作"></td>
+    <td align="center">中文地标图鉴<br><img src="docs/screenshots/landmark-guide.png" width="240" alt="夜间主题下的地标图鉴与搜索"></td>
+  </tr>
+</table>
+
+## 存档与备份
+
+游戏自动保存在应用内部；切到后台和按返回退出时也会保存。
+
+| 操作 | 入口与说明 |
+| --- | --- |
+| 导出文件 | 菜单 → 备份到文件，通过 Android 系统文件选择器保存 `.adr.txt` |
+| 恢复文件 | 菜单 → 从文件恢复，格式检查通过并确认后替换现有进度 |
+| 手动复制 / 粘贴 | 菜单 → 存档代码，使用上游兼容的 Base64 存档代码 |
+| 迁移手机 | 旧手机导出文件，再在新手机导入 |
+
+卸载应用、清除应用数据会移除本机进度；请先备份。应用关闭了系统云备份，存档不会由本应用上传。文件恢复会替换当前进度，建议先导出当前存档。第三方改版的存档不保证兼容。
+
+## 完全离线如何实现
+
+- APK 自带游戏 HTML、CSS、JavaScript、图片、中文翻译和 **86 个 FLAC 音效**。
+- 原生入口通过 `AssetManager` 读取安装包内的 HTML，再用 `loadDataWithBaseURL` 显示。
+- 固定的 `https://appassets.androidplatform.net/game/index.html` 是 WebView 的**虚拟本地来源**，用于相对路径和本地存储；资源请求全部由原生拦截器从 APK 返回，不访问这个网站，也不启动 HTTP 服务。
+- 构建时移除 CDN、统计与其他联网入口，仅打包简体中文。其他来源的资源、导航、文件访问和明文流量被阻止。
+- Android 清单没有联网或存储读写权限。存档文件通过系统文档选择器授权访问。
+
+仓库根目录保留上游原始网页源文件，其中可能仍有原作网页链接；安装包使用的是构建脚本生成的离线资源。修改安卓界面请优先编辑 `android/web/`，不要直接修改会被重新生成的 `android/app/src/main/assets/`。
+
+## 从源码构建
+
+### 环境
+
+目前提供的构建入口面向 **Windows PowerShell**，需要：
+
+- Python **3.10+**。
+- JDK **17**。
+- Android SDK Platform **35**、Build Tools **35.0.0** 或更新版。
+- 测试时另需 Node.js 和 Playwright Chromium；仅构建 APK 不需要 npm、Gradle、Android Studio 或网页服务器。
+
+可以通过 Android SDK 的 `sdkmanager` 预先安装所需组件：
+
+```powershell
+sdkmanager "platforms;android-35" "build-tools;35.0.0"
+```
+
+### 构建命令
+
+```powershell
+git clone https://github.com/kirimarisadaze/a-dark-room-offline-android.git
+cd a-dark-room-offline-android
+.\build-android.ps1 -JavaHome 'C:\path\to\jdk-17' -AndroidSdk 'C:\path\to\Android\Sdk'
+```
+
+脚本也支持 `JAVA_HOME`、`ANDROID_SDK_ROOT`、`ANDROID_HOME`，可用 `-Python` 指定 Python 可执行文件。若 PowerShell 执行策略阻止脚本，可使用仅对本次进程生效的方式：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\build-android.ps1 -JavaHome 'C:\path\to\jdk-17' -AndroidSdk 'C:\path\to\Android\Sdk'
+```
+
+脚本依次生成离线资源、编译 Android 资源与 Java、生成 DEX、对齐、签名并验证。输出：
+
+```text
+dist/a-dark-room-offline.apk
+dist/a-dark-room-offline.apk.sha256
+```
+
+再次验证已有构建：
+
+```powershell
+.\build-android.ps1 -VerifyOnly -JavaHome 'C:\path\to\jdk-17' -AndroidSdk 'C:\path\to\Android\Sdk'
+```
+
+### 签名与自建版本
+
+首次构建会在 `.local/signing/` 生成独立签名密钥；请私下备份整个目录，后续更新继续使用同一密钥。私钥和密码不在公开仓库或源码压缩包中。
+
+在新电脑直接克隆并生成的密钥与 GitHub Release 的签名不同，因此自建 APK 不能覆盖这里发布的 APK。需要切换时先备份存档，或自行修改包名以便并行安装。不能仅靠相同包名和版本号绕过 Android 的签名检查。
+
+### 打包完整源码
+
+```powershell
+python scripts/package-source.py
+```
+
+生成 `dist/a-dark-room-offline-source.zip`，排除本地密钥、工具链、中间产物、测试设备、生成资源与 Git 数据。版本号以 `android/app/src/main/AndroidManifest.xml` 为准；根目录 `package.json` 保留上游网页开发工具的元数据。
+
+## 测试与验证范围
+
+Android 界面测试使用断网 Chromium，并将同一虚拟 HTTPS 来源的请求映射到 APK 生成资源，不启动网络服务器。安装测试依赖并准备资源：
+
+```powershell
+npm install --no-save --package-lock=false playwright
+npx playwright install chromium
+python scripts/prepare-android-assets.py
+```
+
+运行回归：
+
+```powershell
+node scripts/test-offline.mjs
+node scripts/test-speed.mjs
+node scripts/test-mobile-features.mjs
+node scripts/test-ui-details.mjs
+node scripts/test-late-game-ui.mjs
+node scripts/test-exploration-ui.mjs
+node scripts/test-combat-ui.mjs
+node scripts/test-map-guide.mjs
+```
+
+也可用 `PLAYWRIGHT_MODULE` 指定已有 Playwright 包的绝对路径。报告与截图保存在 `.local/` 下各脚本对应的目录。
+
+已有验证覆盖 320–412px 窄屏、日夜主题、16 / 22px 字号、存档、离线资源、音效解码、速度、村民管理、材料卡片、移动、收获、战斗、作弊与图鉴。地图 / 图鉴新增 48 个布局场景，战斗 50 个，探索 / 收获 72 个；详情及具体历史回归结果见：
+
+- [功能与界面验证记录](android/VALIDATION.md)
+- [布局验证记录](android/LAYOUT_VALIDATION.md)
+- [原生资源拦截器验证与限制](android/NATIVE_VALIDATION.md)
+
+所有已归档 APK 已检查签名、包名、版本号及无联网权限。1.0.4 的真实原生拦截器在 Android 7.0 ARM 模拟器通过 11 项检查；模拟器完整 WebView 图形运行受到 GPU / EGL 初始化故障限制。**浏览器测试不等同于真机测试，目前没有完整真机验证或从头到尾通关验证的结论。**
+
+## 版本与源码归档
+
+[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.0.12 共 13 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
+
+- `main` 与 `v1.0.12`：完整可构建源码；最新 Release 另附完整源码 ZIP。
+- `release-archives` 与 `v1.0.0`–`v1.0.11`：从对应 APK 提取的实际网页源码与资源，以及归档说明、许可和校验信息。未保存的历史原生工程不会用新版源码冒充。
+- `1.0.0`、`1.0.1`：从保留的原始构建产物恢复，并用原密钥重新签名；不是当时分发 APK 的逐字节备份。
+- `1.0.0`–`1.0.3`：存在已知加载问题，标为历史测试版 / Pre-release，建议安装最新版。
+
+构建日期和本次归档发布日期分别记录；Git 历史从本次公开归档开始。后续版本的发布步骤见 [发布维护说明](docs/RELEASING.md)。
+
+## 常见问题
+
+**启动显示网页无法打开、资源无法读取或 HTTP 403？**
+
+先确认使用 1.0.12。早期版本存在 Windows 资源路径和内部启动文档拦截问题，分别在 1.0.3、1.0.4 修复。确认 WebView 80+，升级后完全退出应用再打开。如仍失败，请在 Issue 中提供 Android / WebView 版本、应用版本、报错截图和复现步骤；不要公开个人存档。
+
+**为什么能看到一个 HTTPS 地址？要联网吗？**
+
+该地址是本地 WebView 的固定存储与资源来源，实际内容来自 APK。应用没有联网权限，断网可以启动和游玩。
+
+**提示“应用未安装”或签名冲突？**
+
+确认 Android 6.0+、APK 下载完整。若手机装有同包名的自建或其他签名版本，Android 会拒绝覆盖；先在旧版本备份存档，再决定迁移。正常升级本项目 Release 不需要卸载。
+
+**为什么关闭作弊后物资和地图还在？**
+
+添加物资和揭开地图属于已经写入存档的进度；关闭开关只恢复正常规则。想保留未修改的进度，请在使用作弊前导出存档。
+
+**地图全开按钮为什么不能用？**
+
+需要先正常解锁“漫漫尘途”，再启用作弊模式。图鉴本身不需要作弊。
+
+**能导入原版存档吗？**
+
+支持上游兼容的 Base64 存档代码与 `.adr.txt`。导入会替换当前进度，第三方改版的扩展格式不保证兼容。
+
+**为什么源码有其他语言，应用却不能切换？**
+
+仓库保留完整上游翻译；构建脚本只复制简体中文并锁定语言，其他翻译不会进入 APK。
+
+**声音不响？**
+
+先检查游戏声音设置和手机媒体音量，并进行一次游戏操作。旧 WebView 的音频支持可能不同，请使用更新的 WebView。
+
+## 目录结构
+
+```text
+android/
+  app/src/main/          Android 清单、Java 入口、原生主题与图标
+  web/                   独立编写的移动端样式、离线逻辑、中文补充
+  tests/                 Android 原生测试框架
+  UPSTREAM.md            上游来源与改动署名
+  *VALIDATION.md         验证范围、结果与限制
+scripts/
+  prepare-android-assets.py  生成仅中文的离线游戏资源
+  assemble-android-apk.py    使用规范 ZIP 路径组装 APK
+  package-source.py         打包可分发的完整源码
+  test-*.mjs / test-android.ps1  浏览器和原生测试
+docs/                    版本索引、发布说明、上游 README 与截图
+audio/ css/ img/ lang/ lib/ script/  保留的上游游戏源码与资源
+build-android.ps1         Windows 一键构建、签名和校验入口
+CHANGELOG.md             各版改动
+LICENSE.md               MPL-2.0 许可全文
+```
+
+`.local/`、`.tools/`、`dist/` 和生成的 `android/app/src/main/assets/` 不提交到 Git；安装包由 Release 提供。
+
+## 来源、许可与贡献
+
+原作 **A Dark Room**，作者 **Michael Townsend / doublespeak games** 及上游贡献者。基线提交为 [`1fada4620b6c66bd07bf15a3f1eb8223df8bc1d7`](https://github.com/doublespeakgames/adarkroom/commit/1fada4620b6c66bd07bf15a3f1eb8223df8bc1d7)。本项目为非官方开源移植，与官方商店版本无关联。
+
+游戏原始源码、翻译、音效与第三方库的署名和许可保持原样；新增 Android 封装、适配层及构建脚本同样按 **MPL-2.0** 提供。参见 [许可全文](LICENSE.md)、[来源与改动](android/UPSTREAM.md) 和 [上游原始 README](docs/UPSTREAM_README.md)。应用内也可离线查看许可。
+
+本项目的开发方式为**纯 AI 实现，用户提出需求并反馈体验**。该标注描述本仓库移植与改造工作的实现方式，原作版权归各自权利人。
+
+欢迎提交 Issue 或 Pull Request。界面问题请附版本、Android / WebView 版本、字号、日夜模式和复现步骤；源码改动请说明验证范围。更多 Android 实现细节见 [ANDROID_README.zh-CN.md](ANDROID_README.zh-CN.md)。
