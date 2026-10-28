@@ -93,6 +93,7 @@ def prepare():
                             '<meta name="referrer" content="no-referrer"/>\n'
                             f'<meta http-equiv="Content-Security-Policy" content="{policy}"/>')
     source = source.replace('</head>', '<link rel="stylesheet" href="mobile.css"/>\n'
+                            '<script src="save-slots.js"></script>\n'
                             '<script src="offline.js"></script>\n</head>')
     # The publisher's decorative logo remains as attribution, without a dead external link.
     source = source.replace('href="https://www.doublespeakgames.com"', 'href="about.html"')
@@ -100,7 +101,7 @@ def prepare():
     (DEST / "index.html").write_text(source, encoding="utf-8", newline="\n")
     for name in ("offline.js", "mobile.css", "zh-cn-extra.js"):
         shutil.copy2(ROOT / "android/web" / name, DEST / name)
-    for name in ("home.html", "home.css", "home.js"):
+    for name in ("home.html", "home.css", "home.js", "save-slots.js"):
         shutil.copy2(ROOT / "android/web" / name, DEST / name)
     license_text = html.escape((ROOT / "LICENSE.md").read_text(encoding="utf-8"))
     notice_path = ROOT / "android/UPSTREAM.md"
@@ -112,7 +113,7 @@ def prepare():
     (DEST / "about.html").write_text(
         '<!doctype html><html lang="zh-CN"><meta charset="utf-8">'
         '<meta name="viewport" content="width=device-width,initial-scale=1">'
-        '<title>关于小黑屋</title><style>'
+        '<title>关于小黑屋</title><script src="save-slots.js"></script><style>'
         'body{font:16px/1.65 system-ui;margin:24px;max-width:900px}pre{white-space:pre-wrap;overflow-wrap:anywhere}'
         'a{color:inherit}a:first-child{display:inline-block;padding:12px 0}'
         '</style><a id="about-return" href="index.html">← 返回游戏</a>'

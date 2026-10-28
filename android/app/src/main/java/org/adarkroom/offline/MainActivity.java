@@ -218,6 +218,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
         if ("adr-offline".equals(uri.getScheme())) {
             if ("backup".equals(uri.getHost())) exportSave();
             else if ("restore".equals(uri.getHost())) chooseImport();
+            else if ("restore-slot".equals(uri.getHost())) chooseImportFile();
             else if ("about".equals(uri.getHost())) showAbout();
             else if ("reload".equals(uri.getHost())) loadBundledPage(Uri.parse(START_URL));
             return true;
@@ -273,6 +274,14 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void chooseImport() {
+        if ("/game/home.html".equals(Uri.parse(currentPage).getPath())) {
+            webView.evaluateJavascript("window.OfflineHome&&OfflineHome.beginRestore()", null);
+            return;
+        }
+        chooseImportFile();
+    }
+
+    private void chooseImportFile() {
         Intent open = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         open.addCategory(Intent.CATEGORY_OPENABLE);
         open.setType("*/*");
@@ -321,7 +330,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
                 }
                 String validatedJson = save.toString();
                 new AlertDialog.Builder(this).setTitle("恢复存档")
-                        .setMessage("这会替换当前游戏进度。建议先备份当前存档。")
+                        .setMessage("这会替换当前选中的存档，其他栏位不受影响。建议先备份当前进度。")
                         .setNegativeButton("取消", null)
                         .setPositiveButton("恢复", (dialog, which) -> restoreSave(validatedJson)).show();
             } catch (Exception ex) { toast("存档格式无效或文件过大，当前进度未改动"); }
@@ -331,7 +340,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     private void restoreSave(String json) {
         // Suppress pagehide's save of the old in-memory State while replacing the save.
         String script = "(function(){try{if(window.OfflineGame)OfflineGame.prepareRestore();"
-                + "localStorage.setItem('gameState'," + JSONObject.quote(json)
+                + "if(!window.SaveSlots)throw 0;SaveSlots.importJSON(" + JSONObject.quote(json)
                 + ");return true;}catch(e){if(window.OfflineGame)"
                 + "OfflineGame.cancelRestore();return false;}})()";
         webView.evaluateJavascript(script, value -> {
@@ -352,7 +361,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void showAbout() {
-        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.0.13")
+        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.0.14")
                 .setMessage("A Dark Room 网页版的独立中文离线封装\n原作：Michael Townsend / doublespeak games 及贡献者\n\n游戏、中文翻译、音效均在安装包中。无需服务器；没有联网权限。进度保存在应用内部，卸载或清除数据前请备份。\n\n上游：github.com/doublespeakgames/adarkroom\n源码基线：1fada4620b6c\n许可：Mozilla Public License 2.0\n\n本封装不属于官方商店版本。")
                 .setPositiveButton("关闭", null)
                 .setNeutralButton("开源许可", (dialog, which) -> showLicense()).show();

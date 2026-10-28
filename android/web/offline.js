@@ -29,7 +29,7 @@
   window.OfflineGame = {
     save: function () {
       if (skipSaving || Engine.GAME_OVER || !window.State) { return false; }
-      try { Engine.saveGame(); return true; } catch (error) { return false; }
+      try { return Engine.saveGame() !== false; } catch (error) { return false; }
     },
     reload: function () {
       if (window.ADRNativeLocalApp === true) { location.href = 'adr-offline://reload'; }
@@ -162,6 +162,21 @@
   };
   Engine.getSpeed = OfflineGame.getSpeed;
   var originalLoadGame = Engine.loadGame;
+  var originalSaveGame = Engine.saveGame;
+  Engine.saveGame = function () {
+    if (skipSaving || Engine.GAME_OVER || !window.State) return;
+    // Persist this page's bound slot before updating the upstream working cache.
+    // Older pages can never save into a different slot selected by a newer page.
+    try { SaveSlots.save(JSON.stringify(State)); }
+    catch (error) {
+      $('#saveNotify').stop(true).text('保存失败，请检查剩余空间').css('opacity', 1);
+      return false;
+    }
+    $('#saveNotify').text('已保存');
+    try { originalSaveGame.apply(Engine, arguments); } catch (error) { /* The slot database is already saved. */ }
+    return true;
+  };
+  Engine.generateExport64 = function () { return Base64.encode(JSON.stringify(State)).replace(/[\s.]/g, ''); };
   Engine.loadGame = function () {
     originalLoadGame.apply(Engine, arguments);
     if (!State.config || typeof State.config !== 'object') { State.config = {}; }
@@ -466,7 +481,7 @@
       return;
     }
     try {
-      localStorage.setItem('gameState', JSON.stringify(decoded));
+      SaveSlots.importJSON(JSON.stringify(decoded));
     } catch (error) {
       skipSaving = false;
       alert('无法写入存档，当前进度已保留。请检查手机存储空间后重试。');
@@ -475,10 +490,13 @@
     skipSaving = true;
     OfflineGame.reload();
   };
-  var originalDelete = Engine.deleteSave;
   Engine.deleteSave = function (noReload) {
+    var prestige = Prestige.get();
+    var replacement = { previous: prestige };
+    try { SaveSlots.save(JSON.stringify(replacement)); }
+    catch (error) { alert('无法重新开始，原存档已保留。请检查手机剩余空间。'); return; }
     skipSaving = true;
-    originalDelete(true);
+    window.State = replacement;
     if (!noReload) { OfflineGame.reload(); }
   };
 
@@ -492,6 +510,15 @@
 
   var originalInit = Engine.init;
   Engine.init = function (options) {
+    try { SaveSlots.prepareNormal(); }
+    catch (error) {
+      window.__ADR_BOOT_ERROR = error.message || '无法读取存档，原始进度已保留。';
+      var wrapper = document.getElementById('wrapper');
+      wrapper.textContent = window.__ADR_BOOT_ERROR;
+      var home = document.createElement('a');
+      home.href = 'home.html'; home.textContent = ' 返回主页面'; wrapper.appendChild(home);
+      return;
+    }
     initializing = true;
     try { originalInit.call(Engine, options); }
     finally { initializing = false; }
@@ -536,6 +563,7 @@
     messagesButton.on('click', function (event) { toggleSheet('messages', event); });
 
     var menu = makeSheet('menu', '菜单');
+    $('<p>').attr('id', 'offline-current-save').addClass('offline-settings-note').text(SaveSlots.label()).appendTo(menu);
     var settings = $('<div>').addClass('offline-settings-grid').appendTo(menu);
     function action(id, className, label, handler) {
       return $('<button>').attr({ id: id, type: 'button' }).addClass(className)

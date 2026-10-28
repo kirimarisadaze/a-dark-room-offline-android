@@ -163,7 +163,7 @@ try {
       replacement.stores = replacement.stores || {};
       replacement.stores.wood = 543;
       OfflineGame.prepareRestore();
-      localStorage.setItem('gameState', JSON.stringify(replacement));
+      SaveSlots.importJSON(JSON.stringify(replacement));
       location.reload();
     });
     await page.waitForFunction(() => window.Engine && window.Room && Engine.activeModule === Room && $SM.get('stores.wood') === 543);

@@ -4,6 +4,17 @@
 
 下列日期为历史构建日期，GitHub Release 为本次统一归档发布。历史安装包与源码保留范围见 [版本归档](docs/RELEASES.md)。
 
+## [1.0.14] — 2026-10-28
+
+- 普通模式和 Roguelike 模式各提供 3 个独立存档，开始游戏时先选择模式再选择栏位。
+- 存档卡片显示进度摘要和保存时间；普通模式选择空栏位开始新游戏，有进度的栏位继续游戏。
+- 旧版单存档原样迁移到普通模式的存档 1；异常旧存档也保留，不静默重置。
+- 自动保存、存档代码导入、原生文件恢复及“重新开始”限定在当前栏位，菜单显示当前模式与编号。
+- 支持二次确认后删除单个栏位；修复上游重新开始会清空全部本地存储的问题，保留其他存档及全局偏好。
+- Roguelike 的 3 个栏位可独立预留并保存，玩法仍未开放，不启动普通游戏。
+- 增加写入失败保护、跨页面存档绑定和数据库异常保护，避免旧页面或兼容缓存覆盖其他栏位。
+- 14 项存档隔离、迁移、导入、重开、删除与写入失败检查通过；主页面及存档选择覆盖 32 个离线布局场景。
+
 ## [1.0.13] — 2026-10-28
 
 - 新增沿用原作黑白文字与细线按钮风格的主页面，点击“开始游戏”进入模式选择。
@@ -102,6 +113,7 @@
 - **已知问题：**早期本地加载存在兼容性与资源错误。此版仅用于归档。
 - 从保留的原始构建产物恢复，并用原签名密钥重新签名。
 
+[1.0.14]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.14
 [1.0.13]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.13
 [1.0.12]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.12
 [1.0.11]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.11

@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/kirimarisadaze/a-dark-room-offline-android",
   "packageName": "org.adarkroom.offline",
-  "latest": "1.0.13",
+  "latest": "1.0.14",
   "developmentMethod": "pure AI implementation of this port, human-authored upstream retained",
   "upstreamRepository": "https://github.com/doublespeakgames/adarkroom",
   "upstreamCommit": "1fada4620b6c66bd07bf15a3f1eb8223df8bc1d7",
@@ -344,7 +344,7 @@
       "internetPermission": false,
       "gameAssets": 149,
       "rawBackslashEntries": 0,
-      "status": "latest",
+      "status": "historical",
       "artifactProvenance": "built-from-complete-project-with-original-key",
       "sourceScope": "complete-project",
       "tag": "v1.0.13",
@@ -359,6 +359,32 @@
       "sourceUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/tree/v1.0.13",
       "knownIssue": "Roguelike 模式目前仅提供占位入口，玩法尚未实现。",
       "sourceArchiveUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.13/a-dark-room-offline-1.0.13-source.zip"
+    },
+    {
+      "version": "1.0.14",
+      "versionCode": 15,
+      "file": "a-dark-room-offline-1.0.14.apk",
+      "bytes": 5685260,
+      "sha256": "4c83a6721f29f0c7afb8748d5ffcf995335c25b9746488e9a1837d8ecc586f60",
+      "certificateSha256": "84604fa048968f6f4bac6ba50fec1ff75566d501a5d4d4ba4ce32221fea81713",
+      "internetPermission": false,
+      "gameAssets": 150,
+      "rawBackslashEntries": 0,
+      "status": "latest",
+      "artifactProvenance": "built-from-complete-project-with-original-key",
+      "sourceScope": "complete-project",
+      "tag": "v1.0.14",
+      "packageName": "org.adarkroom.offline",
+      "title": "按模式隔离的三栏存档系统",
+      "originalBuildDate": "2026-10-28",
+      "archivedOn": "2026-10-28",
+      "developmentMethod": "AI-implemented port based on human-authored upstream",
+      "releaseUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.14",
+      "downloadUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14.apk",
+      "checksumUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14.apk.sha256",
+      "sourceUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/tree/v1.0.14",
+      "knownIssue": "Roguelike 模式当前仅支持预留独立存档栏位，玩法尚未开放。",
+      "sourceArchiveUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14-source.zip"
     }
   ]
 }

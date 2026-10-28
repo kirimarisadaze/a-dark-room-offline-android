@@ -63,6 +63,7 @@ public final class OfflineSmoke extends Instrumentation {
                         "Title screen must not start the game");
                 js("document.getElementById('offline-home-start').click();true");
                 js("document.getElementById('offline-mode-normal').click();true");
+                js("document.getElementById('offline-slot-1').click();true");
                 waitFor(READY, 45000);
                 JSONObject metadata = (JSONObject) js("({href:location.href,origin:location.origin,"
                         + "baseURI:document.baseURI,userAgent:navigator.userAgent,"

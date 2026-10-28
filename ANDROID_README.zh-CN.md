@@ -2,11 +2,11 @@
 
 **纯 AI 项目**：本仓库的 Android 移植、适配、附加功能及文档由 AI 根据用户需求和反馈完成；原作与上游资源保留各自作者署名。完整项目介绍见 [README.md](README.md)，安装包和各版记录见 [GitHub Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases)。
 
-安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 1.0.13。已有本项目旧版时可直接覆盖安装，保留本机存档。
+安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 1.0.14。已有本项目旧版时可直接覆盖安装，保留本机存档。
 
 ## 安装与使用
 
-1.0.13 打开应用先显示原作风格的主页面，“开始游戏”进入模式选择。普通模式进入现有游戏并接续本机进度；Roguelike 模式暂时只有按钮与未开放提示，没有可玩内容。主页只读取字号和主题，不加载游戏引擎或改写存档。游戏菜单可返回主页；Android 返回键先关闭面板，再保存并回到主页。主页查看许可后会返回主页，系统文件恢复可从主页直接进入恢复后的普通游戏。
+打开应用先显示原作风格的主页面，“开始游戏”进入模式选择，再选择存档。1.0.14 为普通模式和 Roguelike 模式各提供 3 个独立栏位；普通模式选择旧存档继续、空存档开始新游戏，Roguelike 暂时只保留栏位并显示未开放提示。主页不加载游戏引擎；首次选择存档会把旧版单存档原样迁入普通模式的存档 1。游戏菜单显示当前栏位并可返回主页，Android 返回键按提示、存档页、模式页、标题页分层处理。主页查看许可后会返回主页，系统文件恢复先选择目标栏位。
 
 将 APK 传到手机，打开并允许该文件来源安装应用即可。最低 Android 6.0；需要 Android System WebView 80 或更新版本（支持上游的 `??` 语法和触屏控制），旧系统请预先更新 WebView。较新的 Android 手机通常已经具备。
 
@@ -37,6 +37,8 @@
 “地标图鉴”不需要开启作弊，可从菜单或地图旁打开。收录地图使用的全部 19 种地标／地形符号及玩家标记 @，按据点与矿场、探索地标、人物与地形分组，提供中文用途说明，支持按名称、符号或说明内容搜索。开启地图后，显示当前已揭开区域里的地标数量；地点清理后若变成哨站，按当前地图符号计数。图鉴不会揭开迷雾或改变游戏状态，搜索和浏览时的键盘输入也不会控制背后的角色。
 
 ## 存档
+
+普通模式和 Roguelike 模式各 3 个独立栏位，显示进度摘要和保存时间，支持确认后单独删除。自动保存、导入、恢复和“重新开始”只影响当前栏位；一次备份也仅包含当前栏位。旧进度保留在普通模式的存档 1。实现、数据迁移和异常处理见 [SAVE_SLOTS.md](android/SAVE_SLOTS.md)。
 
 - 游戏使用应用内部的本地存储自动保存，切到后台和按返回退出时也会保存。
 - 底部“菜单”中有“备份到文件”和“从文件恢复”。文件选择通过 Android 系统完成，不申请存储权限。
@@ -81,6 +83,7 @@ node scripts/test-exploration-ui.mjs
 node scripts/test-combat-ui.mjs
 node scripts/test-map-guide.mjs
 node scripts/test-home.mjs
+node scripts/test-save-slots.mjs
 ```
 
 可通过 `PLAYWRIGHT_MODULE` 指定已安装 Playwright 的包目录。测试直接拦截同一虚拟 HTTPS 来源并在浏览器断网模式下提供本地资源；检查点火、存档重载、中文锁定、字号保存、地图、飞船控制和窄屏布局。测试报告及截图位于 `.local/test-results/`。

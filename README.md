@@ -4,16 +4,16 @@
 
 基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的非官方安卓移植。游戏和资源全部装在 APK 中，固定简体中文，安装后可直接断网游玩。
 
-[下载最新版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.0.13.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+[下载最新版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.0.14.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
 | 项目 | 说明 |
 | --- | --- |
-| 当前版本 | **1.0.13**，versionCode **14** |
+| 当前版本 | **1.0.14**，versionCode **15** |
 | 应用名称 / 包名 | 小黑屋 · 离线 / `org.adarkroom.offline` |
 | 运行要求 | Android **6.0+**，Android System WebView **80+** |
 | 语言 | 安装包仅含简体中文 |
 | 联网与权限 | 无 `INTERNET` 权限，无存储读写权限，无运行时权限请求 |
-| 存档 | 本地自动保存，支持文件备份 / 恢复和存档代码 |
+| 存档 | 每模式 3 个独立栏位，自动保存，支持当前存档备份 / 恢复 |
 | 许可 | [MPL-2.0](LICENSE.md)，保留上游及第三方署名 |
 
 ## 目录
@@ -42,13 +42,13 @@
 最新版安装包约 **5.4 MiB**；SHA-256：
 
 ```text
-0957cb4655202b82a39be7d1b02fbbf2fe8a1329c0c5fc47ff7ca3b29d315ec7
+4c83a6721f29f0c7afb8748d5ffcf995335c25b9746488e9a1837d8ecc586f60
 ```
 
 Release 附有同名 `.sha256`。Windows 可用以下命令检查下载文件：
 
 ```powershell
-Get-FileHash .\a-dark-room-offline-1.0.13.apk -Algorithm SHA256
+Get-FileHash .\a-dark-room-offline-1.0.14.apk -Algorithm SHA256
 ```
 
 ## 功能与操作
@@ -57,10 +57,10 @@ Get-FileHash .\a-dark-room-offline-1.0.13.apk -Algorithm SHA256
 
 打开应用先进入主页面，点击“开始游戏”后选择模式：
 
-- **普通模式**：沿用现有游戏、存档与设置，有进度时继续本机进度。
-- **Roguelike 模式**：目前只提供按钮和“尚未开放”提示，玩法尚未实现。
+- **普通模式**：先选择存档 1 / 2 / 3；已有进度可继续，空栏位从头开始。
+- **Roguelike 模式**：有独立的存档 1 / 2 / 3，可选择并保留栏位，目前仍显示“尚未开放”，玩法尚未实现。
 
-主页面沿用原作黑白文字与细线按钮的风格，跟随已保存的日夜主题和字号。停留在主页或查看未开放提示不会启动游戏引擎、推进生产或改写存档。游戏菜单内可“返回主页面”；Android 返回键先关闭面板，在游戏中返回时保存后回到主页。
+主页面沿用原作黑白文字与细线按钮的风格，跟随已保存的日夜主题和字号。停留在主页或选择栏位不会启动游戏引擎、推进生产。首次打开存档选择时会保留并迁移旧版进度，Roguelike 选择会记录预留栏位。游戏菜单内可“返回主页面”；Android 返回键依次关闭提示、返回模式与标题页，在游戏中返回时保存后回到主页。
 
 ### 手机界面
 
@@ -112,6 +112,7 @@ Get-FileHash .\a-dark-room-offline-1.0.13.apk -Algorithm SHA256
   <tr>
     <td align="center">主页面<br><img src="docs/screenshots/home.png" width="240" alt="原作黑白文字风格的主页面"></td>
     <td align="center">模式选择<br><img src="docs/screenshots/modes.png" width="240" alt="普通模式与暂未开放的 Roguelike 模式"></td>
+    <td align="center">独立存档<br><img src="docs/screenshots/save-slots.png" width="240" alt="三个独立存档与保存时间"></td>
   </tr>
   <tr>
     <td align="center">材料需求<br><img src="docs/screenshots/materials.png" width="240" alt="建造前显示材料需求与不足数量"></td>
@@ -129,14 +130,18 @@ Get-FileHash .\a-dark-room-offline-1.0.13.apk -Algorithm SHA256
 
 游戏自动保存在应用内部；切到后台和按返回退出时也会保存。
 
+“开始游戏 → 选择模式 → 选择存档”，每个模式各有 **3 个独立栏位**。普通模式的栏位显示当前进度摘要与保存时间，空栏位点击后开始新游戏。旧版单存档会原样迁入**普通模式的存档 1**，其他栏位保持空白。游戏菜单显示当前模式和栏位。
+
+自动保存、存档代码导入、文件恢复和游戏内“重新开始”只影响当前选中栏位。存档选择页支持单独删除，需二次确认；取消不会删除。Roguelike 的栏位目前仅记录预留状态，玩法开放后用于对应模式，和普通模式隔离。
+
 | 操作 | 入口与说明 |
 | --- | --- |
-| 导出文件 | 菜单 → 备份到文件，通过 Android 系统文件选择器保存 `.adr.txt` |
-| 恢复文件 | 菜单 → 从文件恢复，格式检查通过并确认后替换现有进度 |
+| 导出文件 | 菜单 → 备份到文件，通过 Android 系统文件选择器保存当前栏位的 `.adr.txt` |
+| 恢复文件 | 菜单 → 从文件恢复，格式检查通过并确认后只替换当前栏位；主页先选择恢复位置 |
 | 手动复制 / 粘贴 | 菜单 → 存档代码，使用上游兼容的 Base64 存档代码 |
 | 迁移手机 | 旧手机导出文件，再在新手机导入 |
 
-卸载应用、清除应用数据会移除本机进度；请先备份。应用关闭了系统云备份，存档不会由本应用上传。文件恢复会替换当前进度，建议先导出当前存档。第三方改版的存档不保证兼容。
+卸载应用、清除应用数据会移除所有本机栏位；请先分别备份需要保留的存档。一次导出只包含当前栏位。应用关闭了系统云备份，存档不会由本应用上传。文件恢复会替换选中栏位，建议先导出该栏位。第三方改版的存档不保证兼容。存储写入失败会提示并保留上一次成功保存的进度，损坏数据不会被静默清空。存储实现和恢复边界见 [存档系统说明](android/SAVE_SLOTS.md)。
 
 ## 完全离线如何实现
 
@@ -228,6 +233,7 @@ node scripts/test-exploration-ui.mjs
 node scripts/test-combat-ui.mjs
 node scripts/test-map-guide.mjs
 node scripts/test-home.mjs
+node scripts/test-save-slots.mjs
 ```
 
 也可用 `PLAYWRIGHT_MODULE` 指定已有 Playwright 包的绝对路径。报告与截图保存在 `.local/` 下各脚本对应的目录。
@@ -242,9 +248,9 @@ node scripts/test-home.mjs
 
 ## 版本与源码归档
 
-[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.0.13 共 14 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
+[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.0.14 共 15 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
 
-- `main` 与 `v1.0.13`：完整可构建源码；最新 Release 另附完整源码 ZIP。`v1.0.12` 同样保留完整工程。
+- `main` 与 `v1.0.14`：完整可构建源码；最新 Release 另附完整源码 ZIP。`v1.0.12` 起各版均保留完整工程。
 - `release-archives` 与 `v1.0.0`–`v1.0.11`：从对应 APK 提取的实际网页源码与资源，以及归档说明、许可和校验信息。未保存的历史原生工程不会用新版源码冒充。
 - `1.0.0`、`1.0.1`：从保留的原始构建产物恢复，并用原密钥重新签名；不是当时分发 APK 的逐字节备份。
 - `1.0.0`–`1.0.3`：存在已知加载问题，标为历史测试版 / Pre-release，建议安装最新版。
