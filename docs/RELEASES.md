@@ -2,13 +2,14 @@
 
 **纯 AI 项目**：Android 移植、移动适配、附加功能、测试脚本、文档与发布整理由 AI 根据用户需求和反馈完成；原作及上游代码、翻译、音效和第三方库保留各自作者署名。
 
-收录 1.0.0–1.0.14 共 15 版。下表日期为历史构建日期，Release 为本次统一归档发布；Git 提交没有回填历史开发日期。推荐下载 **1.0.14**。
+收录 1.0.0–1.1.0 共 16 版。下表日期为历史构建日期，Release 为本次统一归档发布；Git 提交没有回填历史开发日期。推荐下载 **1.1.0**。
 
 ## 下载索引
 
 | 版本 | 构建日期 | 内容 | 状态 | 下载 |
 | --- | --- | --- | --- | --- |
-| [1.0.14](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.14) | 2026-10-28 | 按模式隔离的三栏存档系统 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14.apk.sha256) |
+| [1.1.0](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.1.0) | 2026-10-28 | 废土余火 · Roguelike 大型内容更新 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0.apk.sha256) |
+| [1.0.14](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.14) | 2026-10-28 | 按模式隔离的三栏存档系统 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14.apk.sha256) |
 | [1.0.13](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.13) | 2026-10-28 | 主页面与模式选择 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.13/a-dark-room-offline-1.0.13.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.13/a-dark-room-offline-1.0.13.apk.sha256) |
 | [1.0.12](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.12) | 2026-10-28 | 地图全开与中文地标图鉴 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.12/a-dark-room-offline-1.0.12.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.12/a-dark-room-offline-1.0.12.apk.sha256) |
 | [1.0.11](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.11) | 2026-10-28 | 紧凑战斗弹窗 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.11/a-dark-room-offline-1.0.11.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.11/a-dark-room-offline-1.0.11.apk.sha256) |

@@ -2,11 +2,11 @@
 
 **纯 AI 项目**：本仓库的 Android 移植、适配、附加功能及文档由 AI 根据用户需求和反馈完成；原作与上游资源保留各自作者署名。完整项目介绍见 [README.md](README.md)，安装包和各版记录见 [GitHub Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases)。
 
-安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 1.0.14。已有本项目旧版时可直接覆盖安装，保留本机存档。
+安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 **1.1.0**。使用原密钥构建时可覆盖本项目旧版并保留本机存档。
 
 ## 安装与使用
 
-打开应用先显示原作风格的主页面，“开始游戏”进入模式选择，再选择存档。1.0.14 为普通模式和 Roguelike 模式各提供 3 个独立栏位；普通模式选择旧存档继续、空存档开始新游戏，Roguelike 暂时只保留栏位并显示未开放提示。主页不加载游戏引擎；首次选择存档会把旧版单存档原样迁入普通模式的存档 1。游戏菜单显示当前栏位并可返回主页，Android 返回键按提示、存档页、模式页、标题页分层处理。主页查看许可后会返回主页，系统文件恢复先选择目标栏位。
+打开应用先显示原作风格的主页面，“开始游戏”进入模式选择。普通模式选择旧存档继续、空存档开始新游戏；Roguelike 进入「废土余火」的三旅程选择页，指定种子或随机生成九区域世界，推进聚落、回合战斗与地牢，造飞船通关后解锁深渊。主页不加载游戏引擎；普通模式首次选择存档时把旧版单存档原样迁入普通模式的存档 1。Roguelike 不初始化普通引擎，不改写 `gameState` 或旧多存档数据库。两个模式都可保存并返回主页；Android 返回键按界面层级处理。完整玩法与实现说明见 [ROGUELIKE.md](docs/ROGUELIKE.md)。
 
 将 APK 传到手机，打开并允许该文件来源安装应用即可。最低 Android 6.0；需要 Android System WebView 80 或更新版本（支持上游的 `??` 语法和触屏控制），旧系统请预先更新 WebView。较新的 Android 手机通常已经具备。
 
@@ -38,12 +38,12 @@
 
 ## 存档
 
-普通模式和 Roguelike 模式各 3 个独立栏位，显示进度摘要和保存时间，支持确认后单独删除。自动保存、导入、恢复和“重新开始”只影响当前栏位；一次备份也仅包含当前栏位。旧进度保留在普通模式的存档 1。实现、数据迁移和异常处理见 [SAVE_SLOTS.md](android/SAVE_SLOTS.md)。
+普通模式和 Roguelike 模式各 3 个独立栏位，支持确认后单独删除。普通模式显示摘要与保存时间，Roguelike 显示种子、天数、回合与结束状态。自动保存、导入、恢复和“重新开始”只影响当前栏位；一次备份也仅包含当前栏位。旧进度保留在普通模式的存档 1。实现、数据迁移和异常处理见 [SAVE_SLOTS.md](android/SAVE_SLOTS.md)。
 
 - 游戏使用应用内部的本地存储自动保存，切到后台和按返回退出时也会保存。
 - 底部“菜单”中有“备份到文件”和“从文件恢复”。文件选择通过 Android 系统完成，不申请存储权限。
-- 导出的 `.adr.txt` 为上游兼容的 Base64 存档代码；恢复时先检查格式，再确认替换现有进度。
-- 菜单内“存档代码”仍可手动复制、粘贴存档代码。
+- 普通模式导出的 `.adr.txt` 为上游兼容的 Base64 存档代码；Roguelike 文件名包含 `rogue`，内容为独立的旅程格式，两种模式不能互导。
+- 普通模式菜单内“存档代码”仍可手动复制、粘贴。Roguelike 先进入目标旅程，再用菜单中的文件恢复，确认后只替换当前旅程。
 - 卸载应用或清除应用数据会移除本机进度，操作前请备份。系统云备份已关闭。
 
 ## 从源码重新构建
@@ -68,7 +68,7 @@
 
 原生入口为 `android/app/src/main/java/org/adarkroom/offline/MainActivity.java`。1.0.2 直接通过 `AssetManager` 读取安装包内的 HTML，再用 `loadDataWithBaseURL` 显示，启动不再请求网页地址。脚本、样式和音效由 `shouldInterceptRequest` 返回 APK 内部文件。固定的 HTTPS 虚拟来源仅用于资源路径和 DOM Storage，以保留旧版本机存档；不会启动 HTTP 服务，也不会连接该域名。其他来源的资源、导航、文件访问和明文流量均被阻止。导入存档和重新开始同样走原生本地加载入口。
 
-上游源文件保持原样。`scripts/prepare-android-assets.py` 将它们复制到生成目录 `android/app/src/main/assets/game/`，移除 CDN 与统计代码，并注入 `android/web/offline.js`、`mobile.css` 和 CSP。CSP 保留上游状态管理器所需的 `unsafe-eval`。
+普通玩法模块与状态管理器保持原样；`engine.js` 只在末尾分流入口，`index.html` 仅追加 Rogue 脚本与样式。`scripts/prepare-android-assets.py` 将源文件复制到生成目录 `android/app/src/main/assets/game/`，移除 CDN 与统计代码，并注入 `android/web/offline.js`、`mobile.css` 和 CSP。CSP 保留上游状态管理器所需的 `unsafe-eval`。Roguelike 没有运行依赖、网页构建步骤或计时器推进。
 
 自动化页面测试需要 Node.js 和 Playwright Chromium：
 
@@ -84,9 +84,13 @@ node scripts/test-combat-ui.mjs
 node scripts/test-map-guide.mjs
 node scripts/test-home.mjs
 node scripts/test-save-slots.mjs
+node scripts/test-rogue.mjs --playthrough
+node scripts/test-rogue-ui.mjs --soak
 ```
 
 可通过 `PLAYWRIGHT_MODULE` 指定已安装 Playwright 的包目录。测试直接拦截同一虚拟 HTTPS 来源并在浏览器断网模式下提供本地资源；检查点火、存档重载、中文锁定、字号保存、地图、飞船控制和窄屏布局。测试报告及截图位于 `.local/test-results/`。
+
+Roguelike 的纯逻辑测试无需 Playwright，检查一万个区域图种子、地图连通、确定性与存档；`--playthrough` 通过合法行动跑完完整结局和深渊。其浏览器报告位于 `.local/rogue-tests/`；`--soak` 额外进行十分钟真实操作，逐次比对普通存档及数据库原始字节。可去掉此参数进行快速界面验证。当前没有可用真机，1.1.0 的原生安装、系统文件选择器和 WebView 实机体验仍未验证；不将浏览器结果当作真机结论。
 
 1.0.3 修复了 Windows aapt2 把安装包内资源路径写为反斜杠的问题。1.0.4 修复了内部 `data:` 启动文档被拦截并返回 403 的问题；`data:`、`blob:` 和 `about:blank` 交由 WebView 处理，本地 HTTPS 资源仍从 APK 返回，外网仍被拒绝。已在独立 Android 7.0 ARM 模拟器运行安装包内真实拦截器的11项检查：旧版对内部文档返回403，新版全部通过。本地资源也已通过原生 AssetManager 读取验证。APK 签名、ZIP 对齐及无联网权限检查通过，网页功能沿用此前离线回归结果。完整图形运行仍受模拟器 WebView 图形初始化故障限制，尚不能宣称已在真机验证。测试框架及具体范围见 `android/NATIVE_VALIDATION.md`。
 

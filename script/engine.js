@@ -937,6 +937,11 @@ $.Dispatch = function( id ) {
   return topic;
 };
 
+/** Starts the requested game mode after all scripts and the DOM are ready. */
 $(function() {
-  Engine.init();
+    if (window.ROGUE_MODE) {
+        Rogue.boot();
+    } else {
+        Engine.init();
+    }
 });

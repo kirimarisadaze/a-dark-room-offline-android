@@ -58,7 +58,7 @@ async function storage(page) {
 async function dormant(page, requests) {
   assert.equal(await page.evaluate(() => typeof window.Engine), 'undefined');
   assert.equal(await page.evaluate(() => typeof window.OfflineGame), 'undefined');
-  assert.equal(requests.some(name => /^(script\/|audio\/|offline\.js)/.test(name)), false, 'The launcher must not load game code or audio');
+  assert.equal(requests.some(name => /^(script\/|audio\/|offline\.js)/.test(name) && name !== 'script/rogue/lang/zh.js'), false, 'The launcher loads only Rogue translations, never the game engine or audio');
 }
 async function inspect(page, scene, tag) {
   const result = await page.evaluate(() => {
@@ -114,23 +114,16 @@ try {
       await inspect(page, 'slots', tag);
       await page.locator('#offline-slots-back').tap();
       await page.locator('#offline-mode-rogue').tap();
-      await page.locator('#offline-slot-1').tap();
-      assert.match(await page.locator('[role="dialog"]').innerText(), /尚未开放/);
-      await inspect(page, 'placeholder', tag);
-      await page.keyboard.press('Tab');
-      assert.equal(await page.evaluate(() => document.activeElement.id), 'offline-home-dialog-close');
-      await page.keyboard.press('Shift+Tab');
-      assert.equal(await page.evaluate(() => document.activeElement.id), 'offline-home-dialog-close');
-      await page.keyboard.press('Escape');
-      assert.equal(await page.locator('#offline-home-dialog-layer').isVisible(), false);
-      await page.locator('#offline-slot-1').tap();
-      assert.equal(await page.evaluate(() => OfflineHome.back()), true, 'Android back closes the placeholder first');
-      assert.equal(await page.evaluate(() => OfflineHome.back()), true, 'Android back returns from save selection to modes');
-      assert.equal(await page.evaluate(() => OfflineHome.back()), true, 'Android back returns from mode selection to title');
+      await page.waitForURL(base + 'index.html?mode=rogue');
+      assert.equal(await page.locator('.rogue-slot-open').count(), 3);
+      assert.equal(await page.evaluate(() => typeof window.State), 'undefined');
+      assert.equal(await page.evaluate(() => localStorage.getItem('rogueSlot0')), null);
+      await page.getByRole('button', { name: '返回主页面', exact: true }).click();
+      await page.waitForURL(base + 'home.html');
       assert.equal(await page.evaluate(() => OfflineHome.back()), false, 'Title allows Android to exit');
-      assert.equal(await page.evaluate(() => localStorage.gameState), seed.gameState, 'Slot reservations must retain the working game save');
+      assert.equal(await page.evaluate(() => localStorage.gameState), seed.gameState, 'Rogue selection must retain the working game save');
       const afterSelection = await storage(page);
-      await dormant(page, requests);
+      await dormant(page, []);
       await page.locator('.home-footer a').tap();
       await page.waitForURL(base + 'about.html?from=home');
       assert.equal(await page.locator('#about-return').getAttribute('href'), 'home.html');
@@ -162,10 +155,12 @@ try {
   assert.equal(await fresh.page.evaluate(() => localStorage.getItem('gameState')), null);
   await fresh.page.locator('#offline-home-start').focus(); await fresh.page.keyboard.press('Enter');
   await fresh.page.locator('#offline-mode-rogue').focus(); await fresh.page.keyboard.press('Enter');
-  await fresh.page.locator('#offline-slot-1').tap();
-  await fresh.page.locator('#offline-home-dialog-close').click();
-  assert.equal(await fresh.page.evaluate(() => localStorage.getItem('gameState')), null, 'Placeholder creates no normal or rogue progress');
-  await fresh.page.locator('#offline-slots-back').tap();
+  await fresh.page.waitForURL(base + 'index.html?mode=rogue');
+  assert.equal(await fresh.page.evaluate(() => localStorage.getItem('gameState')), null, 'Rogue launcher creates no normal progress');
+  assert.equal(await fresh.page.evaluate(() => localStorage.getItem('rogueSlot0')), null, 'Rogue launcher creates no run until explicitly started');
+  await fresh.page.getByRole('button', { name: '返回主页面', exact: true }).click();
+  await fresh.page.waitForURL(base + 'home.html');
+  await fresh.page.locator('#offline-home-start').tap();
   await fresh.page.locator('#offline-mode-normal').tap(); await fresh.page.locator('#offline-slot-1').tap(); await ready(fresh.page);
   assert.equal(await fresh.page.evaluate(() => OfflineGame.getCheats().enabled), false);
   assert.equal(await fresh.page.evaluate(() => OfflineGame.getSpeed()), 1);
@@ -176,6 +171,7 @@ try {
   await home(invalid.page);
   assert.equal(await invalid.page.evaluate(() => localStorage.gameState), '{invalid-save');
   await invalid.page.locator('#offline-home-start').tap(); await invalid.page.locator('#offline-mode-rogue').tap();
+  await invalid.page.waitForURL(base + 'index.html?mode=rogue');
   assert.equal(await invalid.page.evaluate(() => localStorage.gameState), '{invalid-save', 'Even malformed saves are untouched by the launcher');
   await invalid.context.close();
   checks.push({ freshStart: true, keyboard: true, invalidSavePreserved: true, passed: true });

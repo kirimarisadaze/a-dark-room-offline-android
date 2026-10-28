@@ -38,6 +38,9 @@ def validate_apk(path: Path, expected_assets: dict[str, bytes]) -> dict:
                          "assets/game/mobile.css", "assets/game/lang/zh_cn/strings.js",
                          "assets/game/home.html", "assets/game/home.js", "assets/game/home.css",
                          "assets/game/save-slots.js",
+                         "assets/game/script/rogue/rogue.js", "assets/game/script/rogue/rogue.save.js",
+                         "assets/game/script/rogue/rogue.ui.js", "assets/game/script/rogue/lang/zh.js",
+                         "assets/game/css/rogue.css",
                          "assets/game/zh-cn-extra.js", "assets/game/audio/light-fire.flac"):
             if required not in original_names or not archive.read(required):
                 raise RuntimeError(f"Missing or empty core game asset: {required}")

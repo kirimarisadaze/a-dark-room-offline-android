@@ -1,6 +1,10 @@
 /* Offline Android integration and optional local cheats. Upstream files remain unchanged. MPL-2.0. */
 (function () {
   'use strict';
+  if (window.ROGUE_MODE) {
+    Rogue.nativeBridge();
+    return;
+  }
   var skipSaving = false;
   var activeModule = Engine.activeModule;
   var frame = null;

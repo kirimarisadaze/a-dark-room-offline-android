@@ -278,7 +278,19 @@ public final class MainActivity extends Activity implements SensorEventListener 
             webView.evaluateJavascript("window.OfflineHome&&OfflineHome.beginRestore()", null);
             return;
         }
+        if (isRoguePage()) {
+            webView.evaluateJavascript("!!(window.Rogue&&Rogue.state.current)", ready -> {
+                if ("true".equals(ready)) chooseImportFile();
+                else webView.evaluateJavascript("Rogue.ui.notice('err.unavailable')", null);
+            });
+            return;
+        }
         chooseImportFile();
+    }
+
+    /** Checks the current document's explicit Rogue mode without changing ordinary navigation. */
+    private boolean isRoguePage() {
+        return "rogue".equals(Uri.parse(currentPage).getQueryParameter("mode"));
     }
 
     private void chooseImportFile() {
@@ -290,7 +302,8 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void exportSave() {
-        webView.evaluateJavascript("(function(){return window.Engine&&window.State?Engine.export64():null;})()", value -> {
+        webView.evaluateJavascript("(function(){if(window.ROGUE_MODE)return window.Rogue?Rogue.export64():null;"
+                + "return window.Engine&&window.State?Engine.export64():null;})()", value -> {
             try {
                 Object decoded = new JSONTokener(value).nextValue();
                 if (!(decoded instanceof String) || ((String) decoded).isEmpty()) throw new Exception();
@@ -298,7 +311,8 @@ public final class MainActivity extends Activity implements SensorEventListener 
                 Intent create = new Intent(Intent.ACTION_CREATE_DOCUMENT);
                 create.addCategory(Intent.CATEGORY_OPENABLE);
                 create.setType("text/plain");
-                create.putExtra(Intent.EXTRA_TITLE, "a-dark-room-" + new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(new Date()) + ".adr.txt");
+                create.putExtra(Intent.EXTRA_TITLE, "a-dark-room-" + (isRoguePage() ? "rogue-" : "")
+                        + new SimpleDateFormat("yyyyMMdd-HHmmss", Locale.ROOT).format(new Date()) + ".adr.txt");
                 startActivityForResult(create, EXPORT_SAVE);
             } catch (Exception ex) { toast("无法备份，请等待游戏加载完成并确认文件选择器可用"); }
         });
@@ -325,10 +339,19 @@ public final class MainActivity extends Activity implements SensorEventListener 
                 String json = encoded.startsWith("{") ? encoded
                         : new String(Base64.decode(encoded.replaceAll("\\s", ""), Base64.DEFAULT), StandardCharsets.UTF_8);
                 JSONObject save = new JSONObject(json);
-                for (String key : new String[]{"stores", "features", "game", "config"}) {
-                    if (!(save.opt(key) instanceof JSONObject)) throw new Exception();
+                if (isRoguePage()) {
+                    if (save.optInt("version", -1) != 1 || !(save.opt("party") instanceof JSONObject)
+                            || !(save.opt("regions") instanceof JSONObject) || !save.has("camps")) throw new Exception();
+                } else {
+                    for (String key : new String[]{"stores", "features", "game", "config"}) {
+                        if (!(save.opt(key) instanceof JSONObject)) throw new Exception();
+                    }
                 }
                 String validatedJson = save.toString();
+                if (isRoguePage()) {
+                    webView.evaluateJavascript("Rogue.confirmRestore(" + JSONObject.quote(validatedJson) + ")", null);
+                    return;
+                }
                 new AlertDialog.Builder(this).setTitle("恢复存档")
                         .setMessage("这会替换当前选中的存档，其他栏位不受影响。建议先备份当前进度。")
                         .setNegativeButton("取消", null)
@@ -338,6 +361,12 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void restoreSave(String json) {
+        if (isRoguePage()) {
+            webView.evaluateJavascript("!!(window.Rogue&&Rogue.importJSON(" + JSONObject.quote(json) + "))", value -> {
+                if (!"true".equals(value)) webView.evaluateJavascript("Rogue.ui.notice(Rogue.save.lastError||'err.corrupt')", null);
+            });
+            return;
+        }
         // Suppress pagehide's save of the old in-memory State while replacing the save.
         String script = "(function(){try{if(window.OfflineGame)OfflineGame.prepareRestore();"
                 + "if(!window.SaveSlots)throw 0;SaveSlots.importJSON(" + JSONObject.quote(json)
@@ -361,7 +390,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void showAbout() {
-        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.0.14")
+        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.1.0")
                 .setMessage("A Dark Room 网页版的独立中文离线封装\n原作：Michael Townsend / doublespeak games 及贡献者\n\n游戏、中文翻译、音效均在安装包中。无需服务器；没有联网权限。进度保存在应用内部，卸载或清除数据前请备份。\n\n上游：github.com/doublespeakgames/adarkroom\n源码基线：1fada4620b6c\n许可：Mozilla Public License 2.0\n\n本封装不属于官方商店版本。")
                 .setPositiveButton("关闭", null)
                 .setNeutralButton("开源许可", (dialog, which) -> showLicense()).show();

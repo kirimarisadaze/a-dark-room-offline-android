@@ -1,0 +1,268 @@
+/* SPDX-License-Identifier: MPL-2.0 */
+// Browser acceptance tests for the exact offline WebView asset bundle.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const require = createRequire(import.meta.url);
+let playwright;
+for (const candidate of [process.env.PLAYWRIGHT_MODULE, 'playwright', path.join(root, '../kubi/node_modules/playwright')].filter(Boolean)) {
+    try { playwright = require(candidate); break; } catch {}
+}
+assert(playwright, 'Use an existing Playwright installation through PLAYWRIGHT_MODULE.');
+const assets = path.join(root, 'android/app/src/main/assets/game');
+const output = path.join(root, '.local/rogue-tests');
+try { await fs.access(path.join(output, 'completed-run.json')); }
+catch { execFileSync(process.execPath, [path.join(root, 'scripts/test-rogue.mjs'), '--playthrough'], { cwd: root, stdio: 'inherit' }); }
+const base = 'https://appassets.androidplatform.net/game/';
+const mime = { '.html': 'text/html', '.js': 'application/javascript', '.css': 'text/css', '.flac': 'audio/flac', '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon' };
+const errors = [], warnings = [], missing = [], remote = [], checks = [];
+await fs.mkdir(output, { recursive: true });
+const browser = await playwright.chromium.launch({ headless: true });
+/** Creates a fully offline browser context at the same virtual origin as the Android WebView. */
+async function setup(width = 360, height = 740, seed = {}) {
+    const context = await browser.newContext({ viewport: { width, height }, isMobile: width < 1100, hasTouch: width < 1100, offline: true });
+    await context.addInitScript(seed => {
+        if (!sessionStorage.getItem('rogue-test-seed')) {
+            for (const [key, value] of Object.entries(seed)) localStorage.setItem(key, value);
+            sessionStorage.setItem('rogue-test-seed', 'true');
+        }
+    }, seed);
+    await context.route('**/*', async route => {
+        const url = route.request().url();
+        if (!url.startsWith(base)) { remote.push(url); await route.abort(); return; }
+        const relative = decodeURIComponent(new URL(url).pathname.slice('/game/'.length));
+        const file = path.resolve(assets, relative);
+        if (!file.startsWith(assets + path.sep)) { await route.abort(); return; }
+        try { await route.fulfill({ body: await fs.readFile(file), contentType: mime[path.extname(file)] || 'application/octet-stream' }); }
+        catch { missing.push(relative); await route.fulfill({ status: 404, body: '' }); }
+    });
+    const page = await context.newPage();
+    page.setDefaultTimeout(10000);
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); if (message.type() === 'warning') warnings.push(message.text()); });
+    return { context, page };
+}
+/** Opens the Rogue mode and creates a run exclusively through its real controls. */
+async function create(page, slot = 0) {
+    await page.goto(base + 'index.html?mode=rogue');
+    await page.locator('.rogue-slot-open').nth(slot).click();
+    await page.locator('#rogue-seed').fill('42');
+    await page.getByRole('button', { name: '点燃第一堆火', exact: true }).click();
+    await page.waitForFunction(() => Rogue.state.current && document.querySelector('#rogue-root').getAttribute('data-view') === 'run');
+}
+/** Checks horizontal fit and the minimum touch size of currently rendered controls. */
+async function fit(page, tag) {
+    const result = await page.evaluate(() => {
+        const failures = [];
+        if (document.documentElement.scrollWidth > innerWidth + 1) failures.push('page-overflow');
+        const nodes = document.querySelectorAll('#rogue-root button, #rogue-root input');
+        for (const node of nodes) {
+            if (!node.getClientRects().length || node.closest('[aria-hidden="true"]')) continue;
+            const r = node.getBoundingClientRect();
+            if (r.left < -1 || r.right > innerWidth + 1) failures.push('overflow:' + node.getAttribute('data-focus'));
+            if (r.height < 43 || r.width < 43) failures.push('touch:' + node.getAttribute('data-focus') + ':' + r.width + 'x' + r.height);
+        }
+        if (document.body.innerText.includes('!!')) failures.push('missing-translation');
+        return { failures, width: innerWidth, height: innerHeight };
+    });
+    assert.deepEqual(result.failures, [], tag);
+}
+/** Records an acceptance result. */
+function mark(name) { checks.push(name); console.log('PASS ' + name); }
+try {
+    const ordinary = await setup();
+    await ordinary.page.goto(base + 'index.html');
+    await ordinary.page.waitForFunction(() => window.State && Engine.activeModule === Room && window.OfflineGame);
+    await ordinary.page.evaluate(() => { $SM.set('stores.wood', 4321); $SM.set('playStats.audioAlertShown', true); OfflineGame.save(); });
+    const normalSave = await ordinary.page.evaluate(() => localStorage.gameState);
+    const normalDatabase = await ordinary.page.evaluate(() => localStorage.getItem('adr.saveSlots.v1'));
+    await ordinary.context.close();
+    mark('ordinary mode still initializes Room and saves real upstream progress');
+    const env = await setup(360, 740, { gameState: normalSave, unrelated: 'keep' });
+    const { page } = env;
+    await page.goto(base + 'home.html');
+    await page.getByRole('button', { name: '开始游戏', exact: true }).click();
+    assert.match(await page.locator('#offline-mode-rogue-description').innerText(), /探索/);
+    await page.locator('#offline-mode-rogue').click();
+    await page.waitForURL(base + 'index.html?mode=rogue');
+    assert.equal(await page.locator('.rogue-slot').count(), 3);
+    assert.equal(await page.evaluate(() => localStorage.getItem('rogueSlot0')), null);
+    assert.equal(await page.evaluate(() => localStorage.gameState), normalSave);
+    mark('existing homepage opens the three-slot Rogue launcher without creating any run');
+    await create(page);
+    assert.equal(await page.evaluate(() => typeof window.State), 'undefined');
+    assert.equal(await page.evaluate(() => AudioEngine._initialized), false);
+    assert.equal(await page.locator('.location').count(), 0);
+    assert.equal(await page.evaluate(() => localStorage.gameState), normalSave);
+    await fit(page, 'initial-map');
+    await page.screenshot({ path: path.join(output, 'map-360-day.png'), fullPage: true });
+    await page.locator('#rogue-tab-camp').click();
+    for (let i = 0; i < 4; i++) await page.getByRole('button', { name: '收集周围物资', exact: true }).click();
+    await page.locator('[data-section="recipes"] > summary').click();
+    await page.locator('[data-focus="craft:spear"]').click();
+    assert.equal(await page.evaluate(() => Rogue.state.current.party.weapon), 'spear');
+    await page.getByRole('button', { name: '补充水与口粮', exact: true }).click();
+    await page.locator('#rogue-tab-map').click();
+    for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '向西', exact: true }).click();
+    await page.getByRole('button', { name: '采集', exact: true }).click();
+    await page.getByRole('button', { name: '占领站点', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
+    await page.locator('[data-focus="worker:plus:0,0:0"]').click();
+    assert.equal(await page.evaluate(() => Rogue.state.current.regions['0,0'].sites[0].workers), 1);
+    await page.screenshot({ path: path.join(output, 'camp-360-day.png'), fullPage: true });
+    const beforePanels = await page.evaluate(() => Rogue.state.current.turn);
+    await page.locator('#rogue-tab-party').click();
+    await page.locator('#rogue-menu').click();
+    await page.getByRole('button', { name: '夜间', exact: true }).click();
+    await page.getByRole('button', { name: '返回', exact: true }).click();
+    assert.equal(await page.evaluate(() => Rogue.state.current.turn), beforePanels);
+    await page.screenshot({ path: path.join(output, 'party-360-night.png'), fullPage: true });
+    const beforeReload = await page.evaluate(() => JSON.stringify(Rogue.state.current));
+    await page.reload();
+    await page.waitForFunction(() => Rogue.state.current);
+    assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), beforeReload);
+    assert.equal(await page.evaluate(() => localStorage.gameState), normalSave);
+    mark('real UI gathering, crafting, occupation and worker assignment persist; panels and settings consume zero turns');
+    await page.evaluate(() => { Rogue.combat.encounter(Rogue.state.current, { kind: 'wild' }); Rogue.save.write(Rogue.state.current); Rogue.ui.render(); });
+    await page.getByRole('button', { name: '防御反击', exact: true }).click();
+    const battle = await page.evaluate(() => JSON.stringify(Rogue.state.current.flags.combat));
+    if (battle) {
+        await page.reload();
+        await page.waitForFunction(() => Rogue.state.current && Rogue.state.current.flags.combat);
+        assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current.flags.combat)), battle);
+        await page.screenshot({ path: path.join(output, 'combat-360-night.png') });
+    }
+    await page.getByRole('button', { name: '← 返回', exact: true }).last().click();
+    await page.waitForURL(base + 'home.html');
+    assert.equal(await page.evaluate(() => localStorage.gameState), normalSave);
+    await page.locator('#offline-home-start').click(); await page.locator('#offline-mode-normal').click(); await page.locator('#offline-slot-1').click();
+    await page.waitForFunction(() => window.State && Engine.activeModule === Room);
+    assert.equal(await page.evaluate(() => $SM.get('stores.wood')), 4321);
+    mark('refresh resumes the exact battle; return-home and normal-mode resume preserve prior wood and normal save');
+    await env.context.close();
+    const backup = await setup(360, 740, { gameState: normalSave, 'adr.saveSlots.v1': normalDatabase, rogueSlot2: '{"version":1,', unrelated: 'keep' });
+    await create(backup.page, 1);
+    const exported = await backup.page.evaluate(() => {
+        const code = Rogue.export64();
+        return { raw: Base64.decode(code), code, slot: localStorage.rogueSlot1 };
+    });
+    assert.equal(exported.raw, exported.slot);
+    assert.equal(JSON.parse(exported.raw).slot, 1);
+    const otherSlot = JSON.stringify({ ...JSON.parse(exported.raw), slot: 0 });
+    await backup.page.evaluate(raw => localStorage.setItem('rogueSlot0', raw), otherSlot);
+    await backup.page.locator('#rogue-tab-camp').click();
+    await backup.page.getByRole('button', { name: '收集周围物资', exact: true }).click();
+    const changed = await backup.page.evaluate(() => localStorage.rogueSlot1);
+    assert.notEqual(changed, exported.raw);
+    assert.equal(await backup.page.evaluate(() => Rogue.importJSON('{"version":1,')), false);
+    assert.equal(await backup.page.evaluate(() => localStorage.rogueSlot1), changed);
+    const sourceWithDifferentSlot = JSON.stringify({ ...JSON.parse(exported.raw), slot: 2 });
+    assert.equal(await backup.page.evaluate(raw => Rogue.confirmRestore(raw), sourceWithDifferentSlot), true);
+    const dialogButtons = backup.page.getByRole('dialog').locator('button');
+    await dialogButtons.last().focus(); await backup.page.keyboard.press('Tab');
+    assert.equal(await dialogButtons.first().evaluate(node => node === document.activeElement), true);
+    await backup.page.keyboard.press('Shift+Tab');
+    assert.equal(await dialogButtons.last().evaluate(node => node === document.activeElement), true);
+    await backup.page.getByRole('button', { name: '取消', exact: true }).click();
+    assert.equal(await backup.page.evaluate(() => localStorage.rogueSlot1), changed);
+    await backup.page.evaluate(raw => Rogue.confirmRestore(raw), sourceWithDifferentSlot);
+    await backup.page.getByRole('button', { name: '确认', exact: true }).click();
+    assert.equal(await backup.page.evaluate(() => localStorage.rogueSlot1), exported.raw);
+    const paused = await backup.page.evaluate(() => {
+        const before = JSON.stringify(Rogue.state.current);
+        OfflineGame.pause(); OfflineGame.resume(); OfflineGame.tilt(50);
+        return { before, after: JSON.stringify(Rogue.state.current), normal: localStorage.gameState,
+            database: localStorage.getItem('adr.saveSlots.v1'), other: localStorage.rogueSlot0,
+            damaged: localStorage.rogueSlot2, unrelated: localStorage.unrelated };
+    });
+    assert.equal(paused.after, paused.before);
+    assert.equal(paused.normal, normalSave); assert.equal(paused.database, normalDatabase);
+    assert.equal(paused.other, otherSlot); assert.equal(paused.damaged, '{"version":1,'); assert.equal(paused.unrelated, 'keep');
+    mark('native Base64 backup, cancelled/confirmed restore, modal focus loop and lifecycle retain normal bytes and other Rogue slots');
+    await backup.page.locator('#rogue-menu').click();
+    await backup.page.getByRole('button', { name: '切换旅程', exact: true }).click();
+    assert.equal(await backup.page.locator('.rogue-slot-open').nth(2).isDisabled(), true);
+    assert.match(await backup.page.locator('.rogue-slot').nth(2).innerText(), /原始数据已保留/);
+    await backup.page.locator('[data-focus="delete:2"]').click();
+    await backup.page.getByRole('button', { name: '取消', exact: true }).click();
+    assert.equal(await backup.page.evaluate(() => localStorage.rogueSlot2), '{"version":1,');
+    await backup.page.locator('[data-focus="delete:2"]').click();
+    await backup.page.getByRole('button', { name: '确认', exact: true }).click();
+    assert.equal(await backup.page.evaluate(() => localStorage.getItem('rogueSlot2')), null);
+    assert.equal(await backup.page.evaluate(() => localStorage.rogueSlot0), otherSlot);
+    assert.equal(await backup.page.evaluate(() => localStorage.rogueSlot1), exported.raw);
+    await create(backup.page, 2);
+    assert.equal(await backup.page.evaluate(() => Rogue.state.current.slot), 2);
+    assert.equal(await backup.page.evaluate(() => localStorage.gameState), normalSave);
+    mark('damaged run remains intact until explicit deletion; another slot stays playable and isolated');
+    await backup.context.close();
+    const completed = await fs.readFile(path.join(output, 'completed-run.json'), 'utf8');
+    const ending = await setup(360, 740, { gameState: normalSave, rogueSlot0: completed });
+    await ending.page.goto(base + 'index.html?mode=rogue&slot=0');
+    await ending.page.getByRole('heading', { name: '星光不再遥远', exact: true }).waitFor();
+    await fit(ending.page, 'ship-ending');
+    await ending.page.screenshot({ path: path.join(output, 'ending-360-day.png'), fullPage: true });
+    const beforeAbyss = await ending.page.evaluate(() => JSON.stringify({ party: Rogue.state.current.party, stores: Rogue.stores(Rogue.state.current) }));
+    await ending.page.getByRole('button', { name: '进入深渊', exact: true }).click();
+    assert.equal(await ending.page.evaluate(() => Rogue.state.current.flags.abyss), true);
+    await fit(ending.page, 'abyss-map');
+    await ending.page.screenshot({ path: path.join(output, 'abyss-360-day.png') });
+    await ending.page.reload();
+    await ending.page.waitForFunction(() => Rogue.state.current && Rogue.state.current.flags.abyss);
+    await ending.page.getByRole('button', { name: '撤离地牢', exact: true }).click();
+    await ending.page.getByRole('heading', { name: '星光不再遥远', exact: true }).waitFor();
+    assert.equal(await ending.page.evaluate(() => JSON.stringify({ party: Rogue.state.current.party, stores: Rogue.stores(Rogue.state.current) })), beforeAbyss);
+    assert.equal(await ending.page.evaluate(() => localStorage.gameState), normalSave);
+    mark('real completed-run fixture renders its ship ending, enters and reloads the abyss, then returns without inventory or economic changes');
+    await ending.context.close();
+    const layouts = [[320, 512], [360, 740], [412, 915], [1440, 900]];
+    for (const [width, height] of layouts) {
+        for (const dark of [false, true]) {
+            const layout = await setup(width, height, { gameState: normalSave, roguePreferences: JSON.stringify({ dark, font: width === 320 ? 22 : 16 }) });
+            await create(layout.page);
+            const tag = width + 'x' + height + (dark ? '-night' : '-day');
+            for (const tab of ['map', 'camp', 'party']) {
+                await layout.page.locator('#rogue-tab-' + tab).evaluate(node => node.click());
+                await fit(layout.page, tag + '-' + tab);
+                if (tab === 'map' || width === 1440) await layout.page.screenshot({ path: path.join(output, tag + '-' + tab + '.png'), fullPage: true });
+            }
+            await layout.page.locator('#rogue-menu').click(); await fit(layout.page, tag + '-menu');
+            await layout.page.getByRole('button', { name: '返回', exact: true }).click();
+            await layout.page.evaluate(() => { Rogue.combat.encounter(Rogue.state.current, { kind: 'wild' }); Rogue.ui.render(); });
+            await fit(layout.page, tag + '-combat');
+            await layout.page.screenshot({ path: path.join(output, tag + '-combat.png') });
+            await layout.context.close();
+        }
+    }
+    mark('eight phone/desktop theme scenarios fit horizontally, support touch targets and show no missing i18n keys');
+    if (process.argv.includes('--soak')) {
+        const soak = await setup(360, 740, { gameState: normalSave, 'adr.saveSlots.v1': normalDatabase });
+        await create(soak.page);
+        await soak.page.locator('#rogue-tab-camp').click();
+        const started = Date.now();
+        let actions = 0;
+        while (Date.now() - started < 600000) {
+            await soak.page.getByRole('button', { name: '收集周围物资', exact: true }).click();
+            actions++;
+            assert.equal(await soak.page.evaluate(() => localStorage.gameState), normalSave);
+            assert.equal(await soak.page.evaluate(() => localStorage.getItem('adr.saveSlots.v1')), normalDatabase);
+            if (actions % 60 === 0) console.log('SOAK ' + Math.round((Date.now() - started) / 1000) + 's / ' + actions + ' actions');
+            await soak.page.waitForTimeout(1000);
+        }
+        await soak.page.reload();
+        await soak.page.waitForFunction(() => Rogue.state.current);
+        await soak.page.getByRole('button', { name: '返回主页面', exact: true }).first().click();
+        await soak.page.waitForURL(base + 'home.html');
+        assert.equal(await soak.page.evaluate(() => localStorage.gameState), normalSave);
+        assert.equal(await soak.page.evaluate(() => localStorage.getItem('adr.saveSlots.v1')), normalDatabase);
+        mark('T4: ten real minutes of Rogue actions, refresh and return-home preserve exact normal save and database bytes (' + actions + ' actions)');
+        await soak.context.close();
+    }
+    assert.deepEqual(errors, []); assert.deepEqual(warnings, []); assert.deepEqual(missing, []); assert.deepEqual(remote, []);
+    await fs.writeFile(path.join(output, 'report.json'), JSON.stringify({ passed: true, checks, errors, warnings, missing, remote }, null, 2));
+    console.log(JSON.stringify({ passed: true, checks: checks.length }));
+} finally { await browser.close(); }

@@ -30,8 +30,10 @@ def prepare():
     # Keep loading diagnostics, but never initialize or alter a save in that state.
     engine_path = DEST / "script/engine.js"
     engine = engine_path.read_text(encoding="utf-8")
-    engine, count = re.subn(r'\$\(function\(\) \{\s*Engine\.init\(\);\s*\}\);',
-                            '$(function() {\n  if (!window.__ADR_BOOT_ERROR) Engine.init();\n});',
+    engine, count = re.subn(r'\$\(function\(\) \{\s*if \(window\.ROGUE_MODE\) \{\s*'
+                            r'Rogue\.boot\(\);\s*\} else \{\s*Engine\.init\(\);\s*\}\s*\}\);',
+                            '$(function() {\n  if (window.__ADR_BOOT_ERROR) return;\n'
+                            '  if (window.ROGUE_MODE) Rogue.boot(); else Engine.init();\n});',
                             engine)
     if count != 1:
         raise RuntimeError("Upstream Engine.init ready callback changed; inspect native startup guard")

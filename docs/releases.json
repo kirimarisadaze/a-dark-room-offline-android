@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/kirimarisadaze/a-dark-room-offline-android",
   "packageName": "org.adarkroom.offline",
-  "latest": "1.0.14",
+  "latest": "1.1.0",
   "developmentMethod": "pure AI implementation of this port, human-authored upstream retained",
   "upstreamRepository": "https://github.com/doublespeakgames/adarkroom",
   "upstreamCommit": "1fada4620b6c66bd07bf15a3f1eb8223df8bc1d7",
@@ -370,7 +370,7 @@
       "internetPermission": false,
       "gameAssets": 150,
       "rawBackslashEntries": 0,
-      "status": "latest",
+      "status": "historical",
       "artifactProvenance": "built-from-complete-project-with-original-key",
       "sourceScope": "complete-project",
       "tag": "v1.0.14",
@@ -385,6 +385,32 @@
       "sourceUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/tree/v1.0.14",
       "knownIssue": "Roguelike 模式当前仅支持预留独立存档栏位，玩法尚未开放。",
       "sourceArchiveUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.14/a-dark-room-offline-1.0.14-source.zip"
+    },
+    {
+      "version": "1.1.0",
+      "versionCode": 16,
+      "file": "a-dark-room-offline-1.1.0.apk",
+      "bytes": 5748133,
+      "sha256": "77eb9222012e07096eae2b29c9ed2ac53945b4067494becf0c175f9dab1a8937",
+      "certificateSha256": "84604fa048968f6f4bac6ba50fec1ff75566d501a5d4d4ba4ce32221fea81713",
+      "internetPermission": false,
+      "gameAssets": 167,
+      "rawBackslashEntries": 0,
+      "status": "latest",
+      "artifactProvenance": "built-from-complete-project-with-original-key",
+      "sourceScope": "complete-project",
+      "tag": "v1.1.0",
+      "packageName": "org.adarkroom.offline",
+      "title": "废土余火 · Roguelike 大型内容更新",
+      "originalBuildDate": "2026-10-28",
+      "archivedOn": "2026-10-28",
+      "developmentMethod": "AI-implemented port based on human-authored upstream",
+      "releaseUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.1.0",
+      "downloadUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0.apk",
+      "checksumUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0.apk.sha256",
+      "sourceUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/tree/v1.1.0",
+      "knownIssue": "尚未真机运行验证；真人通关时长与长期平衡仍待评估。",
+      "sourceArchiveUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0-source.zip"
     }
   ]
 }

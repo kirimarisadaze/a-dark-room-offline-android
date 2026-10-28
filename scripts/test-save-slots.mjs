@@ -127,29 +127,39 @@ try {
   mark('restart resets only the bound slot and preserves the other modes and preferences');
 
   await home(page); await pickMode(page, 'rogue');
+  await page.waitForURL(base + 'index.html?mode=rogue');
   const normals = JSON.stringify((await db(page)).modes.normal);
-  for (const slot of [1, 2, 3]) {
-    await page.locator('#offline-slot-' + slot).tap();
-    assert.match(await page.locator('[role="dialog"]').innerText(), new RegExp('存档 ' + slot));
-    await page.locator('#offline-home-dialog-close').tap();
+  for (const slot of [0, 1, 2]) {
+    await page.locator('.rogue-slot-open').nth(slot).tap();
+    await page.locator('#rogue-seed').fill(String(42 + slot));
+    await page.getByRole('button', { name: '点燃第一堆火', exact: true }).tap();
+    await page.waitForFunction(() => Rogue.state.current);
+    await page.locator('#rogue-menu').tap();
+    await page.getByRole('button', { name: '切换旅程', exact: true }).tap();
   }
   index = await db(page);
   assert.equal(JSON.stringify(index.modes.normal), normals);
-  assert(index.modes.rogue.every(entry => entry.kind === 'reserved' && entry.data === null));
-  assert.equal(await page.evaluate(() => typeof window.Engine), 'undefined');
-  await page.reload(); await pickMode(page, 'rogue');
-  assert.equal(await page.locator('.home-slot-summary').filter({ hasText: '已预留' }).count(), 3);
+  assert(index.modes.rogue.every(entry => entry === null));
+  assert.equal(await page.evaluate(() => typeof window.State), 'undefined');
+  await page.reload();
+  assert.equal(await page.locator('.rogue-slot-open').count(), 3);
+  assert.equal(await page.evaluate(() => Rogue.save.list().every(entry => !!entry.save)), true);
   await page.screenshot({ path: path.join(output, 'rogue-slots.png') });
-  mark('three persistent rogue slots are isolated reservations with no game engine or normal save changes');
+  mark('three real Rogue slots preserve the normal database and never initialize ordinary State');
 
   const rogueBefore = (await db(page)).modes.rogue;
-  await page.locator('[data-slot="2"] .home-slot-delete').tap();
-  await page.locator('#offline-home-dialog-close').tap();
+  const firstRogue = await page.evaluate(() => localStorage.rogueSlot0);
+  const secondRogue = await page.evaluate(() => localStorage.rogueSlot1);
+  const thirdRogue = await page.evaluate(() => localStorage.rogueSlot2);
+  await page.locator('[data-focus="delete:1"]').tap();
+  await page.getByRole('button', { name: '取消', exact: true }).tap();
   assert.deepEqual((await db(page)).modes.rogue, rogueBefore, 'Delete cancel preserves everything');
-  await page.locator('[data-slot="2"] .home-slot-delete').tap();
-  await page.keyboard.press('Tab');
-  assert.equal(await page.evaluate(() => document.activeElement.id), 'offline-home-dialog-confirm');
-  await page.locator('#offline-home-dialog-confirm').tap();
+  assert.equal(await page.evaluate(() => localStorage.rogueSlot1), secondRogue);
+  await page.locator('[data-focus="delete:1"]').tap();
+  await page.getByRole('button', { name: '确认', exact: true }).tap();
+  assert.equal(await page.evaluate(() => localStorage.getItem('rogueSlot1')), null);
+  assert.equal(await page.evaluate(() => localStorage.rogueSlot0), firstRogue);
+  assert.equal(await page.evaluate(() => localStorage.rogueSlot2), thirdRogue);
   assert.equal((await db(page)).modes.rogue[1], null);
   assert.deepEqual((await db(page)).modes.rogue[0], rogueBefore[0]);
   assert.deepEqual((await db(page)).modes.rogue[2], rogueBefore[2]);

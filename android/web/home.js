@@ -11,6 +11,7 @@
   var close = document.getElementById('offline-home-dialog-close');
   var confirm = document.getElementById('offline-home-dialog-confirm');
   var feedback = document.getElementById('offline-home-feedback');
+  document.getElementById('offline-mode-rogue-description').textContent = Rogue.t('ui.homeDescription');
   var mode = 'normal';
   var restoring = false;
   var returnFocus = start;
@@ -140,7 +141,8 @@
   document.getElementById('offline-home-back').addEventListener('click', back);
   document.getElementById('offline-slots-back').addEventListener('click', back);
   document.getElementById('offline-mode-normal').addEventListener('click', function () { showSlots('normal'); });
-  document.getElementById('offline-mode-rogue').addEventListener('click', function () { showSlots('rogue'); });
+  /** Opens the isolated Rogue launcher without selecting or creating a normal save. */
+  document.getElementById('offline-mode-rogue').addEventListener('click', function () { location.href = 'index.html?mode=rogue'; });
   close.addEventListener('click', closeDialog);
   confirm.addEventListener('click', function () {
     try { if (confirmAction) confirmAction(); closeDialog(); }
