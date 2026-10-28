@@ -195,16 +195,18 @@ div.tooltip { max-width: min(240px,65vw); font-size: 14px; line-height: 1.5; }
 #buttons .clear { display: none; }
 .eventPanel .button, #buttons > .button { float: none; width: 100% !important; margin: 0; }
 #buttons > .button { margin-top: 10px; }
-.eventPanel.offline-combat { display: flex; flex-direction: column; height: calc(100vh - 40px); }
+.eventPanel.offline-combat { display: flex; flex-direction: column; height: auto; max-width: 460px; overflow: hidden; }
 .offline-combat .eventTitle { flex: none; margin-bottom: 12px; }
 .offline-combat #description { flex: none; min-height: 0; }
 .offline-combat #description > div:not(#fight):not(#lootButtons) { max-height: 48px; overflow-y: auto; padding-bottom: 8px; }
 .offline-combat #fight { height: auto; min-height: 54px; margin: 10px 0 12px; padding-bottom: 4px; align-items: center; }
-.offline-combat #buttons { display: flex; flex: 1; flex-direction: column; gap: 10px; min-height: 0; }
-.offline-combat #buttons > #attackButtons { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; flex: 1; min-height: 50px; overflow-y: auto; align-content: start; margin: 0; padding-bottom: 2px; }
-.offline-combat #buttons > #healButtons { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 8px; flex: none; margin: 0; padding-top: 10px; border-top: 1px solid var(--offline-line); }
+.offline-combat #buttons { display: flex; flex: 0 1 auto; flex-direction: column; gap: 10px; min-height: 0; margin-top: 12px; }
+.offline-combat #buttons > #attackButtons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; flex: 0 1 auto; min-height: 50px; max-height: min(228px,30vh); overflow-y: auto; align-content: start; margin: 0; padding-bottom: 2px; }
+.offline-combat #buttons > #healButtons { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 8px; flex: none; margin: 0; padding-top: 10px; border-top: 1px solid var(--offline-line); }
 .offline-combat #buttons > #exitButtons { flex: none; margin: 0; }
-.offline-combat .button { padding: 8px 4px; min-height: 44px; }
+.offline-combat #buttons > #attackButtons.offline-single-action, .offline-combat #buttons > #healButtons.offline-single-action { grid-template-columns: minmax(0,1fr); }
+.offline-combat .button { padding: 8px 4px; min-height: 48px; font-size: min(var(--offline-font-size,16px),18px); }
+.offline-combat .button > .tooltip { display: none !important; }
 /* Loot is a compact list, independent of the combat panel's fixed height. */
 .eventPanel.offline-loot { display: flex; flex-direction: column; height: auto; overflow: hidden; }
 .offline-loot .eventTitle { flex: none; margin-bottom: 14px; }
@@ -253,6 +255,7 @@ div.tooltip { max-width: min(240px,65vw); font-size: 14px; line-height: 1.5; }
 #offline-controls { display: grid; position: fixed; bottom: 76px; right: 20px; z-index: 45; grid-template-columns: repeat(3,48px); grid-template-rows: repeat(2,48px); gap: 6px; user-select: none; touch-action: none; }
 .offline-direction { color: var(--offline-ink); background: var(--offline-surface); border: 1px solid var(--offline-line); border-radius: 0; font: 24px Georgia,serif; padding: 0; touch-action: none; }
 .offline-direction:active, .offline-direction.offline-held { background: var(--offline-fill); border-color: var(--offline-ink); }
+.offline-event-open #offline-controls { visibility: hidden; pointer-events: none; }
 .offline-direction.up { grid-column: 2; grid-row: 1; }
 .offline-direction.left { grid-column: 1; grid-row: 2; }
 .offline-direction.down { grid-column: 2; grid-row: 2; }
@@ -288,5 +291,7 @@ body.offline-dark.noMask .eventPanel #buttons .button { color: var(--offline-ink
   #offline-controls { right: 32px; }
 }
 @media (max-height: 600px) {
+  .offline-combat .button { min-height: 44px; padding: 6px 4px; }
+  .offline-combat #buttons > #attackButtons { min-height: 46px; }
   .offline-world #offline-controls { grid-template-columns: repeat(3,44px); grid-template-rows: repeat(3,44px); gap: 4px; }
 }

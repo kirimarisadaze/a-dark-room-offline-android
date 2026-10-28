@@ -384,6 +384,7 @@
     createSceneSwipes();
     var observer = new MutationObserver(function (changes) {
       if (changes.some(function (change) {
+        if (Array.prototype.some.call(change.removedNodes, function (node) { return node.nodeType === 1 && node.id === 'event'; })) { return true; }
         return Array.prototype.some.call(change.addedNodes, function (node) {
           return node.nodeType === 1 && (node.classList.contains('location') ||
             node.classList.contains('workerRow') || node.classList.contains('outfitRow') ||
@@ -601,8 +602,19 @@
   Events.startCombat = function () {
     var result = originalStartCombat.apply(Events, arguments);
     Events.eventPanel().removeClass('offline-loot').addClass('offline-combat');
+    arrangeCombat();
     return result;
   };
+  function arrangeCombat() {
+    var panel = $('#event.offline-combat');
+    if (!panel.length) { return; }
+    // Upstream inserts the fallback punch outside the attack group when ammo
+    // runs out. Keep that real button in the same scrollable action area.
+    panel.find('#buttons > .weaponButton').prependTo(panel.find('#attackButtons'));
+    panel.find('#attackButtons,#healButtons').each(function () {
+      $(this).toggleClass('offline-single-action', $(this).children('.button').length === 1);
+    });
+  }
   var originalStartStory = Events.startStory;
   Events.startStory = function () {
     if (Events.activeEvent()) { Events.eventPanel().removeClass('offline-combat offline-loot'); }
@@ -1001,7 +1013,9 @@
     var inSpace = activeModule === Space && !Engine.GAME_OVER;
     document.body.classList.toggle('offline-world', inWorld);
     document.body.classList.toggle('offline-space', inSpace);
+    document.body.classList.toggle('offline-event-open', !!Events.activeEvent());
     arrangePanels();
+    arrangeCombat();
     arrangeLoot();
     $('.location').removeClass('offline-active');
     if (activeModule.panel) { activeModule.panel.addClass('offline-active'); }
