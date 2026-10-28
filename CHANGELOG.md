@@ -4,6 +4,15 @@
 
 下列日期为历史构建日期，GitHub Release 为本次统一归档发布。历史安装包与源码保留范围见 [版本归档](docs/RELEASES.md)。
 
+## [1.0.13] — 2026-10-28
+
+- 新增沿用原作黑白文字与细线按钮风格的主页面，点击“开始游戏”进入模式选择。
+- 普通模式继续使用现有游戏、存档和设置；主页读取主题与字号，但不启动游戏引擎、不推进计时、不改写存档。
+- 增加 Roguelike 模式按钮，目前只显示“尚未开放”，没有可玩内容，也不创建模式存档。
+- 游戏菜单增加“返回主页面”；Android 返回键依次关闭提示、返回标题页，在普通游戏中保存后回到主页。
+- 从主页查看许可后返回主页；原生文件恢复也可在主页执行并进入普通模式。
+- 新增 24 个日夜主题、窄屏与大字号布局场景，以及旧存档往返、新游戏、键盘操作和无效存档保留检查。
+
 ## [1.0.12] — 2026-10-28
 
 - 作弊模式增加“地图全开”，解锁探索后可一次揭开当前与已保存地图，关闭作弊、探索失败和重启后保留。
@@ -93,6 +102,7 @@
 - **已知问题：**早期本地加载存在兼容性与资源错误。此版仅用于归档。
 - 从保留的原始构建产物恢复，并用原签名密钥重新签名。
 
+[1.0.13]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.13
 [1.0.12]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.12
 [1.0.11]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.11
 [1.0.10]: https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.10

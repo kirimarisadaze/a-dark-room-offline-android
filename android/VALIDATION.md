@@ -315,3 +315,12 @@ Visually reviewed the small-screen night guide, full-map menu action and reveale
 map. Reports and screenshots are in `.local/map-guide/`. This is offline Chromium
 validation, not physical Android verification. Native loading, storage origin,
 package identity and signing key stay unchanged.
+
+
+## 1.0.13 title screen and mode selection — 2026-10-28
+
+The Android launcher now opens a separate bundled `home.html`; its local script and stylesheet do not load Engine, audio, or game timers. “Start game” opens mode selection. Normal mode loads the existing index at its unchanged storage origin; Roguelike only opens a centered unavailable message and creates no save. Home reads saved theme/font preferences without changing any stored key. The game menu offers a saved return home. Native Back handles the placeholder, mode picker, title, attribution and game return explicitly. File restore no longer depends on OfflineGame existing on the current document.
+
+`node scripts/test-home.mjs` passed 24 layout scenes at 320×512 (16/22px), 360×740 (16px) and 412×915 (22px), in day and night mode. Checks cover all stored keys unchanged before entering normal mode, no engine/audio requests on home, placeholder focus and keyboard Back, return from attribution, preserved wood/speed/theme across entry and re-entry, a fresh real light-fire action, and untouched malformed saves. Screenshots/report are retained in `.local/home-tests/`; title and mode screenshots were visually inspected. There were no external requests, missing assets or uncaught errors.
+
+The existing smallest-viewport offline regression passed, including save/import, themes, real world movement, flight controls and FLAC decoding. Native instrumentation compiled with the updated launcher flow and three added resource interception cases. No Android device or emulator was connected for this update, so these new native paths have not been executed on a device. The signed production APK contains all 149 generated game/home assets byte-for-byte, with canonical ZIP paths, valid v1/v2/v3 signatures, alignment and no INTERNET permission.

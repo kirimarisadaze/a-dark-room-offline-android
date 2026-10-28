@@ -19,12 +19,12 @@
 ```powershell
 git add .
 git diff --cached --stat
-git commit -m "Release Android v1.0.13"
-git tag -a v1.0.13 -m "小黑屋 Android v1.0.13"
+git commit -m "Release Android v1.0.14"
+git tag -a v1.0.14 -m "小黑屋 Android v1.0.14"
 python scripts/package-source.py
 git push origin main
-git push origin v1.0.13
-gh release create v1.0.13 --verify-tag --title "小黑屋 · 离线 v1.0.13" --notes-file .local/release-notes-1.0.13.md --latest dist/a-dark-room-offline-1.0.13.apk dist/a-dark-room-offline-1.0.13.apk.sha256 dist/a-dark-room-offline-1.0.13-source.zip dist/a-dark-room-offline-1.0.13-source.zip.sha256
+git push origin v1.0.14
+gh release create v1.0.14 --verify-tag --title "小黑屋 · 离线 v1.0.14" --notes-file .local/release-notes-1.0.14.md --latest dist/a-dark-room-offline-1.0.14.apk dist/a-dark-room-offline-1.0.14.apk.sha256 dist/a-dark-room-offline-1.0.14-source.zip dist/a-dark-room-offline-1.0.14-source.zip.sha256
 ```
 
 上述示例假定版本化文件、校验值和说明已经准备好，不会自动修改 Android 清单或替你处理签名。
@@ -39,4 +39,4 @@ gh release create v1.0.13 --verify-tag --title "小黑屋 · 离线 v1.0.13" --n
 
 ## 本次历史归档
 
-`v1.0.0`–`v1.0.11` 指向 `release-archives` 上各版的实际 APK 网页资源快照，`v1.0.12` 指向 `main` 的完整工程。归档不是补写或伪造过去的开发提交；构建日期记录在元数据中，提交日期为真实归档时间。完整说明见 [RELEASES.md](RELEASES.md)。
+`v1.0.0`–`v1.0.11` 指向 `release-archives` 上各版的实际 APK 网页资源快照，`v1.0.12` 起的标签保留完整工程。归档不是补写或伪造过去的开发提交；构建日期记录在元数据中，提交日期为真实归档时间。完整说明见 [RELEASES.md](RELEASES.md)。

@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>小黑屋</title>
+  <link rel="icon" href="favicon.ico">
+  <script src="home.js" defer></script>
+  <link rel="stylesheet" href="home.css">
+</head>
+<body>
+  <main id="offline-home-main">
+    <section id="offline-home-title" class="home-screen" aria-labelledby="offline-home-heading">
+      <header class="home-heading">
+        <h1 id="offline-home-heading">小黑屋</h1>
+        <p>从一间黑暗的屋子开始。</p>
+      </header>
+      <button id="offline-home-start" class="home-start" type="button">开始游戏</button>
+      <p class="home-caption">文字冒险 · 纯离线</p>
+    </section>
+    <section id="offline-home-modes" class="home-screen" aria-labelledby="offline-mode-heading" hidden>
+      <button id="offline-home-back" class="home-back" type="button">← 返回</button>
+      <header class="home-heading mode-heading">
+        <h2 id="offline-mode-heading" tabindex="-1">选择模式</h2>
+      </header>
+      <div class="home-mode-list">
+        <a id="offline-mode-normal" class="home-mode" href="index.html">
+          <span class="home-mode-name">普通模式</span>
+          <span id="offline-mode-normal-description" class="home-mode-description">原版玩法，从小黑屋开始。</span>
+        </a>
+        <button id="offline-mode-rogue" class="home-mode" type="button" aria-haspopup="dialog" aria-controls="offline-home-dialog">
+          <span class="home-mode-name">Roguelike 模式</span>
+          <span class="home-mode-description">暂未开放</span>
+        </button>
+      </div>
+    </section>
+  </main>
+  <footer class="home-footer">
+    <a href="about.html?from=home">关于与许可</a>
+    <span>原作：doublespeak games</span>
+  </footer>
+  <div id="offline-home-dialog-layer" hidden>
+    <section id="offline-home-dialog" role="dialog" aria-modal="true" aria-labelledby="offline-home-dialog-heading" aria-describedby="offline-home-dialog-description">
+      <h2 id="offline-home-dialog-heading">Roguelike 模式</h2>
+      <p id="offline-home-dialog-description">尚未开放，敬请期待。</p>
+      <button id="offline-home-dialog-close" class="home-start" type="button">返回</button>
+    </section>
+  </div>
+</body>
+</html>

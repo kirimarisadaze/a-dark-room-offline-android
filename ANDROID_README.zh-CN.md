@@ -2,9 +2,11 @@
 
 **纯 AI 项目**：本仓库的 Android 移植、适配、附加功能及文档由 AI 根据用户需求和反馈完成；原作与上游资源保留各自作者署名。完整项目介绍见 [README.md](README.md)，安装包和各版记录见 [GitHub Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases)。
 
-安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 1.0.12。已有本项目旧版时可直接覆盖安装，保留本机存档。
+安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 1.0.13。已有本项目旧版时可直接覆盖安装，保留本机存档。
 
 ## 安装与使用
+
+1.0.13 打开应用先显示原作风格的主页面，“开始游戏”进入模式选择。普通模式进入现有游戏并接续本机进度；Roguelike 模式暂时只有按钮与未开放提示，没有可玩内容。主页只读取字号和主题，不加载游戏引擎或改写存档。游戏菜单可返回主页；Android 返回键先关闭面板，再保存并回到主页。主页查看许可后会返回主页，系统文件恢复可从主页直接进入恢复后的普通游戏。
 
 将 APK 传到手机，打开并允许该文件来源安装应用即可。最低 Android 6.0；需要 Android System WebView 80 或更新版本（支持上游的 `??` 语法和触屏控制），旧系统请预先更新 WebView。较新的 Android 手机通常已经具备。
 
@@ -78,6 +80,7 @@ node scripts/test-late-game-ui.mjs
 node scripts/test-exploration-ui.mjs
 node scripts/test-combat-ui.mjs
 node scripts/test-map-guide.mjs
+node scripts/test-home.mjs
 ```
 
 可通过 `PLAYWRIGHT_MODULE` 指定已安装 Playwright 的包目录。测试直接拦截同一虚拟 HTTPS 来源并在浏览器断网模式下提供本地资源；检查点火、存档重载、中文锁定、字号保存、地图、飞船控制和窄屏布局。测试报告及截图位于 `.local/test-results/`。

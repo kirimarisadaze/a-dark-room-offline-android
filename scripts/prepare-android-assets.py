@@ -100,6 +100,8 @@ def prepare():
     (DEST / "index.html").write_text(source, encoding="utf-8", newline="\n")
     for name in ("offline.js", "mobile.css", "zh-cn-extra.js"):
         shutil.copy2(ROOT / "android/web" / name, DEST / name)
+    for name in ("home.html", "home.css", "home.js"):
+        shutil.copy2(ROOT / "android/web" / name, DEST / name)
     license_text = html.escape((ROOT / "LICENSE.md").read_text(encoding="utf-8"))
     notice_path = ROOT / "android/UPSTREAM.md"
     notice = notice_path.read_text(encoding="utf-8") if notice_path.exists() else (
@@ -113,7 +115,9 @@ def prepare():
         '<title>关于小黑屋</title><style>'
         'body{font:16px/1.65 system-ui;margin:24px;max-width:900px}pre{white-space:pre-wrap;overflow-wrap:anywhere}'
         'a{color:inherit}a:first-child{display:inline-block;padding:12px 0}'
-        '</style><a href="index.html">← 返回游戏</a>'
+        '</style><a id="about-return" href="index.html">← 返回游戏</a>'
+        '<script>if(location.search==="?from=home"){var a=document.getElementById("about-return");'
+        'a.href="home.html";a.textContent="← 返回主页面";}</script>'
         '<h1>小黑屋 · 离线中文版</h1><pre>' + html.escape(notice) + '</pre>'
         '<h2>Mozilla Public License 2.0</h2><pre>' + license_text + '</pre></html>',
         encoding="utf-8")

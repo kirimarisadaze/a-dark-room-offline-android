@@ -39,7 +39,7 @@ div#saveNotify { position: fixed; top: 5px; right: 10px; background: var(--offli
 .offline-sheet-content { padding: 16px 18px 20px; }
 .offline-settings-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
 .offline-settings-grid > button, .offline-settings-grid > a { box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-width: 0; min-height: 50px; padding: 8px; border: 1px solid var(--offline-line); background: transparent; color: inherit; font: inherit; text-decoration: none; text-align: center; line-height: 1.4; }
-#offline-about, #offline-landmarks-button, #offline-cheat-map { grid-column: 1 / -1; }
+#offline-about, #offline-home, #offline-landmarks-button, #offline-cheat-map { grid-column: 1 / -1; }
 #offline-landmarks-panel { top: 50%; bottom: auto; max-height: calc(100vh - 40px); transform: translateY(-50%); }
 #offline-landmark-search { -webkit-appearance: none; appearance: none; box-sizing: border-box; display: block; width: 100%; min-width: 0; min-height: 44px; padding: 8px 10px; border: 1px solid var(--offline-line); border-radius: 0; background: var(--offline-surface); color: var(--offline-ink); font: inherit; }
 .offline-landmark-group h3 { margin: 20px 0 8px; font-size: inherit; font-weight: 600; }

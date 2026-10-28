@@ -2,13 +2,14 @@
 
 **纯 AI 项目**：Android 移植、移动适配、附加功能、测试脚本、文档与发布整理由 AI 根据用户需求和反馈完成；原作及上游代码、翻译、音效和第三方库保留各自作者署名。
 
-收录 1.0.0–1.0.12 共 13 版。下表日期为历史构建日期，Release 为本次统一归档发布；Git 提交没有回填历史开发日期。推荐下载 **1.0.12**。
+收录 1.0.0–1.0.13 共 14 版。下表日期为历史构建日期，Release 为本次统一归档发布；Git 提交没有回填历史开发日期。推荐下载 **1.0.13**。
 
 ## 下载索引
 
 | 版本 | 构建日期 | 内容 | 状态 | 下载 |
 | --- | --- | --- | --- | --- |
-| [1.0.12](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.12) | 2026-10-28 | 地图全开与中文地标图鉴 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.12/a-dark-room-offline-1.0.12.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.12/a-dark-room-offline-1.0.12.apk.sha256) |
+| [1.0.13](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.13) | 2026-10-28 | 主页面与模式选择 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.13/a-dark-room-offline-1.0.13.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.13/a-dark-room-offline-1.0.13.apk.sha256) |
+| [1.0.12](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.12) | 2026-10-28 | 地图全开与中文地标图鉴 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.12/a-dark-room-offline-1.0.12.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.12/a-dark-room-offline-1.0.12.apk.sha256) |
 | [1.0.11](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.11) | 2026-10-28 | 紧凑战斗弹窗 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.11/a-dark-room-offline-1.0.11.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.11/a-dark-room-offline-1.0.11.apk.sha256) |
 | [1.0.10](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.10) | 2026-10-28 | 十字移动与收获整理 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.10/a-dark-room-offline-1.0.10.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.10/a-dark-room-offline-1.0.10.apk.sha256) |
 | [1.0.9](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.9) | 2026-10-28 | 稳定材料卡片与后期界面 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.9/a-dark-room-offline-1.0.9.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.9/a-dark-room-offline-1.0.9.apk.sha256) |
@@ -25,9 +26,10 @@
 ## 产物来源与源码范围
 
 - **1.0.0 / 1.0.1**：当时的已签名分发文件没有保留，从原始 aligned 构建恢复，并用原密钥重新签名；不是原分发文件的逐字节备份。
+- **1.0.13**：从当前完整工程构建，继续使用原签名密钥；新增主页面与模式选择，Roguelike 尚未开放。
 - **1.0.2–1.0.12**：保留的原始签名 APK，归档时没有修改或重新构建。
 - **v1.0.0–v1.0.11**：标签位于 `release-archives`，只包含从本版 APK 提取的实际网页源码和资源，以及逐文件校验、元数据、许可和归档 README。未保留完整历史 Android 工程；GitHub 自动生成的 Source code ZIP / tar.gz 因此也只有这一范围。
-- **v1.0.12 / main**：完整当前 Android 与网页工程、构建脚本、测试及文档。最新版 Release 额外提供完整源码 ZIP 和校验值。
+- **v1.0.12 / v1.0.13 / main**：完整 Android 与网页工程、构建脚本、测试及文档。最新版 Release 额外提供完整源码 ZIP 和校验值。
 - 早期 APK 中的 Windows 反斜杠 ZIP 路径按原样保留；提取源码时仅将分隔符规范为 `/`，文件内容不变，原路径和文件哈希见历史标签中的 `asset-manifest.json`。
 
 ## 历史加载问题
@@ -39,7 +41,7 @@
 
 ## 校验与签名
 
-所有 13 版已经逐个核对包名、versionName / versionCode、APK ZIP / DEX、v1 / v2 签名和无 INTERNET 权限。证书一致，适用于本项目签名版本之间覆盖升级。首次自建会生成新密钥，不能覆盖官方归档签名。
+所有 14 版已经逐个核对包名、versionName / versionCode、APK ZIP / DEX、v1 / v2 签名和无 INTERNET 权限。证书一致，适用于本项目签名版本之间覆盖升级。首次自建会生成新密钥，不能覆盖本仓库发布的签名版本。
 
 签名证书 SHA-256：
 
@@ -49,6 +51,7 @@
 
 | APK 版本 | 大小（字节） | SHA-256 |
 | --- | ---: | --- |
+| 1.0.13 | 5,681,093 | `0957cb4655202b82a39be7d1b02fbbf2fe8a1329c0c5fc47ff7ca3b29d315ec7` |
 | 1.0.12 | 5,676,799 | `b6b03b8de104a6fc6027446c5a68f4708f10776beaf41eb110611b5013a6c510` |
 | 1.0.11 | 5,672,703 | `639211732a125921c6076d3e5f4ea16d7f40a8b84e50b14a791a5c8e384cab4e` |
 | 1.0.10 | 5,672,703 | `0e5447fdb82603b1de8b52a1de3fe9f73bf8b9573bba026d9fb4bc04de9290c2` |

@@ -58,6 +58,11 @@ public final class OfflineSmoke extends Instrumentation {
                 assertTrue(activity != null, "Activity did not start");
                 runOnMainSync(() -> webView = findWebView(activity.getWindow().getDecorView()));
                 assertTrue(webView != null, "Activity contains no WebView");
+                waitFor("!!window.OfflineHome", 45000);
+                assertTrue(Boolean.TRUE.equals(js("typeof window.Engine === 'undefined'")),
+                        "Title screen must not start the game");
+                js("document.getElementById('offline-home-start').click();true");
+                js("document.getElementById('offline-mode-normal').click();true");
                 waitFor(READY, 45000);
                 JSONObject metadata = (JSONObject) js("({href:location.href,origin:location.origin,"
                         + "baseURI:document.baseURI,userAgent:navigator.userAgent,"

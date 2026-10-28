@@ -45,6 +45,9 @@ public final class InterceptionProbe extends Instrumentation {
                 "data:text/html,<html></html>",
                 "blob:https://appassets.androidplatform.net/local-audio",
                 "about:blank",
+                "https://appassets.androidplatform.net/game/home.html",
+                "https://appassets.androidplatform.net/game/home.js",
+                "https://appassets.androidplatform.net/game/home.css",
                 "https://appassets.androidplatform.net/game/index.html",
                 "https://appassets.androidplatform.net/game/offline.js",
                 "https://appassets.androidplatform.net/game/audio/light-fire.flac",
@@ -53,7 +56,7 @@ public final class InterceptionProbe extends Instrumentation {
                 "https://appassets.androidplatform.net/game/../index.html",
                 "file:///sdcard/index.html"
             };
-            int[] expected = {0, 0, 0, 0, 200, 200, 200, 404, 403, 403, 403};
+            int[] expected = {0, 0, 0, 0, 200, 200, 200, 200, 200, 200, 404, 403, 403, 403};
             for (int i = 0; i < urls.length; i++) {
                 WebResourceResponse response = client.get().shouldInterceptRequest(null, urls[i]);
                 int status = response == null ? 0 : response.getStatusCode();

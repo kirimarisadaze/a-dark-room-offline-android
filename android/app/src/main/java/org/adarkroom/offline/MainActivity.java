@@ -51,6 +51,7 @@ import java.util.Locale;
 public final class MainActivity extends Activity implements SensorEventListener {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://" + HOST + "/game/index.html";
+    private static final String HOME_URL = "https://" + HOST + "/game/home.html";
     private static final String LOG_TAG = "DarkRoomLocal";
     private static final int EXPORT_SAVE = 10;
     private static final int IMPORT_SAVE = 11;
@@ -61,7 +62,8 @@ public final class MainActivity extends Activity implements SensorEventListener 
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private long lastTiltUpdate;
-    private String currentPage = START_URL;
+    private String currentPage = HOME_URL;
+    private String aboutReturnPage = HOME_URL;
     private boolean localFallbackUsed;
 
     @Override public void onCreate(Bundle savedInstanceState) {
@@ -87,7 +89,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
         webView.setWebViewClient(new LocalAssetsClient());
         webView.setWebChromeClient(new LocalDialogs());
         setContentView(webView);
-        loadBundledPage(Uri.parse(START_URL));
+        loadBundledPage(Uri.parse(HOME_URL));
     }
 
     /** Bootstrap HTML directly from AssetManager, never through a network navigation. */
@@ -137,7 +139,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
         if (retry) {
             Button button = new Button(this);
             button.setText("重新加载本地游戏");
-            button.setOnClickListener(view -> loadBundledPage(Uri.parse(START_URL)));
+            button.setOnClickListener(view -> loadBundledPage(Uri.parse(currentPage)));
             content.addView(button);
         }
         setContentView(content);
@@ -221,6 +223,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
             return true;
         }
         if (isLocal(uri) && uri.getPath().endsWith(".html")) {
+            if ("/game/about.html".equals(uri.getPath())) aboutReturnPage = currentPage;
             localFallbackUsed = false;
             loadBundledPage(uri);
         }
@@ -329,10 +332,11 @@ public final class MainActivity extends Activity implements SensorEventListener 
         // Suppress pagehide's save of the old in-memory State while replacing the save.
         String script = "(function(){try{if(window.OfflineGame)OfflineGame.prepareRestore();"
                 + "localStorage.setItem('gameState'," + JSONObject.quote(json)
-                + ");OfflineGame.reload();return true;}catch(e){if(window.OfflineGame)"
+                + ");return true;}catch(e){if(window.OfflineGame)"
                 + "OfflineGame.cancelRestore();return false;}})()";
         webView.evaluateJavascript(script, value -> {
-            if (!"true".equals(value)) toast("无法恢复存档，手机存储可能已满");
+            if ("true".equals(value)) loadBundledPage(Uri.parse(START_URL));
+            else toast("无法恢复存档，手机存储可能已满");
         });
     }
 
@@ -348,7 +352,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void showAbout() {
-        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.0.12")
+        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.0.13")
                 .setMessage("A Dark Room 网页版的独立中文离线封装\n原作：Michael Townsend / doublespeak games 及贡献者\n\n游戏、中文翻译、音效均在安装包中。无需服务器；没有联网权限。进度保存在应用内部，卸载或清除数据前请备份。\n\n上游：github.com/doublespeakgames/adarkroom\n源码基线：1fada4620b6c\n许可：Mozilla Public License 2.0\n\n本封装不属于官方商店版本。")
                 .setPositiveButton("关闭", null)
                 .setNeutralButton("开源许可", (dialog, which) -> showLicense()).show();
@@ -424,10 +428,14 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     @Override public void onBackPressed() {
-        webView.evaluateJavascript("window.OfflineGame&&OfflineGame.back&&OfflineGame.back()", handled -> {
+        webView.evaluateJavascript("window.OfflineHome?OfflineHome.back():"
+                + "(window.OfflineGame&&OfflineGame.back&&OfflineGame.back())", handled -> {
             if (!"true".equals(handled)) {
-                if (webView.canGoBack()) webView.goBack();
-                else webView.evaluateJavascript("window.OfflineGame&&OfflineGame.save()", value -> finish());
+                String path = Uri.parse(currentPage).getPath();
+                if ("/game/home.html".equals(path)) finish();
+                else if ("/game/about.html".equals(path)) loadBundledPage(Uri.parse(aboutReturnPage));
+                else webView.evaluateJavascript("window.OfflineGame&&OfflineGame.pause()",
+                        value -> loadBundledPage(Uri.parse(HOME_URL)));
             }
         });
     }

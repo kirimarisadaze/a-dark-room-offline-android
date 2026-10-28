@@ -4,11 +4,11 @@
 
 基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的非官方安卓移植。游戏和资源全部装在 APK 中，固定简体中文，安装后可直接断网游玩。
 
-[下载最新版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.0.12.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+[下载最新版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.0.13.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
 | 项目 | 说明 |
 | --- | --- |
-| 当前版本 | **1.0.12**，versionCode **13** |
+| 当前版本 | **1.0.13**，versionCode **14** |
 | 应用名称 / 包名 | 小黑屋 · 离线 / `org.adarkroom.offline` |
 | 运行要求 | Android **6.0+**，Android System WebView **80+** |
 | 语言 | 安装包仅含简体中文 |
@@ -42,16 +42,25 @@
 最新版安装包约 **5.4 MiB**；SHA-256：
 
 ```text
-b6b03b8de104a6fc6027446c5a68f4708f10776beaf41eb110611b5013a6c510
+0957cb4655202b82a39be7d1b02fbbf2fe8a1329c0c5fc47ff7ca3b29d315ec7
 ```
 
 Release 附有同名 `.sha256`。Windows 可用以下命令检查下载文件：
 
 ```powershell
-Get-FileHash .\a-dark-room-offline-1.0.12.apk -Algorithm SHA256
+Get-FileHash .\a-dark-room-offline-1.0.13.apk -Algorithm SHA256
 ```
 
 ## 功能与操作
+
+### 主页面与模式选择
+
+打开应用先进入主页面，点击“开始游戏”后选择模式：
+
+- **普通模式**：沿用现有游戏、存档与设置，有进度时继续本机进度。
+- **Roguelike 模式**：目前只提供按钮和“尚未开放”提示，玩法尚未实现。
+
+主页面沿用原作黑白文字与细线按钮的风格，跟随已保存的日夜主题和字号。停留在主页或查看未开放提示不会启动游戏引擎、推进生产或改写存档。游戏菜单内可“返回主页面”；Android 返回键先关闭面板，在游戏中返回时保存后回到主页。
 
 ### 手机界面
 
@@ -100,6 +109,10 @@ Get-FileHash .\a-dark-room-offline-1.0.12.apk -Algorithm SHA256
 以下为离线浏览器自动化测试中生成的游戏画面，使用后期测试存档；并非手机实拍，可能包含剧情与后期装备信息。各图取自对应功能完成时的版本。
 
 <table>
+  <tr>
+    <td align="center">主页面<br><img src="docs/screenshots/home.png" width="240" alt="原作黑白文字风格的主页面"></td>
+    <td align="center">模式选择<br><img src="docs/screenshots/modes.png" width="240" alt="普通模式与暂未开放的 Roguelike 模式"></td>
+  </tr>
   <tr>
     <td align="center">材料需求<br><img src="docs/screenshots/materials.png" width="240" alt="建造前显示材料需求与不足数量"></td>
     <td align="center">村民管理<br><img src="docs/screenshots/workers.png" width="240" alt="村民分工与一人十人调整"></td>
@@ -214,6 +227,7 @@ node scripts/test-late-game-ui.mjs
 node scripts/test-exploration-ui.mjs
 node scripts/test-combat-ui.mjs
 node scripts/test-map-guide.mjs
+node scripts/test-home.mjs
 ```
 
 也可用 `PLAYWRIGHT_MODULE` 指定已有 Playwright 包的绝对路径。报告与截图保存在 `.local/` 下各脚本对应的目录。
@@ -228,9 +242,9 @@ node scripts/test-map-guide.mjs
 
 ## 版本与源码归档
 
-[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.0.12 共 13 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
+[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.0.13 共 14 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
 
-- `main` 与 `v1.0.12`：完整可构建源码；最新 Release 另附完整源码 ZIP。
+- `main` 与 `v1.0.13`：完整可构建源码；最新 Release 另附完整源码 ZIP。`v1.0.12` 同样保留完整工程。
 - `release-archives` 与 `v1.0.0`–`v1.0.11`：从对应 APK 提取的实际网页源码与资源，以及归档说明、许可和校验信息。未保存的历史原生工程不会用新版源码冒充。
 - `1.0.0`、`1.0.1`：从保留的原始构建产物恢复，并用原密钥重新签名；不是当时分发 APK 的逐字节备份。
 - `1.0.0`–`1.0.3`：存在已知加载问题，标为历史测试版 / Pre-release，建议安装最新版。
@@ -241,7 +255,7 @@ node scripts/test-map-guide.mjs
 
 **启动显示网页无法打开、资源无法读取或 HTTP 403？**
 
-先确认使用 1.0.12。早期版本存在 Windows 资源路径和内部启动文档拦截问题，分别在 1.0.3、1.0.4 修复。确认 WebView 80+，升级后完全退出应用再打开。如仍失败，请在 Issue 中提供 Android / WebView 版本、应用版本、报错截图和复现步骤；不要公开个人存档。
+先确认使用最新版。早期版本存在 Windows 资源路径和内部启动文档拦截问题，分别在 1.0.3、1.0.4 修复。确认 WebView 80+，升级后完全退出应用再打开。如仍失败，请在 Issue 中提供 Android / WebView 版本、应用版本、报错截图和复现步骤；不要公开个人存档。
 
 **为什么能看到一个 HTTPS 地址？要联网吗？**
 

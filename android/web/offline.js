@@ -551,6 +551,8 @@
       .text('地标图鉴').on('click', function (event) { toggleSheet('landmarks', event); }).appendTo(settings);
     $('<a>').attr({ id: 'offline-about', href: 'about.html' }).text('关于与许可')
       .on('click', function () { OfflineGame.save(); closeSheets(); }).appendTo(settings);
+    $('<a>').attr({ id: 'offline-home', href: 'home.html' }).text('返回主页面')
+      .on('click', function () { OfflineGame.releaseControls(); OfflineGame.save(); }).appendTo(settings);
     settings.children('a').on('click', closeSheets);
     var speeds = $('<div>').attr('id', 'offline-speed-controls').appendTo(menu);
     $('<div>').attr('id', 'offline-speed-label').text('游戏速度').appendTo(speeds);
