@@ -4,7 +4,7 @@
   var KEY = 'adr.saveSlots.v1';
   var COUNT = 3;
   var bound = null;
-  var names = { normal: '普通模式', rogue: 'Roguelike 模式' };
+  var names = { normal: '普通模式', rogue: 'rogue' };
   function target(mode, slot) {
     if (!Object.prototype.hasOwnProperty.call(names, mode) || slot !== Math.floor(slot) || slot < 1 || slot > COUNT) {
       throw new Error('存档栏位无效。');
@@ -55,7 +55,7 @@
   }
   function label(which) {
     which = which || bound || read().active || target('normal', 1);
-    return names[which.mode] + ' · 存档 ' + which.slot;
+    return (which.mode === 'rogue' && window.Rogue ? window.Rogue.t('ui.mode') : names[which.mode]) + ' · 存档 ' + which.slot;
   }
   function list(mode) {
     target(mode, 1);

@@ -4,7 +4,7 @@
     'use strict';
     var Rogue = window.Rogue = window.Rogue || {};
     Rogue.NUM = {
-        VERSION: 2,
+        VERSION: 3,
         SLOTS: 3,
         TURNS_PER_DAY: 50,
         NIGHT_TURNS: { 1: 25, 2: 50, 3: 100 },
@@ -85,6 +85,7 @@
         WOLF_SPREAD: 0.12,
         RECRUIT_FOOD: 12,
         COMPANION_HP: 14,
+        COMPANION_BAG: 24,
         COMPANION_STAT: 5,
         COMPANION_DAMAGE: 2,
         COMPANION_TARGET: 0.25,
@@ -98,6 +99,8 @@
         DODGE_CHANCE: 0.50,
         DODGE_HIT_PENALTY: 0.20,
         ESCAPE_BASE: 0.60,
+        ESCAPE_MIN: 0.08,
+        ESCAPE_DECAY: 0.03,
         ESCAPE_AGI: 0.10,
         ESCAPE_LOSS: 0.30,
         ARMOUR_MIN: 0.20,
@@ -106,7 +109,11 @@
         DUNGEON_LOOT_SCALE: 0.10,
         DUNGEON_CHECK: 7,
         DUNGEON_SUPPLY: 1,
-        LOG_LIMIT: 40,
+        LOG_LIMIT: 120,
+        WILD_EVENT_CHANCE: 0.50,
+        LOW_FOOD: 4,
+        OUTPOST_STAGES: 5,
+        OUTPOST_REPAIR: { wood: 20, stone: 10 },
         COMBAT_LOG_LIMIT: 5,
         ROUTE_STEPS: 12,
         BAG_BASE: 80,

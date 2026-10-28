@@ -15,7 +15,7 @@ assert(playwright, 'Use an existing Playwright installation.');
 const assets = path.join(root, 'android/app/src/main/assets/game');
 const output = path.join(root, '.local/rogue-tests');
 const save = JSON.parse(await fs.readFile(path.join(output, 'completed-run.json'), 'utf8'));
-assert.equal(save.version, 2, 'Run test-rogue.mjs --playthrough first.');
+assert.equal(save.version, 3, 'Run test-rogue.mjs --playthrough first.');
 save.over = false; delete save.endReason;
 const home = save.camps[save.activeCamp];
 save.party.region = home.region; save.party.x = home.x; save.party.y = home.y;
@@ -84,6 +84,9 @@ try {
         }
         assert.equal(await page.evaluate(() => Rogue.state.current.turn), turn);
         await page.locator('#rogue-tab-party').evaluate(node => node.click());
+        await page.locator('[data-focus="bagView:"]').click();
+        while (!await page.locator('[data-focus="item:wood"]').count()) await page.locator('[data-focus="bagPage:"]').last().click();
+        await page.locator('[data-focus="item:wood"]').click();
         const before = await page.evaluate(() => JSON.stringify(Rogue.state.current));
         await page.locator('[data-focus="confirmDrop:wood"]').click();
         assert.match(await page.getByRole('dialog').innerText(), /10 份木头/);

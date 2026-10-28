@@ -323,6 +323,8 @@
                 region.sites.push(site);
             }
             region.tiles = R.rle.encode(tiles);
+            region.biome = R.wild.biome(save, region);
+            R.outpost.ensure(save, region);
             return region;
         },
         /** Builds a dungeon floor with a reachable farthest objective and a sealed border. */

@@ -35,7 +35,7 @@
         /** Describes nearby traces inside the current region without revealing a future map. */
         clues: function (save) {
             var region = save.regions[save.party.region];
-            var result = [{ key: 'clue.' + region.theme, values: {} }];
+            var result = [{ key: 'clue.' + region.theme, values: {} }, { key: 'biome.' + R.wild.biome(save, region) + '.clue', values: {} }];
             var nearest = null;
             var distance = N.CLUE_RADIUS + 1;
             var i;
@@ -47,7 +47,7 @@
             if (nearest) {
                 var dx = nearest.x - save.party.x; var dy = nearest.y - save.party.y;
                 var dir = Math.abs(dx) > Math.abs(dy) ? dx < 0 ? 'west' : 'east' : dy < 0 ? 'north' : 'south';
-                result.push({ key: nearest.type === 'dungeon' || nearest.type === 'ship' ? 'clue.building' : nearest.type === 'threat' ? 'clue.tracks' : 'clue.resources', values: { direction: R.t('ui.' + dir) } });
+                result.push({ key: nearest.type === 'dungeon' || nearest.type === 'ship' || nearest.type === 'outpost' ? 'clue.building' : nearest.type === 'threat' ? 'clue.tracks' : 'clue.resources', values: { direction: R.t('ui.' + dir) } });
             } else { result.push({ key: 'clue.keepExploring', values: {} }); }
             return result;
         },
@@ -122,8 +122,9 @@
             var arrivedCamp = R.atCamp(save);
             if (arrivedCamp) { save.activeCamp = save.camps.indexOf(arrivedCamp); }
             save.flags.moves += 1;
+            R.log(save, 'log.move', { direction: R.t('ui.' + dir), n: 1 });
             if (!save.flags.abyss) {
-                save.party.water = Math.max(0, save.party.water - N.MOVES_PER_WATER);
+                save.party.water = Math.max(0, save.party.water - R.wild.waterCost(save));
                 if (save.flags.moves % N.MOVES_PER_FOOD === 0) { save.party.food = Math.max(0, save.party.food - 1); }
                 if (save.flags.moves % N.SUPPLY_GRACE === 0) {
                     save.flags.exhaustion = (save.party.water <= 0 ? N.THIRST_DAMAGE : 0) + (save.party.food <= 0 ? N.HUNGER_DAMAGE : 0);
@@ -140,9 +141,7 @@
                 var c;
                 for (c = 0; c < save.camps.length; c++) { if (save.camps[c].region === save.party.region) { distance = Math.min(distance, Math.abs(x - save.camps[c].x) + Math.abs(y - save.camps[c].y)); } }
                 var site = this.here(save);
-                if (!site && distance > N.VIEW_RADIUS && save.flags.moves % N.ENCOUNTER_CHECK === 0 && R.roll(save) < N.FIGHT_CHANCE) {
-                    R.combat.encounter(save, { kind: 'wild' });
-                }
+                if (!site && distance > N.VIEW_RADIUS && save.flags.moves % N.ENCOUNTER_CHECK === 0) { R.wild.encounter(save); }
             }
             return { turns: 1 };
         },
@@ -159,6 +158,7 @@
             var coordinate = p.region.split(',');
             var target = (Number(coordinate[0]) + delta[0]) + ',' + (Number(coordinate[1]) + delta[1]);
             if (!R.worldgen.linked(save.regionGraph, p.region, target)) { return 'none'; }
+            if (p.water < 1 || p.food < 1) { R.fail('err.supplies'); return 'blocked'; }
             if (R.worldgen.isBlocked(save.regionGraph, p.region, target)) {
                 if (!p.bag.scaffold) { return 'blocked'; }
                 var scaffold = false;

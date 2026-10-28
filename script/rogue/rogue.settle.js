@@ -163,6 +163,7 @@
         recipeAllowed: function (save, id) {
             var item = C.items[id];
             if (!item || !item.cost) { return false; }
+            if (['waterskin', 'canteen', 'pack'].indexOf(id) >= 0 && ((save.flags.made && save.flags.made[id]) || R.party.owned(save, id))) { return false; }
             if (item.blueprint && save.blueprints.indexOf(item.blueprint) < 0) { return false; }
             var camp = R.atCamp(save);
             return !!camp && (!item.workshop || !!camp.buildings.workshop);
@@ -232,8 +233,9 @@
                 if (!R.affords(save, N.CAMP_UNLOCK)) { return R.fail('err.resources'); }
                 if (save.camps[0].pop <= 1) { return R.fail('err.workers'); }
                 R.pay(save, N.CAMP_UNLOCK);
-                var nextId = 0;
+                var nextId = save.flags.campSerial || 1;
                 for (i = 0; i < save.camps.length; i++) { nextId = Math.max(nextId, save.camps[i].id + 1); }
+                save.flags.campSerial = nextId + 1;
                 save.camps[0].pop -= 1; rebalance(save, save.camps[0]);
                 save.camps.push({ id: nextId, region: party.region, x: party.x, y: party.y, fire: 1, pop: 1, jobs: {}, stores: {}, buildings: {} });
                 save.activeCamp = save.camps.length - 1; R.log(save, 'log.camp');
@@ -256,30 +258,14 @@
                 delete save.flags.tempCamp; R.log(save, 'log.tempPacked');
             } else if (action.type === 'dismantle') {
                 if (!camp || camp.id === 0) { return R.fail('err.mainCamp'); }
-                R.add(stores, N.CAMP_UNLOCK, N.CAMP_REFUND); save.camps[0].pop += camp.pop;
-                var regionKey;
-                for (regionKey in save.regions) {
-                    var regionSites = save.regions[regionKey].sites;
-                    for (i = 0; i < regionSites.length; i++) { if (regionSites[i].ownerCamp === camp.id) { regionSites[i].ownerCamp = 0; } }
-                }
-                save.camps.splice(save.camps.indexOf(camp), 1); save.activeCamp = 0;
-                rebalance(save, save.camps[0]); R.log(save, 'log.moveCamp');
+                R.outpost.release(save, camp);
+                rebalance(save, save.camps[0]); R.log(save, 'log.moveCamp'); return { turns: 1 };
             } else if (action.type === 'drop') {
                 item = C.items[action.item];
                 if (!item || item.kind !== 'resource' || !(party.bag[action.item] > 0)) { return false; }
                 var discarded = Math.min(N.DROP_BUNDLE, party.bag[action.item]);
                 party.bag[action.item] -= discarded;
                 R.log(save, 'log.dropped', { name: R.t('item.' + action.item), n: discarded });
-            } else if (action.type === 'equip') {
-                item = C.items[action.item];
-                if (!item || !party.bag[action.item] || (item.kind !== 'weapon' && item.kind !== 'armour')) { return false; }
-                if (item.kind === 'weapon') { party.weapon = action.item; }
-                else {
-                    var previousMax = party.maxHp;
-                    party.armour = action.item; party.maxHp = N.BASE_HP + item.hp;
-                    party.hp = R.clamp(party.hp + party.maxHp - previousMax, 1, party.maxHp);
-                }
-                R.log(save, 'log.equip', { name: R.t('item.' + action.item) });
             } else if (action.type === 'use') {
                 if (action.item === 'water' && party.bag.water > 0) {
                     var water = Math.min(party.bag.water, R.waterMax(save) - party.water);
@@ -337,10 +323,14 @@
                 } else if (action.type === 'craft') {
                     item = C.items[action.item];
                     if (!item || !item.cost) { return false; }
+                    if (!this.recipeAllowed(save, action.item)) { return R.fail('err.recipeLocked'); }
+                    if (item.kind !== 'resource' && R.bagWeight(save) + (item.quantity || 1) > R.party.capacity(save, party)) { return R.fail('err.bag'); }
                     if (item.blueprint && save.blueprints.indexOf(item.blueprint) < 0) { return R.fail('err.blueprint'); }
                     if (item.workshop && !camp.buildings.workshop) { return R.fail('err.workshop'); }
                     if (!R.affords(save, item.cost)) { return R.fail('err.resources'); }
-                    R.pay(save, item.cost); party.bag[action.item] = (party.bag[action.item] || 0) + (item.quantity || 1);
+                    R.pay(save, item.cost);
+                    if (['waterskin', 'canteen', 'pack'].indexOf(action.item) >= 0) { save.flags.made = save.flags.made || {}; save.flags.made[action.item] = true; }
+                    party.bag[action.item] = (party.bag[action.item] || 0) + (item.quantity || 1);
                     if (item.kind === 'resource') { stores[action.item] = (stores[action.item] || 0) + (item.quantity || 1); party.bag[action.item] -= item.quantity || 1; }
                     if (item.kind === 'weapon' && item.dmg > C.items[party.weapon].dmg) { party.weapon = action.item; }
                     if (item.kind === 'armour' && (!party.armour || item.hp > C.items[party.armour].hp)) {
@@ -362,6 +352,7 @@
                     var companion = { id: 'companion:' + save.turn + ':' + save.flags.rng, name: name,
                         str: 1 + Math.floor(R.roll(save) * N.COMPANION_STAT), agi: 1 + Math.floor(R.roll(save) * N.COMPANION_STAT),
                         will: 1 + Math.floor(R.roll(save) * N.COMPANION_STAT), hp: N.COMPANION_HP, maxHp: N.COMPANION_HP,
+                        weapon: 'fists', armour: null, bag: {},
                         quirk: C.quirks[Math.floor(R.roll(save) * C.quirks.length)] };
                     party.companions.push(companion); R.log(save, 'log.recruit', { name: R.t('ui.name.' + name) });
                 } else if (action.type === 'trade') {

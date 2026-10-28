@@ -11,6 +11,7 @@
   var close = document.getElementById('offline-home-dialog-close');
   var confirm = document.getElementById('offline-home-dialog-confirm');
   var feedback = document.getElementById('offline-home-feedback');
+  document.getElementById('offline-mode-rogue-name').textContent = Rogue.t('ui.mode');
   document.getElementById('offline-mode-rogue-description').textContent = Rogue.t('ui.title') + ' · ' + Rogue.t('ui.homeDescription');
   var mode = 'normal';
   var restoring = false;
@@ -69,7 +70,7 @@
     mode = nextMode;
     restoring = !!restore;
     screen(slots);
-    document.getElementById('offline-slots-mode').textContent = mode === 'normal' ? '普通模式' : 'Roguelike 模式 · 暂未开放';
+    document.getElementById('offline-slots-mode').textContent = mode === 'normal' ? '普通模式' : Rogue.t('ui.mode');
     document.getElementById('offline-slots-heading').textContent = restoring ? '选择恢复位置' : '选择存档';
     var list = document.getElementById('offline-slot-list');
     list.textContent = '';
@@ -95,9 +96,7 @@
         open.addEventListener('click', function () {
           try {
             if (mode === 'rogue') {
-              SaveSlots.reserveRogue(entry.slot);
-              showSlots('rogue');
-              showDialog('Roguelike · 存档 ' + entry.slot, '栏位已预留。玩法尚未开放，敬请期待。', document.getElementById('offline-slot-' + entry.slot));
+              location.href = 'index.html?mode=rogue';
             } else if (restoring && !entry.empty) {
               showDialog('恢复到存档 ' + entry.slot + '？', '导入会替换这个栏位的进度，其他存档不受影响。', open, function () {
                 SaveSlots.selectNormal(entry.slot);

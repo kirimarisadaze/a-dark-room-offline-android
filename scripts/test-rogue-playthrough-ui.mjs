@@ -20,7 +20,7 @@ const base = 'https://appassets.androidplatform.net/game/';
 const normal = ' {"ordinary":"must remain byte-identical"} \n';
 const database = ' {"slots":"must remain byte-identical"} ';
 const context = vm.createContext({ window: {}, console, Uint8Array, btoa, atob });
-for (const file of ['rogue.num.js', 'content/themes.js', 'content/sites.js', 'content/enemies.js', 'content/items.js', 'content/names.js', 'lang/zh.js', 'rogue.state.js', 'rogue.worldgen.js', 'rogue.map.js', 'rogue.settle.js', 'rogue.combat.js', 'rogue.dungeon.js']) {
+for (const file of ['rogue.num.js', 'content/themes.js', 'content/sites.js', 'content/enemies.js', 'content/items.js', 'content/names.js', 'lang/zh.js', 'rogue.state.js', 'rogue.worldgen.js', 'rogue.map.js', 'rogue.party.js', 'rogue.wild.js', 'rogue.outpost.js', 'rogue.settle.js', 'rogue.combat.js', 'rogue.dungeon.js']) {
     vm.runInContext(fs.readFileSync(path.join(root, 'script/rogue', file), 'utf8'), context, { filename: file });
 }
 const G = context.window.Rogue;
@@ -98,6 +98,16 @@ async function paged(token) {
     for (let i = 0; !await locator.count(); i++) { assert(i < 30 && await next.count() && await next.isEnabled(), 'unreachable control ' + token); await click(next); }
     return locator;
 }
+/** Returns through real inventory layers after a transfer or equipment choice. */
+async function closeInventory() {
+    for (let i = 0; await page.getByRole('dialog').count(); i++) { assert(i < 10); await click(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); }
+}
+/** Pages a personal inventory without directly touching game state. */
+async function packItem(token) {
+    const locator = page.locator('.rogue-dialog-content [data-focus="' + token + '"]');
+    for (let i = 0; !await locator.count(); i++) { assert(i < 15); await click(page.locator('.rogue-dialog-content [data-focus="bagPage:"]').last()); }
+    return locator;
+}
 /** Dispatches game actions exclusively by clicking their public on-screen controls. */
 async function input(action) {
     const type = action.type;
@@ -119,11 +129,38 @@ async function input(action) {
         await click(await paged('craft:' + action.item));
     } else if (type === 'night') {
         await camp('supplies'); await click(page.locator('[data-focus="night:"]'));
+    } else if (type === 'transfer') {
+        await tab('party');
+        if (action.from === 'player') await click(page.locator('#rogue-panel-party [data-focus="bagView:"]'));
+        else {
+            await click(page.locator('[data-focus="member:' + action.from + '"]'));
+            await click(page.getByRole('button', { name: '打开行囊', exact: true }));
+        }
+        await click(await packItem('item:' + action.item));
+        await click(page.locator('[data-focus="transfer:' + action.to + '"]')); await closeInventory();
+    } else if (type === 'equip') {
+        await tab('party');
+        await click(page.locator('[data-focus="member:' + action.member + '"]'));
+        await click(page.getByRole('button', { name: G.CONTENT.items[action.item].kind === 'weapon' ? '更换或卸下武器' : '更换或卸下护甲', exact: true }));
+        await click(await packItem('equip:' + action.item)); await closeInventory();
+    } else if (type === 'outpost') {
+        if (action.op === 'enter') { await tab('map'); await click(page.locator('[data-focus="outpost:"]')); }
+        else if (action.op === 'explore') await click(page.locator('.rogue-dialog-content [data-focus="outpost:"]'));
+        else if (action.op === 'leave') await click(page.locator('.rogue-dialog-footer [data-focus="outpost:"]'));
+    } else if (type === 'event') {
+        await click(page.locator('.rogue-dialog-footer [data-focus="event:"]'));
     } else if (type === 'recruit' || type === 'use' || type === 'drop') {
         await tab('party');
+        if (type === 'drop') {
+            await click(page.locator('[data-focus="bagView:"]'));
+            while (!await page.locator('[data-focus="item:' + action.item + '"]').count()) {
+                await click(page.locator('[data-focus="bagPage:"]').last());
+            }
+            await click(page.locator('[data-focus="item:' + action.item + '"]'));
+        }
         const token = type === 'use' ? 'quick:' + action.item : type === 'drop' ? 'confirmDrop:' + action.item : 'recruit:';
         await click(page.locator('[data-focus="' + token + '"]'));
-        if (type === 'drop') await click(page.getByRole('button', { name: '确认', exact: true }));
+        if (type === 'drop') { await click(page.getByRole('button', { name: '确认', exact: true })); await click(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); await click(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); }
     } else if (type === 'worker') {
         const owner = G.map.site(expedition, action.site).ownerCamp;
         const index = expedition.camps.findIndex(c => c.id === owner);
@@ -152,7 +189,7 @@ async function fight() {
     }
 }
 /** Completes one intentional UI action and any encounter that it triggers. */
-async function act(action) { await input(action); await fight(); }
+async function act(action) { if (expedition.flags.wildEvent) await input({ type: 'event', op: 'leave' }); await input(action); await fight(); if (expedition.flags.wildEvent) await input({ type: 'event', op: 'leave' }); }
 /** Captures actual expedition UI and checks fixed title and navigation bounds. */
 async function capture(name) {
     const layout = await page.evaluate(() => {
@@ -206,9 +243,36 @@ try {
         const camp = expedition.camps.find(camp => camp.region === expedition.party.region);
         assert(camp, 'local camp required'); await walkTo(camp.x, camp.y);
         await act({ type: 'restock' });
-        for (let i = 0; i < 8 && expedition.party.hp < expedition.party.maxHp; i++) await act({ type: 'wait' });
         const here = G.atCamp(expedition);
-        while (expedition.party.companions.length < 2 && here.pop > 1 && G.settle.employed(expedition, here) < here.pop && G.affords(expedition, { food: G.NUM.RECRUIT_FOOD })) await act({ type: 'recruit' });
+        for (let i = 0; i < 8 && expedition.party.companions.length < 2; i++) {
+            if (here.pop <= 1) { await act({ type: 'night' }); continue; }
+            if (G.settle.employed(expedition, here) >= here.pop) {
+                const site = Object.values(expedition.regions).flatMap(region => region.sites).find(site => site.ownerCamp === here.id && site.workers > 0);
+                if (!site) break;
+                await act({ type: 'worker', site: site.id, delta: -1 }); continue;
+            }
+            if (!G.affords(expedition, { food: G.NUM.RECRUIT_FOOD })) break;
+            await act({ type: 'recruit' });
+        }
+        for (const ally of expedition.party.companions) {
+            if (!expedition.party.bag.pack || !expedition.party.armour) break;
+            const tier = expedition.regions[expedition.party.region].tier;
+            for (const item of [tier >= 3 ? 'blade' : 'spear', tier >= 7 ? 'suit' : tier >= 2 ? 'mail' : 'coat']) {
+                const definition = G.CONTENT.items[item];
+                if (ally[definition.kind] === item || !G.settle.recipeAllowed(expedition, item) || !G.affords(expedition, definition.cost)) continue;
+                if (definition.kind === 'weapon' && definition.dmg > G.CONTENT.items[expedition.party.weapon].dmg) continue;
+                if (definition.kind === 'armour' && (!expedition.party.armour || definition.hp > G.CONTENT.items[expedition.party.armour].hp)) continue;
+                if (definition.kind === 'weapon' && definition.dmg <= G.CONTENT.items[ally.weapon].dmg) continue;
+                if (definition.kind === 'armour' && ally.armour && definition.hp <= G.CONTENT.items[ally.armour].hp) continue;
+                await act({ type: 'craft', item });
+                await act({ type: 'transfer', from: 'player', to: ally.id, item });
+                await act({ type: 'equip', member: ally.id, item });
+            }
+        }
+        for (let i = 0; i < 20 && (expedition.party.hp < expedition.party.maxHp || expedition.party.companions.some(a => a.hp < a.maxHp)); i++) await act({ type: 'wait' });
+        if (here.buildings.workshop) {
+            while ((expedition.party.bag.medicine || 0) < 12 && G.affords(expedition, G.CONTENT.items.medicine.cost) && G.bagWeight(expedition) < G.party.capacity(expedition, expedition.party)) await act({ type: 'craft', item: 'medicine' });
+        }
     }
     /** Gathers only through valid site actions, depositing and preparing at the local camp. */
     async function gatherResource(type, count) {
@@ -247,6 +311,13 @@ try {
     await gatherResource('hunting', 2);
     for (let i = 0; i < 5 && expedition.camps[0].pop < 4; i++) await act({ type: 'night' });
     while (expedition.party.companions.length < 2) await act({ type: 'recruit' });
+    await homeAndSupply();
+    const fort = expedition.regions[expedition.party.region].sites.find(site => site.type === 'outpost');
+    await walkTo(fort.x, fort.y); await act({ type: 'outpost', op: 'enter' });
+    await capture('compound-entry');
+    while (fort.assault < 5) await act({ type: 'outpost', op: 'explore' });
+    assert.equal(fort.state, 'cleared'); await capture('compound-cleared');
+    await act({ type: 'outpost', op: 'leave' }); await homeAndSupply();
     /** Makes room for survival supplies using the same deliberate cargo action as the UI. */
     async function clearCargo(spare) {
         const capacity = expedition.party.bag.pack ? G.NUM.BAG_UPGRADED : G.NUM.BAG_BASE;
@@ -266,9 +337,9 @@ try {
             for (let i = 0; i < 12 && (expedition.party.bag.food || 0) < 56; i++) { await clearCargo(6); await act({ type: 'gather' }); }
         }
         const spring = sites.find(site => site.type === 'spring');
-        if (spring && expedition.party.water + (expedition.party.bag.water || 0) < 120) {
+        if (spring && expedition.party.water + (expedition.party.bag.water || 0) < 160) {
             await walkTo(spring.x, spring.y);
-            for (let i = 0; i < 8 && (expedition.party.bag.water || 0) < 40; i++) { await clearCargo(8); await act({ type: 'gather' }); }
+            for (let i = 0; i < 12 && (expedition.party.bag.water || 0) < 80; i++) { await clearCargo(8); await act({ type: 'gather' }); }
         }
     }
     /** Moves between regions through their real interior exits using an open graph route. */
@@ -338,6 +409,7 @@ try {
             assert(expedition.dungeons[site.id].cleared);
             await act({ type: 'extract' }); await homeAndSupply();
         }
+        if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && (G.stores(expedition).steel || 0) < 4 && G.affords(expedition, G.CONTENT.items.steel.cost)) { await craft('steel'); }
         if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && G.affords(expedition, G.CONTENT.items.canteen.cost)) { await craft('canteen'); await act({ type: 'restock' }); }
         if (currentTier === 5) await gatherResource('sulphur', 4);
         while ((expedition.party.bag.medicine || 0) < 8 && G.affords(expedition, G.CONTENT.items.medicine.cost)) await craft('medicine');

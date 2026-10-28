@@ -18,7 +18,7 @@
             viewport = document.createElement('meta'); viewport.name = 'viewport';
             viewport.content = 'width=device-width, initial-scale=1, viewport-fit=cover'; document.head.appendChild(viewport);
         }
-        document.body.classList.add('rogue-mode'); R.ui.mount();
+        document.body.classList.add('rogue-mode'); document.documentElement.classList.add('rogue-active'); R.ui.mount();
         window.addEventListener('pagehide', saveCurrent); document.addEventListener('visibilitychange', visibilityChanged);
         var match = /(?:^|[?&])slot=([0-2])(?:&|$)/.exec(window.location.search);
         if (match) {
@@ -31,7 +31,8 @@
     R.shutdown = function () {
         window.removeEventListener('pagehide', saveCurrent); document.removeEventListener('visibilitychange', visibilityChanged);
         R.ui.unmount(); R.map.reset(); R.state.current = null;
-        document.body.classList.remove('rogue-mode');
+        document.body.classList.remove('rogue-mode'); document.documentElement.classList.remove('rogue-active');
+        document.documentElement.style.removeProperty('--rogue-bottom-height');
         if (viewport) { viewport.parentNode.removeChild(viewport); viewport = null; }
         if (originalTitle !== null) { document.title = originalTitle; originalTitle = null; }
     };

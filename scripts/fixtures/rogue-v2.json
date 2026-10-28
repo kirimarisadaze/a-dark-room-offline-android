@@ -1,0 +1,1643 @@
+{
+  "version": 2,
+  "slot": 0,
+  "seed": 42,
+  "createdAt": 1700000000000,
+  "turn": 3952,
+  "day": 79,
+  "speed": 2,
+  "cheat": false,
+  "over": true,
+  "party": {
+    "hp": 42,
+    "maxHp": 42,
+    "weapon": "railgun",
+    "armour": "suit",
+    "water": 62,
+    "food": 15,
+    "bag": {
+      "spear": 1,
+      "coat": 1,
+      "waterskin": 1,
+      "pack": 1,
+      "sword": 1,
+      "mail": 1,
+      "medicine": 8,
+      "blade": 1,
+      "canteen": 1,
+      "suit": 1,
+      "railgun": 1,
+      "hull": 0,
+      "drive": 0,
+      "core": 0,
+      "food": 56,
+      "water": 80
+    },
+    "companions": [
+      {
+        "id": "companion:62:1441438134",
+        "name": "flint",
+        "str": 5,
+        "agi": 3,
+        "will": 4,
+        "hp": 12,
+        "maxHp": 14,
+        "quirk": "steady"
+      },
+      {
+        "id": "companion:63:2989017562",
+        "name": "ember",
+        "str": 4,
+        "agi": 4,
+        "will": 2,
+        "hp": 14,
+        "maxHp": 14,
+        "quirk": "keen"
+      }
+    ],
+    "x": 43,
+    "y": 25,
+    "region": "0,-3"
+  },
+  "camps": [
+    {
+      "id": 0,
+      "region": "0,0",
+      "x": 35,
+      "y": 12,
+      "fire": 2,
+      "pop": 21,
+      "jobs": {
+        "guard": 0,
+        "hunt": 1,
+        "mine": 15,
+        "gather": 1
+      },
+      "stores": {
+        "wood": 25.193041003669897,
+        "stone": 43,
+        "food": 165.6774696568334,
+        "water": 3573,
+        "fur": 137,
+        "iron": 1053.5700000000832,
+        "coal": 905.4599999998986,
+        "steel": 83,
+        "sulphur": 262.9579999999992,
+        "crystal": 212.6760000000017
+      },
+      "buildings": {
+        "garden": 3,
+        "well": 1,
+        "workshop": 1
+      }
+    },
+    {
+      "id": 1,
+      "region": "0,-3",
+      "x": 30,
+      "y": 30,
+      "fire": 1,
+      "pop": 3,
+      "jobs": {
+        "guard": 0
+      },
+      "stores": {},
+      "buildings": {
+        "well": 1,
+        "workshop": 1
+      }
+    }
+  ],
+  "activeCamp": 1,
+  "regionGraph": {
+    "layout": 2,
+    "nodes": [
+      "0,0",
+      "0,-1",
+      "0,1",
+      "-1,-1",
+      "1,-1",
+      "1,0",
+      "-2,-1",
+      "0,-2",
+      "0,-3"
+    ],
+    "edges": [
+      [
+        "0,0",
+        "0,-1"
+      ],
+      [
+        "0,0",
+        "0,1"
+      ],
+      [
+        "0,-1",
+        "-1,-1"
+      ],
+      [
+        "0,-1",
+        "1,-1"
+      ],
+      [
+        "0,0",
+        "1,0"
+      ],
+      [
+        "-1,-1",
+        "-2,-1"
+      ],
+      [
+        "0,-1",
+        "0,-2"
+      ],
+      [
+        "0,-2",
+        "0,-3"
+      ],
+      [
+        "1,-1",
+        "1,0"
+      ]
+    ],
+    "blocked": [],
+    "tier": {
+      "0,0": 1,
+      "0,-1": 2,
+      "0,1": 3,
+      "1,0": 4,
+      "-1,-1": 5,
+      "1,-1": 6,
+      "0,-2": 7,
+      "-2,-1": 8,
+      "0,-3": 9
+    },
+    "spawn": "0,0",
+    "ship": "0,-3",
+    "scaffold": []
+  },
+  "regions": {
+    "0,0": {
+      "key": "0,0",
+      "generated": true,
+      "theme": "embers",
+      "tier": 1,
+      "tiles": "64#6.14#2.5#1+3#7.22#24.4#1.2#9.12#1.8#26.2#1.1#11.3#1.6#3.7#22.2#19.1#1.3#6.8#18.6#20.2#7.8#10.1#6.7#10.3#16.8#14.1#1.9#4.2#3.3#17.6#16.11#2.3#3.3#13.1#3.6#10.1#1.2#3.4#2.1#5.3#4.1#1.1#11.2#3.6#13.1#4.2#11.1#7.1#10.2#4.5#11.3#36.2#3.6#25.1#14.4#6.2#4.5#25.1#31.6#8.1#3.2#2.4#12.1#22.5#6.4#8.2#5.2#4.1#1.1#22.4#2.1#5.1#11.1#11.1#1.1#22.4#31.2#4.1#3.3#13.4#20.1#10.2#1.12#6.2#3.5#18.2#1.1#8.2#1.7#4.1#6.9#20.1#11.1#1.2#9.2#5.9#20.1#9.1#3.2#9.1#5.10#19.2#8.1#4.3#8.1#5.10#19.1#17.1#16.7#5.1#13.1#16.2#16.1#1.5#5.3#49.5#4.3#22.1#4.2#20.5#2.9#28.2#3.6#6.6#4.6#29.1#4.6#4.7#5.5#6.3#2.1#15.4#7.2#4.8#5.4#6.4#35.1+7#5.5#3.5#10.2#22.9#5.5#4.4#10.2#22.9#5.5#4.3#12.2#21.9#4.6#4.3#10.4#20.10#3.8#2.4#10.4#4.2#13.12#2.6#1.7#11.2#20.14#7.7#34.13#8.5#36.11#9.5#16.2#18.9#11.5#9.2#4.5#16.8#8.8#8.1#1.3#2.11#9.10#7.5#11.2#1.16#7.13#7.4#10.3#1.15#7.16#6.4#8.4#1.13#10.16#6.3#7.5#3.11#15.10#8.1#9.3#5.10#15.7#28.11#14.7#27.10#16.7#24.3#1.9#8.4#4.8#23.4#1.4#1.3#8.6#2.9#4.2#17.4#1.3#13.5#3.9#4.1#18.4#1.4#11.3#6.9#24.3#1.4#9.4#8.9#25.1#1.4#9.3#10.9#24.1#1.4#23.8#24.1#1.4#14.1#9.6#24.2#1.4#4.2#6.4#8.5#5.2#3.3#7.7#1.5#2.14#6.7#1.12#2.11#1+91#",
+      "size": 61,
+      "mask": "AAAA/B8AAAAAAMD/BwAAAAAA+P8BAAAAAAD/fwAAAAAA4P8fAAAAAAD4/wMAAAAAAP5/AAAAAACA/x8AAAAAAOD//x8AAAAA/v//BwAAAOD///8BAAAA/v//fwAAAOD///8fAAAA/P///wcAAID/////AAAA8P///x8AAAD+////AwAAwP///38AAAD4////DwAAAP//wP8BAADg/x/4PwAAAPz/A/8PAACA/3/g/wMAAPD/D/z/AAAA/v8B/x8AAMD/P8D/AwAA+P8H8H8AAAD//wD8DwAA4P8fAP8BAAD8/wPgPwAAgP9/APwHAADw/wcA/wAAAP5/AMAfAADA/w8A8AMAAPj/AAB8AAAA/x8AAAcAAOD/AwAAAAAA/H8AAAAAAID/DwAAAAAA8P8BAAAAAAD+HwAAAAAAwP8BAAAAAAD4PwAAAAAAAP8HAAAAAADg/wAAAAAAAPwfAAAAAACA/wMAAAAAAPB/AAAAAAAA/g8AAAAAAMD/AQAAAAAA+D8AAAAAAAD/BwAAAAAA4P8AAAAAAAD8HwAAAAAAgP8DAAAAAADwfwAAAAAAAP4PAAAAAADA/wEAAAAAAPg/AAAAAAAA/wcAAAAAAMB/AAAAAA==",
+      "sites": [
+        {
+          "id": "0,0:0",
+          "type": "forest",
+          "x": 32,
+          "y": 12,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,0:1",
+          "type": "quarry",
+          "x": 39,
+          "y": 12,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,0:2",
+          "type": "hunting",
+          "x": 35,
+          "y": 7,
+          "state": "occupied",
+          "workers": 1,
+          "ownerCamp": 0
+        },
+        {
+          "id": "0,0:3",
+          "type": "spring",
+          "x": 35,
+          "y": 17,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,0:4",
+          "type": "threat",
+          "x": 24,
+          "y": 33,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,0:5",
+          "type": "dungeon",
+          "x": 28,
+          "y": 18,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "clinic"
+        }
+      ],
+      "refuge": {
+        "x": 35,
+        "y": 12
+      }
+    },
+    "0,-1": {
+      "key": "0,-1",
+      "generated": true,
+      "theme": "village",
+      "tier": 2,
+      "tiles": "91#1+17#7.36#1.17#7.36#1.17#7.36#1.17#7.36#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.39#1.20#1.28#6.5#1.20#1.28#6.5#1.20#1.28#6.5#1.20#1.14#8.6#6.5#1.20#1.14#8.4#8.5#1.20#1.14#33.13#1.14#8.4#1.1#6.5#1.6#1.13#1.18#1.7#1.1#6.5#1.6#1.13#1.18#1.7#1.1#6.5#1.6#1.13#1.18#1.7#1.4#1.7#1.6#1.13#1.18#1.7#1.4#1.7#1.2#5.13#1.18#1.7#1.4#1.4#11.13#1.11#5.2#1.3#8.1#1.4#11.13#1.11#36.13#1.10#1+57.1+3#6.1#1.3#11.3#11.4#1.7#2.11#6.1#15.3#11.4#1.7#2.13#1.2#1.12#4.3#7.1#1.1#1.4#1.7#2.13#1.2#1.12#4.6#1.4#1.1#1.4#1.7#2.13#1.2#1.12#4.6#1.4#4.1#12.13#1.2#1.14#1.7#1.4#4.1#12.13#5.13#1.7#1.4#4.1#12.13#5.13#30.13#35.1#12.14#4.13#1.7#1.4#4.1#12.14#47.14#4.13#1.7#1.4#4.3#1.5#4.14#4.13#1.7#1.4#4.3#1.7#1.15#4.13#1.7#1.4#1.6#1.7#1.15#4.13#1.7#6.2#8.4#1.32#1.7#6.2#8.4#1.27#19.2#8.4#1.27#1.4#1.4#9.2#13.27#1.4#1.4#7.1#1.2#8.4#1.25#4.3#1.4#7.1#1.2#8.2#5.23#4.3#1.4#7.1#1.12#5.23#38.23#4.8#7.14#5.23#4.8#7.54#7.57#1.60#1.60#1.60#1+91#",
+      "size": 61,
+      "mask": "AAAA/AcAAAAAAMD/AQAAAAAA+D8AAAAAAAD/BwAAAAAA4P8AAAAAAAD8HwAAAAAAgP8DAAAAAADwfwAAAAAAAP4PAAAAAADA/wEAAAAAAPg/AAAAAAAA/wcAAAAAAOD/AAAAAAAA/B8AAAAAAID/AwAAAAAA8H8AAAAAAMD/PwAAAAAA/P8PAAAAAMD//wMAAAAA/P//AAAAAMD//z8AAAAA/P//DwAAAID///8BAAAA8P//PwAAAAD+//8HAMD//////////f////////////////////////////////////////////////////////////////////////////////////////9//////////wcA4P//fwAAAAD8//8PAAAAgP///wEAAADw//8/AAAAAP7//wcAAADA////AAAAAPD//w8AAAAA/P//AAAAAAD//w8AAAAAwP//AAAAAADw/w8AAAAAAPx/AAAAAACA/w8AAAAAAPD/AQAAAAAA/D8AAAAAAAD/BwAAAAAA4P8AAAAAAAD8HwAAAAAAgP8DAAAAAADwfwAAAAAAAP4PAAAAAADA/wEAAAAAAPg/AAAAAAAA/wcAAAAAAMB/AAAAAA==",
+      "sites": [
+        {
+          "id": "0,-1:0",
+          "type": "forest",
+          "x": 50,
+          "y": 32,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-1:1",
+          "type": "quarry",
+          "x": 49,
+          "y": 52,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-1:2",
+          "type": "iron",
+          "x": 28,
+          "y": 49,
+          "state": "occupied",
+          "workers": 3,
+          "ownerCamp": 0
+        },
+        {
+          "id": "0,-1:3",
+          "type": "spring",
+          "x": 22,
+          "y": 41,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-1:4",
+          "type": "threat",
+          "x": 30,
+          "y": 27,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-1:5",
+          "type": "hunting",
+          "x": 37,
+          "y": 30,
+          "state": "occupied",
+          "workers": 0,
+          "ownerCamp": 0,
+          "dungeon": "market"
+        },
+        {
+          "id": "0,-1:wolf:8",
+          "type": "threat",
+          "x": 36,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    },
+    "0,1": {
+      "key": "0,1",
+      "generated": true,
+      "theme": "marsh",
+      "tier": 3,
+      "tiles": "84#2.5#1+5#5.24#1.6#5.7#31.1#2.7#3.4#7.6#35.6#4.2#9.4#35.8#15.3#7.1#26.9#14.5#32.11#12.1#2.2#25.2#6.12#8.4#21.1#6.4#6.12#6.5#1.1#12.4#10.4#6.13#5.5#13.3#3.2#8.3#7.12#6.3#15.2#14.3#7.12#40.6#3.12#4.2#28.3#3.21#7.1#27.2#4.21#34.1#6.15#2.3#8.2#35.10#4.2#6.4#37.8#4.2#4.2#1.3#38.6#14.2#7.1#15.1#16.4#23.2#15.2#9.3#3.3#40.4#8.4#3.2#40.4#9.3#3.3#39.4#9.3#3.7#7.2#26.3#10.3#2.9#5.3#25.4#10.3#2.11#2.3#26.4#10.3#2.16#25.5#9.4#2.16#25.6#8.3#3.17#8.1#15.6#13.19#24.5#13.11#4.4#25.3#13.11#6.4#39.11#6.5#17.6#14.12#3.8#10.1#1.13#12.12#3.9#2.1#8.14#6.1#4.12#3.10#2.1#10.11#6.3#2.12#4.6#2.2#2.1#11.1#2.5#8.16#5.5#4.1#2.1#2.1#3.5#4.3#9.16#6.4#5.1#9.4#4.3#7.19#6.3#12.1#2.5#3.3#7.19#7.3#14.5#4.1#8.19#8.1#15.4#15.19#23.4#15.19#24.3#15.18#13.2#11.1#15.18#13.4#3.3#20.18#13.11#20.18#12.11#19.20#11.12#11.2#3.23#11.15#5.4#2.24#14.13#3.4#3.23#16.19#3.22#18.18#3.22#10.4#5.7#4.7#1.22#10.6#6.4#6.29#9.7#7.2#12.24#6.1#1.8#22.23#4.12#9.6#7.24#2.14#2.17#1.84#",
+      "size": 61,
+      "mask": "AAAA/AcAAAAAAMD/AQAAAAAA+D8AAAAAAAD/BwAAAAAA4P8AAAAAAAD8HwAAAAAAgP8DAAAAAADwfwAAAAAAAP4fAAAAAADA/wcAAAAAAPj/AQAAAAAA/38AAAAAAOD/HwAAAAAA/P8HAAAAAID//wEAAAAA8P9/AAAAAAD+/w8AAAAAwP//AQAAAAD4/z8AAAAAAP//BwAAAADg//8AAAAAAPz/HwAAAACA//8DAAAAAPD/fwAAAAAA/v8PAAAAwP///wEAAAD8//8/AAAAwP///wcAAAD8////AAAAwP///x8AAAD8////BwAAgP////8BAADw////fwAAAP7///8PAADA/////wEAAPj///8/AAAA//+f/wcAAOD///H/AAAA/P8f/A8AAID//wH/AAAA8P8/wA8AAAD+/wfwAAAAwP//AAwAAADw/w8AAAAAAPz/AAAAAAAA/w8AAAAAAMD/AAAAAAAA8A8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "sites": [
+        {
+          "id": "0,1:0",
+          "type": "hunting",
+          "x": 35,
+          "y": 15,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,1:1",
+          "type": "coal",
+          "x": 40,
+          "y": 37,
+          "state": "occupied",
+          "workers": 3,
+          "ownerCamp": 0
+        },
+        {
+          "id": "0,1:2",
+          "type": "forest",
+          "x": 43,
+          "y": 19,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,1:3",
+          "type": "spring",
+          "x": 38,
+          "y": 30,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,1:4",
+          "type": "threat",
+          "x": 32,
+          "y": 24,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,1:5",
+          "type": "dungeon",
+          "x": 17,
+          "y": 42,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "tenement"
+        },
+        {
+          "id": "0,1:wolf:16",
+          "type": "threat",
+          "x": 36,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    },
+    "1,0": {
+      "key": "1,0",
+      "generated": true,
+      "theme": "archive",
+      "tier": 4,
+      "tiles": "91#1+60#1.60#1.60#1.60#1.38#4.18#1.3#8.27#4.18#1.3#8.27#4.18#1.3#8.27#11.11#1.3#8.27#13.9#1.3#8.27#34.27#11.1#1.9#1.1#9.27#34.27#5.3#1.4#1.9#1.1#9.27#1.2#1.4#1.4#1.9#1.1#9.27#1.2#1.4#1.4#1.9#1.5#1.1#1.29#1.2#1.4#1.4#1.3#4.2#1.5#1.1#1.29#1.2#1.4#1.4#1.3#4.2#1.5#1.1#1.29#1.2#1.4#1.4#1.3#4.2#1.5#1.1#1.29#1.2#1.2#15.2#1.5#1.1#1.29#1.2#1.2#6.1#1.3#4.2#1.5#1.1#1.29#1.2#1.2#6.1#1.3#4.2#1.5#1.1#1.29#1.2#1.2#6.1#1.3#4.2#1.5#1.1#1.29#1.2#1.2#22.1#1.1#1.29#1.2#1.2#6.1#1.5#1.3#1.3#1.1#1.1#1.29#1.2#1.2#6.1#1.5#1.3#1.3#1.1#1.1#1.29#1.2#1.2#6.1#1.5#9.1#1.1#1.29#1.2#1.4#1.4#1.5#9.1#1.1#1.29#1.2#1.4#1.4#1.2#12.1#1.1#1.23#1+37.29#1.2#1.9#1.2#14.1#1.29#1.2#1.9#1.2#14.1#1.29#1.2#1.9#1.5#11.1#1.29#1.2#1.9#1.5#2.6#3.1#1.29#1.2#1.9#1.5#2.6#3.1#1.25#9.8#1.5#2.6#5.25#9.8#1.5#2.6#5.25#9.8#1.5#2.5#6.25#9.8#1.5#2.4#7.25#9.8#1.5#2.4#4.2#1.25#9.8#1.5#2.4#4.2#1.25#9.8#1.5#2.4#4.2#1.25#33.2#1.25#5.12#1.5#2.4#4.2#1.25#5.10#5.3#2.4#4.2#1.25#5.10#5.3#2.4#4.2#1.25#5.10#5.3#10.2#1.24#6.10#5.3#10.2#1.24#6.10#21.24#6.10#5.3#10.27#6.10#5.3#10.27#34.27#5.11#5.7#7.26#5.23#7.26#35.55#6.55#6.207#",
+      "size": 61,
+      "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAOAAAAAAAAIAPAAAAgAcA+AMAAAD4AYD/AAAAgH8A+D8AAAD4/z//BwAAgP//7/8AAAD4////HwAAAP////8DAADg////fwAAAPz///8PAMD//////wEA/P////8/AID//////wcA8P//////AAD+/////x8AwP//////AwD4/////z8AAP//////AwDg/////z8AAPz/////BwAA//////8AAAAAAOD/HwAAAAAA+P8DAAAAAAD+PwAAAAAAAPgDAAAAAAAAPgAAAAAAAIADAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "sites": [
+        {
+          "id": "1,0:0",
+          "type": "iron",
+          "x": 30,
+          "y": 23,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:1",
+          "type": "quarry",
+          "x": 26,
+          "y": 36,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:2",
+          "type": "hunting",
+          "x": 16,
+          "y": 21,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:3",
+          "type": "coal",
+          "x": 14,
+          "y": 23,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:4",
+          "type": "iron",
+          "x": 17,
+          "y": 26,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:5",
+          "type": "quarry",
+          "x": 34,
+          "y": 34,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:6",
+          "type": "threat",
+          "x": 27,
+          "y": 33,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:7",
+          "type": "threat",
+          "x": 35,
+          "y": 37,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,0:8",
+          "type": "iron",
+          "x": 38,
+          "y": 18,
+          "state": "occupied",
+          "workers": 3,
+          "ownerCamp": 0,
+          "dungeon": "archive"
+        },
+        {
+          "id": "1,0:9",
+          "type": "spring",
+          "x": 35,
+          "y": 30,
+          "state": "occupied",
+          "workers": 0,
+          "ownerCamp": 0,
+          "dungeon": "clinic"
+        },
+        {
+          "id": "1,0:wolf:27",
+          "type": "threat",
+          "x": 36,
+          "y": 30,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    },
+    "-1,-1": {
+      "key": "-1,-1",
+      "generated": true,
+      "theme": "fissure",
+      "tier": 5,
+      "tiles": "75#5.48#4.2#9.4#2.37#19.2#4.12#3.20#26.11#6.18#26.10#8.17#27.8#9.17#30.5#9.17#31.3#10.17#54.7#15.2#40.4#14.3#8.1#32.3#15.2#8.2#27.1#2.4#41.2#10.8#40.4#10.7#40.4#12.4#41.4#12.4#42.2#13.5#41.2#13.5#41.3#2.2#8.5#22.2#1.1#15.8#7.5#22.2#2.2#4.1#9.7#8.4#23.1#6.4#9.6#2.3#3.4#32.1#10.5#2.4#3.4#44.3#3.5#2.4#44.2#3.13#43.2#2.16#15.1#15.1#9.1#3.17#10.6#14.2#13.1#3.9#2.1#9.7#14.1#21.4#1+57.1+3#2.2#8.3#17.1#13.3#7.5#12.2#18.1#13.6#3.6#13.2#17.1#14.14#48.13#27.1#1.1#19.12#3.1#7.2#16.1#23.8#1.4#4.1#14.2#2.2#27.4#3.2#15.1#3.2#2.1#10.1#18.4#37.3#16.5#14.1#20.4#17.5#12.3#19.4#17.5#34.4#18.5#8.6#21.2#12.2#5.5#8.5#35.4#5.4#8.4#35.6#4.4#6.6#5.5#25.6#4.4#5.7#6.4#25.6#4.4#5.8#6.3#11.2#12.6#3.5#4.9#6.3#3.2#5.3#13.6#1.6#4.8#6.4#11.2#14.12#17.5#28.11#16.6#5.1#11.3#8.11#16.7#2.4#9.5#7.11#17.12#8.5#8.11#17.11#8.5#9.5#1.5#16.5#3.3#8.5#12.2#2.5#15.5#15.4#5.2#9.6#7.1#6.6#14.5#4.4#7.32#3.12#2.6#3.69#",
+      "size": 61,
+      "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA+A8AAAAAAID/////AwAA+P////8AAID/////PwAA+P////8PAID//////wMA8P//////AAD+/////x8AwP//////AwD4/////38AAP//////HwDg//z///8DAPwf4P//fwCA/wP+//8PAPB/4P///wMA/g/+////AMD/4f///z8A+D/+/////8P//////////f////////////////////////////////////////////////////////////////////////////////////////9//////////wcAAP7/P/8HAACA///HfwAAAOD///AHAAAAAPgPfAAAAAAA/gAHAAAAAIAPQAAAAAAA4AAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "sites": [
+        {
+          "id": "-1,-1:0",
+          "type": "sulphur",
+          "x": 49,
+          "y": 36,
+          "state": "occupied",
+          "workers": 3,
+          "ownerCamp": 0
+        },
+        {
+          "id": "-1,-1:1",
+          "type": "iron",
+          "x": 41,
+          "y": 51,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:2",
+          "type": "coal",
+          "x": 29,
+          "y": 44,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:3",
+          "type": "spring",
+          "x": 8,
+          "y": 12,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:4",
+          "type": "sulphur",
+          "x": 13,
+          "y": 23,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:5",
+          "type": "iron",
+          "x": 15,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:6",
+          "type": "threat",
+          "x": 23,
+          "y": 33,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:7",
+          "type": "threat",
+          "x": 22,
+          "y": 24,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-1,-1:8",
+          "type": "dungeon",
+          "x": 38,
+          "y": 23,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "metro"
+        },
+        {
+          "id": "-1,-1:9",
+          "type": "dungeon",
+          "x": 36,
+          "y": 38,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "shelter"
+        },
+        {
+          "id": "-1,-1:wolf:57",
+          "type": "threat",
+          "x": 36,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    },
+    "1,-1": {
+      "key": "1,-1",
+      "generated": true,
+      "theme": "foundry",
+      "tier": 6,
+      "tiles": "465#7.54#7.54#7.54#7.54#7.2#5.47#7.2#5.47#7.2#5.31#6.13#1.1#1.3#6.30#6.13#1.1#1.3#6.30#6.13#1.1#1.3#6.30#6.13#1.1#1.3#6.30#6.13#1.1#1.3#4.1#1.30#6.13#10.1#1.30#6.15#1.3#7.29#6.15#1.3#7.29#6.15#1.3#7.32#1.7#9.1#1.3#7.32#1.7#9.1#1.3#8.31#1.7#22.15#7.9#1.7#9.1#1.3#8.15#7.9#1.1#7.3#1.5#1.3#8.15#7.9#1.1#7.3#1.5#1.3#8.15#7.1#5.3#1.1#7.3#1.5#1.5#1.2#1.1#1.7#1+48.2#1.1#1.15#7.1#5.3#1.1#7.1#22.13#7.1#40.13#48.13#7.1#5.3#32.21#5.8#1.4#22.23#1.10#1.7#19.23#1.10#1.7#10.1#1.4#1.25#1.10#1.7#5.6#1.4#1.25#1.10#1.7#5.6#1.4#1.25#1.6#8.4#12.4#1.25#1.6#8.4#5.9#4.19#8.1#11.4#5.9#4.19#42.19#8.1#1.6#1.7#5.9#4.19#8.1#1.6#1.7#1.13#4.19#25.36#12.4#1.44#12.4#1.44#12.4#1.44#12.4#1.49#7.4#1.51#5.4#1.51#5.4#1.51#5.4#1.51#5.4#1.60#1.60#1.60#1.60#1+91#",
+      "size": 61,
+      "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAwAEAAAAAAAB8AAAAAAAAwB8AAAAAAAD8BwAAAAAAwP8BAAAAAAD4PwAAAAAAAP8HAAAAAADg/wAAAAAA4P8fAAAAAAD+/wMAAAAA/P9/AAAAAMD//w8AAAAA/v//AcD//////z8A/P//////B4D///////8A8P//////HwD+//////8DwP//////fwD4//////8HAP///////wDg//////8fAPz//////wMA//////9/AAAAAAAA/g8AAAAAAMD/AQAAAAAA+D8AAAAAAAD/DwAAAAAA4P8DAAAAAAD4PwAAAAAAAP4DAAAAAACAPwAAAAAAAOADAAAAAAAAOAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "sites": [
+        {
+          "id": "1,-1:0",
+          "type": "iron",
+          "x": 23,
+          "y": 52,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:1",
+          "type": "coal",
+          "x": 36,
+          "y": 46,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:2",
+          "type": "quarry",
+          "x": 18,
+          "y": 43,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:3",
+          "type": "hunting",
+          "x": 44,
+          "y": 40,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:4",
+          "type": "iron",
+          "x": 52,
+          "y": 45,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:5",
+          "type": "coal",
+          "x": 18,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:6",
+          "type": "threat",
+          "x": 28,
+          "y": 27,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:7",
+          "type": "threat",
+          "x": 25,
+          "y": 29,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "1,-1:8",
+          "type": "coal",
+          "x": 22,
+          "y": 30,
+          "state": "occupied",
+          "workers": 3,
+          "ownerCamp": 0,
+          "dungeon": "foundry"
+        },
+        {
+          "id": "1,-1:9",
+          "type": "hunting",
+          "x": 43,
+          "y": 16,
+          "state": "occupied",
+          "workers": 0,
+          "ownerCamp": 0,
+          "dungeon": "market"
+        },
+        {
+          "id": "1,-1:wolf:53",
+          "type": "threat",
+          "x": 36,
+          "y": 30,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    },
+    "0,-2": {
+      "key": "0,-2",
+      "generated": true,
+      "theme": "hollow",
+      "tier": 7,
+      "tiles": "91#1+44#12.4#5.4#1.31#1.2#13.4#11.28#18.3#12.27#18.4#12.28#10.11#13.29#8.11#6.2#7.27#8.6#2.3#6.4#6.25#2.1#6.4#5.2#7.5#4.22#1.3#17.2#8.5#3.21#3.3#16.2#9.25#1.2#3.2#17.2#10.24#2.2#15.2#17.23#19.2#20.5#4.11#18.1#23.3#6.10#2.2#13.2#24.1#9.8#6.1#5.1#4.2#5.4#1.2#6.2#15.7#2.3#1.1#10.2#8.1#1.1#6.4#14.12#13.2#16.5#13.12#31.6#12.13#1.1#28.6#11.11#5.1#27.6#10.12#33.6#7.15#7.2#24.6#7.15#7.2#14.1#6.1#3.5#7.15#6.2#4.1#17.1#4.4#7.15#3.1#1.2#4.2#2.2#2.1#15.4#7.12#8.1#5.6#1.2#16.2#7.13#3.2#10.3#4.1#10.1#13.14#33.3#11.7#1.6#33.4#11.5#4.4#32.5#5.1#5.6#4.3#32.4#6.2#4.6#4.3#32.4#5.2#4.7#4.3#47.7#3.4#47.6#4.4#48.2#7.4#18.2#16.1#21.3#19.1#4.3#6.4#21.3#18.2#5.2#5.6#19.4#32.7#14.8#15.3#14.7#13.10#13.5#7.2#5.6#12.11#7.1#5.5#6.3#5.5#12.12#14.3#6.4#1.1#20.5#1.6#22.5#1.1#20.4#3.5#21.6#17.2#3.4#3.6#19.7#18.1#4.2#4.6#19.6#30.7#13.2#4.4#31.10#10.3#3.4#4.3#23.5#2.5#9.4#3.2#5.3#21.6#5.4#10.1#11.2#22.7#6.1#22.3#23.7#28.3#15.3#6.7#13.3#11.2#15.4#6.7#8.9#10.2#15.4#4.9#7.11#9.3#14.5#1.30#3.4#1+13#3.75#",
+      "size": 61,
+      "mask": "AAAA/D8AAAAAAMD/DwAAAAAA+P8DAAAAAAD+fwAAAAAAgP8PAAAAAADg/wEAAAAAAPg/AAAAAAAA/wcAAAAAAOD/AAAAAAAA/D8AAAAAEAD/DwAAAAAH4P8DAAAA8AH+fwAAAAB/4P8PAAAA8B/+/wEAAAD///8/AAAA4P///wcAAAD8////AAAAgP///x8AAADw////AwAAAPz//38AAAAA////DwAAAMD///8BAAAA8P//PwAAAAD8//8HAAAAAP///wEAAAAA//9/AAAAAPD//x8AAAAA////BwAAAPD///8BAAAA////PwAAAOD///8HAAAA/P///wAAAAD///8fAAAAwP///wcAAADw////AQAAAPz//z8AAAAA////BwAAAID///8AAAAA8P//HwAAAAD+//8DAAAAwP/xfwAAAAD4P/4PAAAAAP/H/wEAAADg//g/AAAAAPwf/wcAAACA/+P/AAAAAPB//B8AAAAA/o//AwAAAMD/8X8AAAAA+D/+DwAAAAD/h/8AAAAA4P/gDwAAAAD8H/gAAAAAgP8DDgAAAADwf4AAAAAAAP4PAAAAAADA/wEAAAAAAPg/AAAAAAAA/wcAAAAAAMB/AAAAAA==",
+      "sites": [
+        {
+          "id": "0,-2:0",
+          "type": "crystal",
+          "x": 32,
+          "y": 25,
+          "state": "occupied",
+          "workers": 1,
+          "ownerCamp": 0
+        },
+        {
+          "id": "0,-2:1",
+          "type": "sulphur",
+          "x": 22,
+          "y": 38,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:2",
+          "type": "hunting",
+          "x": 18,
+          "y": 15,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:3",
+          "type": "spring",
+          "x": 44,
+          "y": 50,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:4",
+          "type": "crystal",
+          "x": 45,
+          "y": 17,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:5",
+          "type": "sulphur",
+          "x": 41,
+          "y": 38,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:6",
+          "type": "hunting",
+          "x": 35,
+          "y": 24,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:7",
+          "type": "threat",
+          "x": 25,
+          "y": 28,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:8",
+          "type": "threat",
+          "x": 23,
+          "y": 32,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:9",
+          "type": "threat",
+          "x": 29,
+          "y": 22,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-2:10",
+          "type": "dungeon",
+          "x": 34,
+          "y": 16,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "tenement"
+        },
+        {
+          "id": "0,-2:11",
+          "type": "dungeon",
+          "x": 29,
+          "y": 26,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "vault"
+        }
+      ]
+    },
+    "-2,-1": {
+      "key": "-2,-1",
+      "generated": true,
+      "theme": "bunker",
+      "tier": 8,
+      "tiles": "598#4.31#4.22#4.29#6.22#4.12#5.12#6.20#6.12#5.11#33.12#5.8#10.18#1.1#6.12#5.8#10.17#9.12#52.9#5.8#7.1#1.16#14.9#5.8#7.1#1.16#14.9#5.16#31.11#1.35#14.11#1.35#14.11#1.36#13.11#1.36#9.15#1.36#2.1#9.12#1.36#2.1#9.12#1.36#2.1#9.12#1.20#7.9#2.1#9.12#1.20#7.9#2.1#9.12#1.20#7.9#12.12#1.4#48.1+7#1.4#7.3#1.2#1.2#7.9#12.12#1.4#7.3#1.2#1.2#7.8#10.15#1.4#7.3#1.2#1.2#7.8#10.15#1.4#12.1#1.17#10.15#1.4#7.3#2.1#1.17#8.1#1.15#1.4#7.1#6.17#8.1#1.15#1.4#7.1#6.16#5.5#1.15#1.7#1.4#6.16#5.5#1.15#19.16#5.5#1.23#1.4#6.16#5.5#1.23#1.4#6.16#11.23#1.26#5.29#32.56#5.56#5.930#",
+      "size": 61,
+      "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAeAAAAAAAA4AcAAAAA4P//////AQD+/////38A4P//////DwD+//////8B4P//////PwD+//////8HwP///////wD4//////8fAP///////wPg//////9/APz//////wcA//8DAAAAAMD/fwAAAAAA8P8HAAAAAAD8fwAAAAAAAPMHAAAAAAAAfAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+      "sites": [
+        {
+          "id": "-2,-1:0",
+          "type": "crystal",
+          "x": 49,
+          "y": 24,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:1",
+          "type": "iron",
+          "x": 27,
+          "y": 19,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:2",
+          "type": "coal",
+          "x": 52,
+          "y": 19,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:3",
+          "type": "spring",
+          "x": 45,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:4",
+          "type": "crystal",
+          "x": 26,
+          "y": 43,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:5",
+          "type": "iron",
+          "x": 49,
+          "y": 15,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:6",
+          "type": "coal",
+          "x": 19,
+          "y": 14,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:7",
+          "type": "threat",
+          "x": 24,
+          "y": 37,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:8",
+          "type": "threat",
+          "x": 33,
+          "y": 28,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:9",
+          "type": "threat",
+          "x": 37,
+          "y": 30,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "-2,-1:10",
+          "type": "crystal",
+          "x": 16,
+          "y": 35,
+          "state": "occupied",
+          "workers": 0,
+          "ownerCamp": 0,
+          "dungeon": "reactor"
+        },
+        {
+          "id": "-2,-1:11",
+          "type": "dungeon",
+          "x": 21,
+          "y": 36,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "shelter"
+        },
+        {
+          "id": "-2,-1:wolf:63",
+          "type": "threat",
+          "x": 36,
+          "y": 30,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    },
+    "0,-3": {
+      "key": "0,-3",
+      "generated": true,
+      "theme": "shipyard",
+      "tier": 9,
+      "tiles": "521#5.56#5.56#5.56#20.41#5.14#1.41#5.14#1.36#9.9#4.2#1.36#9.9#4.2#1.35#23.2#1.35#23.2#1.35#10.2#1.6#1.1#1.3#1.35#10.2#10.3#1.35#1.4#1.2#1.3#10.3#1.35#1.4#1.2#1.3#10.3#1.35#1.4#1.2#1.3#14.35#1.4#1.2#1.3#10.2#2.35#1.4#1.2#1.3#10.2#2.35#1.4#5.2#10.2#2.11#9.15#1.4#5.2#1.3#2.1#1.1#1.2#2.11#9.15#10.2#1.3#2.1#1.1#1.2#2.11#34.2#1.3#2.1#1.1#1.2#2.11#19.5#10.2#1.3#2.1#1.1#1.2#2.11#9.9#1.2#31.9#9.8#16.1#6.1#1.1#9.9#9.8#16.1#6.1#1.1#9.26#35.26#11.1#4.1#18.26#35.7#8.11#11.2#2.2#18.7#48.3#1.9#8.11#7.3#1.2#2.2#12.3#1.9#8.12#1.1#1.6#1.2#2.2#12.3#1.9#23.6#1.2#2.5#1.2#6.3#1.9#8.12#1.8#1.2#2.5#1.2#6.3#1.9#8.12#1.8#1.2#2.5#1.3#1.5#5.7#8.8#8.5#1.2#2.5#1.3#1.5#5.14#47.14#1.8#8.5#1.2#2.5#1.3#1.5#5.14#1.8#28.24#1.8#8.5#7.3#1.28#1.8#8.5#7.3#1.28#1.8#8.5#7.3#1.28#1.21#11.28#1.21#7.32#1.21#7.32#1.21#1.3#1.32#4.20#1.3#1.32#4.20#1.3#1.32#29.32#4.20#1.60#1.60#1+91#",
+      "size": 61,
+      "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPgAAAAAAAC+PwAAAAAA8P8PAAAAAAD//wMAAAAA8P//AAAAAOD//z8AAACA////AwAAAPj//z8AAACA////AwAAAPj//z8AAACA////BwAAAPj///8AAAAA////HwAAAOD///8DAAAA/P//PwAAAID///8DAAAA8P//PgAAAAD+/58DAAAAwP//IQAAAAD4/x8AAAAAAP//AQAAAADg/x8AAAAAAPz/AwAAAADA//8AAAAAAPj/PwAAAAAA//8PAAAAAOD//wMAAAAA/P9/AAAAAID//w8AAAAA8P//AQAAAAD8/z8AAAAAAP//BwAAAADA//8AAAAAAPD/HwAAAAAA/P8DAAAAAADwfwAAAAAAAP4PAAAAAADA/wEAAAAAAPg/AAAAAAAA/wcAAAAAAMB/AAAAAA==",
+      "sites": [
+        {
+          "id": "0,-3:0",
+          "type": "crystal",
+          "x": 32,
+          "y": 33,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:1",
+          "type": "sulphur",
+          "x": 49,
+          "y": 33,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:2",
+          "type": "iron",
+          "x": 30,
+          "y": 35,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:3",
+          "type": "hunting",
+          "x": 20,
+          "y": 49,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:4",
+          "type": "crystal",
+          "x": 21,
+          "y": 31,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:5",
+          "type": "sulphur",
+          "x": 45,
+          "y": 17,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:6",
+          "type": "iron",
+          "x": 24,
+          "y": 48,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:7",
+          "type": "threat",
+          "x": 24,
+          "y": 35,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:8",
+          "type": "threat",
+          "x": 36,
+          "y": 26,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:9",
+          "type": "threat",
+          "x": 25,
+          "y": 38,
+          "state": "cleared",
+          "workers": 0,
+          "ownerCamp": null
+        },
+        {
+          "id": "0,-3:10",
+          "type": "dungeon",
+          "x": 39,
+          "y": 17,
+          "state": "unknown",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "vault"
+        },
+        {
+          "id": "0,-3:11",
+          "type": "dungeon",
+          "x": 39,
+          "y": 33,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null,
+          "dungeon": "metro"
+        },
+        {
+          "id": "0,-3:12",
+          "type": "ship",
+          "x": 43,
+          "y": 25,
+          "state": "seen",
+          "workers": 0,
+          "ownerCamp": null
+        }
+      ]
+    }
+  },
+  "dungeons": {
+    "0,-1:5": {
+      "id": "0,-1:5",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "resource",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "market",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "30#1>4.20#5.5#6.9#5.5#6.9#16.9#16.9#16.8#17.8#17.8#17.8#13.1#1.8#15.1#1.8#10.1<8.6#19.6#19.6#19.6#19.6#19.6#19.6#19.6#19.15#10.16#9.54#",
+        "mask": "/j8A/v8A+P8D4P8PgP8/AP5/APj/AMD/AYD/AwD/BwD+DwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 5,
+          "y": 1
+        },
+        "objective": {
+          "x": 5,
+          "y": 1
+        },
+        "cleared": true
+      }
+    },
+    "0,1:5": {
+      "id": "0,1:5",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "closed",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "tenement",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "57#10.1#3.1>7#13.1#4.7#18.7#18.7#18.4#21.4#21.4#21.4#21.4#21.4#11.1<8.5#20.5#20.5#20.7#18.7#7.1#10.7#18.10#6.5#4.10#6.5#4.10#6.88#",
+        "mask": "APj/Afj/A/j/B/j/D/j/H/D/H+D/H8D/H4D/DwD/DwD+DwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 21,
+          "y": 2
+        },
+        "objective": {
+          "x": 21,
+          "y": 2
+        },
+        "cleared": true
+      }
+    },
+    "1,0:8": {
+      "id": "1,0:8",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "resource",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "archive",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "57#9.12#13.10#15.3#4.3#22.3#15.3#4.3#22.3#16.2#4.3#22.3#22.3#19.6#7.1#3.1<8.5#7.1#12.5#7.1#12.5#22.3#7.1#14.3#22.3#22.3#22.3#22.3#1>4.3#14.11#14.52#",
+        "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAA4AAD4AAD4AwD4DwD4PwDwfwDg/wDw/wH+/wP+/wf8/w/4/x/w/z/g/z/A/z+A/z8A/z8AAA==",
+        "party": {
+          "x": 1,
+          "y": 21
+        },
+        "objective": {
+          "x": 1,
+          "y": 21
+        },
+        "cleared": true
+      }
+    },
+    "1,0:9": {
+      "id": "1,0:9",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "resource",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "clinic",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "38#4.21#4.19#11.10#15.8#17.8#17.8#17.8#17.8#17.8#16.9#16.9#7.1<8.9#1.1#13.10#1.2#12.10#1.2#12.10#1.1#10.1#2.10#1.1#10.1#2.6#16.1#2.6#19.6#18.7#16.9#1>4.2#9.58#",
+        "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAA4AAD4AAD4AwD4DwD4PwDwfwDg/wDA/wHg/wP8/wf8/w/4/x/w/z/g/3/A/3+A/38A/38AAA==",
+        "party": {
+          "x": 1,
+          "y": 22
+        },
+        "objective": {
+          "x": 1,
+          "y": 22
+        },
+        "cleared": true
+      }
+    },
+    "-1,-1:8": {
+      "id": "-1,-1:8",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "infinite",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "metro"
+    },
+    "-1,-1:9": {
+      "id": "-1,-1:9",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "closed",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "shelter",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "92#4.1>12#5.3#5.12#5.3#5.12#5.2#6.10#15.4#21.4#21.4#16.2#1.6#20.5#11.1<8.5#20.5#20.5#20.5#20.5#20.5#20.10#15.18#4.107#",
+        "mask": "AID/AID/A8D/B8D/D8D/H8D/P8D/P8D/P4D/PwD/HwD+HwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 21,
+          "y": 3
+        },
+        "objective": {
+          "x": 21,
+          "y": 3
+        },
+        "cleared": true
+      }
+    },
+    "1,-1:8": {
+      "id": "1,-1:8",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "resource",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "foundry",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "63#5.20#5.20#5.20#9.12#14.8#17.7#18.3#22.3#22.3#22.3#11.1<10.3#17.3#1.4#17.3#1.4#17.3#1.4#17.3#1.4#21.7#14.11#14.11#14.11#1>13.82#",
+        "mask": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAA4AAD4AAD4AwD4DwD4PwDwfwDg/wDA/wHw/wPw/wfw/w/w/x/w/z/g/3/A/38A/38A/H8AAA==",
+        "party": {
+          "x": 4,
+          "y": 21
+        },
+        "objective": {
+          "x": 4,
+          "y": 21
+        },
+        "cleared": true
+      }
+    },
+    "1,-1:9": {
+      "id": "1,-1:9",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "resource",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "market",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "26#1>6.18#7.18#21.4#21.4#21.4#21.4#21.4#18.7#18.10#1.3#14.7#18.7#8.1<9.7#18.7#18.7#18.7#18.7#18.7#18.9#9.2#5.9#9.2#5.11#4.88#",
+        "mask": "/38A/v8B/P8H+P8f8P8/4P9/gP//AOD/AYD/AwD/BwD+DwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 1,
+          "y": 1
+        },
+        "objective": {
+          "x": 1,
+          "y": 1
+        },
+        "cleared": true
+      }
+    },
+    "0,-2:10": {
+      "id": "0,-2:10",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "closed",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "tenement",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "41#3.1>21#4.8#6.3#9.7#6.2#10.7#18.7#6.1#11.7#19.5#20.5#20.5#20.5#20.5#10.1<9.5#20.5#18.7#18.7#10.5#1.11#8.5#1.11#14.11#8.19#6.113#",
+        "mask": "APz/APz/A/z/A/z/A/j/A/D/A+D/A8D/AYD/AwD/BwD+DwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 19,
+          "y": 1
+        },
+        "objective": {
+          "x": 19,
+          "y": 1
+        },
+        "cleared": true
+      }
+    },
+    "0,-2:11": {
+      "id": "0,-2:11",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "infinite",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "vault"
+    },
+    "-2,-1:10": {
+      "id": "-2,-1:10",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "resource",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "reactor",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "32#8.17#9.15#14.7#1>17.7#18.7#18.7#18.7#18.7#18.7#18.7#21.6#8.1<10.6#19.6#19.8#17.8#17.8#17.8#14.11#14.11#14.11#8.17#8.61#",
+        "mask": "/j8A/v8A/P8D+P8P8P8/4P9/wP//gP//Af7/A/j/BwD+DwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 2,
+          "y": 4
+        },
+        "objective": {
+          "x": 2,
+          "y": 4
+        },
+        "cleared": true
+      }
+    },
+    "-2,-1:11": {
+      "id": "-2,-1:11",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "closed",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "shelter",
+      "floor": {
+        "depth": 1,
+        "size": 25,
+        "tiles": "27#1>8.2#4.10#9.2#8.6#19.6#10.1#8.6#10.1#8.6#19.6#19.8#17.8#17.6#21.4#21.4#10.1<10.4#21.4#21.6#19.6#12.13#12.13#12.13#12.13#12.16#9.16#9.59#",
+        "mask": "/38A/v8B/P8D+P8P8P8fwP8/AP//AMD/AYD/AwD/BwD+DwD8HwD4PwDgPwCAPwAAPgAAOAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+        "party": {
+          "x": 2,
+          "y": 1
+        },
+        "objective": {
+          "x": 2,
+          "y": 1
+        },
+        "cleared": true
+      }
+    },
+    "0,-3:11": {
+      "id": "0,-3:11",
+      "discovered": true,
+      "cleared": true,
+      "afterClear": "infinite",
+      "depth": 1,
+      "bestDepth": 1,
+      "kind": "metro"
+    }
+  },
+  "blueprints": [
+    "hull",
+    "canteen",
+    "drive",
+    "railgun",
+    "core"
+  ],
+  "flags": {
+    "rng": 1033425944,
+    "log": [
+      {
+        "key": "log.thirst",
+        "values": {},
+        "turn": 3840
+      },
+      {
+        "key": "log.win",
+        "values": {},
+        "turn": 3841
+      },
+      {
+        "key": "log.thirst",
+        "values": {},
+        "turn": 3845
+      },
+      {
+        "key": "log.encounter",
+        "values": {},
+        "turn": 3845
+      },
+      {
+        "key": "log.clear",
+        "values": {
+          "name": "荒野巢穴"
+        },
+        "turn": 3849
+      },
+      {
+        "key": "log.win",
+        "values": {},
+        "turn": 3849
+      },
+      {
+        "key": "log.thirst",
+        "values": {},
+        "turn": 3853
+      },
+      {
+        "key": "log.thirst",
+        "values": {},
+        "turn": 3857
+      },
+      {
+        "key": "log.thirst",
+        "values": {},
+        "turn": 3860
+      },
+      {
+        "key": "log.heal",
+        "values": {
+          "n": 12
+        },
+        "turn": 3860
+      },
+      {
+        "key": "log.thirst",
+        "values": {},
+        "turn": 3864
+      },
+      {
+        "key": "log.camp",
+        "values": {},
+        "turn": 3865
+      },
+      {
+        "key": "log.build",
+        "values": {
+          "name": "水井"
+        },
+        "turn": 3866
+      },
+      {
+        "key": "log.build",
+        "values": {
+          "name": "工坊"
+        },
+        "turn": 3867
+      },
+      {
+        "key": "log.restock",
+        "values": {},
+        "turn": 3868
+      },
+      {
+        "key": "log.restock",
+        "values": {},
+        "turn": 3870
+      },
+      {
+        "key": "log.discover",
+        "values": {
+          "name": "地下入口"
+        },
+        "turn": 3878
+      },
+      {
+        "key": "log.encounter",
+        "values": {},
+        "turn": 3878
+      },
+      {
+        "key": "log.win",
+        "values": {},
+        "turn": 3880
+      },
+      {
+        "key": "log.dungeonEnter",
+        "values": {
+          "name": "停运地铁站"
+        },
+        "turn": 3885
+      },
+      {
+        "key": "log.trader",
+        "values": {},
+        "turn": 3900
+      },
+      {
+        "key": "log.join",
+        "values": {},
+        "turn": 3900
+      },
+      {
+        "key": "log.dungeonClear",
+        "values": {},
+        "turn": 3905
+      },
+      {
+        "key": "log.extract",
+        "values": {},
+        "turn": 3906
+      },
+      {
+        "key": "log.restock",
+        "values": {},
+        "turn": 3920
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3922
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3923
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3924
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3925
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3926
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3927
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3928
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "药剂"
+        },
+        "turn": 3929
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "船体组件"
+        },
+        "turn": 3930
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "推进器"
+        },
+        "turn": 3931
+      },
+      {
+        "key": "log.craft",
+        "values": {
+          "name": "能量核心"
+        },
+        "turn": 3932
+      },
+      {
+        "key": "log.restock",
+        "values": {},
+        "turn": 3933
+      },
+      {
+        "key": "log.discover",
+        "values": {
+          "name": "飞船残骸"
+        },
+        "turn": 3947
+      },
+      {
+        "key": "log.raid",
+        "values": {},
+        "turn": 3950
+      },
+      {
+        "key": "log.join",
+        "values": {},
+        "turn": 3950
+      }
+    ],
+    "moves": 2982,
+    "dungeonMoves": 251,
+    "memorial": [],
+    "abyssBest": 0,
+    "trader": true,
+    "exhaustion": 0,
+    "abyssUnlocked": true
+  },
+  "endReason": "ship"
+}

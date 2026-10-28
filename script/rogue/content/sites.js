@@ -13,6 +13,7 @@
         sulphur: { symbol: 'S', kind: 'resource', resource: 'sulphur', rate: 0.07, job: 'mine' },
         crystal: { symbol: 'X', kind: 'resource', resource: 'crystal', rate: 0.06, job: 'gather' },
         threat: { symbol: '!', kind: 'threat' },
+        outpost: { symbol: 'F', kind: 'outpost' },
         dungeon: { symbol: 'D', kind: 'dungeon' },
         ship: { symbol: 'A', kind: 'ending' },
         abyss: { symbol: 'V', kind: 'dungeon' }

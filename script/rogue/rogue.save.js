@@ -39,7 +39,7 @@
         /** Validates the root model, nested maps, inventories and resumable combat. */
         validate: function (save) {
             try {
-                if (!save || [1, N.VERSION].indexOf(save.version) < 0 || !number(save.slot) || save.slot % 1 || save.slot < 0 || save.slot >= N.SLOTS || !number(save.seed) || save.seed < 0 || save.seed > 4294967295 || save.seed % 1) { return false; }
+                if (!save || [1, 2, N.VERSION].indexOf(save.version) < 0 || !number(save.slot) || save.slot % 1 || save.slot < 0 || save.slot >= N.SLOTS || !number(save.seed) || save.seed < 0 || save.seed > 4294967295 || save.seed % 1) { return false; }
                 if (!number(save.turn) || save.turn < 0 || save.turn % 1 || save.day !== Math.floor(save.turn / N.TURNS_PER_DAY) || [1, 2, 3].indexOf(save.speed) < 0) { return false; }
                 if (typeof save.over !== 'boolean' || typeof save.cheat !== 'boolean' || !number(save.createdAt)) { return false; }
                 if (!Array.isArray(save.camps) || save.camps.length < 1 || save.camps.length > (save.version === 1 ? 3 : N.MAX_CAMPS) || !number(save.activeCamp) || save.activeCamp % 1 || save.activeCamp < 0 || save.activeCamp >= save.camps.length) { return false; }
@@ -62,6 +62,10 @@
                 }
                 for (i = 0; i < p.companions.length; i++) {
                     var ally = p.companions[i];
+                    if (!ally) { return false; }
+                    if (save.version >= 3 && (!inventory(ally.bag) || !CWeapon(ally.weapon) || typeof ally.id !== 'string')) { return false; }
+                    if (save.version >= 3 && ally.weapon !== 'fists' && !(ally.bag[ally.weapon] >= 1)) { return false; }
+                    if (save.version >= 3 && ally.armour && (!R.CONTENT.items[ally.armour] || R.CONTENT.items[ally.armour].kind !== 'armour' || !(ally.bag[ally.armour] >= 1))) { return false; }
                     if (!ally || R.CONTENT.names.indexOf(ally.name) < 0 || !number(ally.hp) || ally.hp <= 0 || !number(ally.maxHp) || ally.hp > ally.maxHp || !number(ally.str) || !number(ally.agi) || !number(ally.will) || R.CONTENT.quirks.indexOf(ally.quirk) < 0) { return false; }
                 }
                 for (i = 0; i < save.blueprints.length; i++) { if (!R.CONTENT.items[save.blueprints[i]]) { return false; } }
@@ -77,13 +81,27 @@
                 for (key in save.regions) {
                     var region = save.regions[key];
                     if (!region || region.key !== key || !knownNodes[key] || region.tier !== graph.tier[key] || region.size !== N.REGION_SIZE || !R.CONTENT.themes[region.tier] || !Array.isArray(region.sites)) { return false; }
+                    if (save.version >= 3 && !R.wild.biomes[region.biome]) { return false; }
                     R.rle.decode(region.tiles, region.size);
                     if (R.mask.decode(region.mask).length !== Math.ceil(region.size * region.size / 8)) { return false; }
                     for (i = 0; i < region.sites.length; i++) {
                         var site = region.sites[i];
                         if (!R.CONTENT.sites[site.type] || !number(site.workers) || site.workers < 0 || site.workers % 1 || !position(site, region.size) || ['unknown', 'seen', 'cleared', 'occupied'].indexOf(site.state) < 0) { return false; }
+                        if (site.type === 'outpost' && (!number(site.assault) || site.assault % 1 || site.assault < 0 || site.assault > N.OUTPOST_STAGES)) { return false; }
                         if (site.type === 'dungeon' && !R.CONTENT.dungeons[site.dungeon]) { return false; }
                     }
+                }
+                if (save.flags.outpost) {
+                    var compound = R.map.site(save, save.flags.outpost);
+                    if (!compound || compound.type !== 'outpost' || compound.state === 'occupied' || save.flags.insideDungeon || compound.x !== p.x || compound.y !== p.y || save.regions[p.region].sites.indexOf(compound) < 0) { return false; }
+                }
+                if (save.flags.wildEvent) {
+                    var event = save.flags.wildEvent;
+                    if (['merchant', 'cache', 'survivor'].indexOf(event.kind) < 0 || save.flags.insideDungeon || save.flags.outpost || save.flags.combat) { return false; }
+                    if (event.kind === 'merchant') {
+                        if (!Array.isArray(event.offers) || event.offers.length !== 3) { return false; }
+                        for (i = 0; i < event.offers.length; i++) { var offer = event.offers[i]; if (!offer || !R.CONTENT.items[offer.item] || !inventory(offer.cost) || !Object.keys(offer.cost).length || !number(offer.quantity) || offer.quantity <= 0 || offer.quantity % 1) { return false; } }
+                    } else if (!inventory(event.reward)) { return false; }
                 }
                 if (save.flags.tempCamp) {
                     var temp = save.flags.tempCamp;
@@ -134,6 +152,22 @@
                 R.log(save, 'log.campMigrated');
             }
             save.activeCamp = Math.min(save.activeCamp, save.camps.length - 1);
+            var regionKey; var j;
+            for (j = 0; j < save.party.companions.length; j++) {
+                var ally = save.party.companions[j]; ally.id = ally.id || 'legacy:' + j;
+                ally.weapon = 'fists'; ally.armour = null; ally.bag = {};
+            }
+            if (save.flags.abyssParty) {
+                for (j = 0; j < save.flags.abyssParty.companions.length; j++) { var oldAlly = save.flags.abyssParty.companions[j]; oldAlly.id = oldAlly.id || 'legacy:' + j; oldAlly.weapon = 'fists'; oldAlly.armour = null; oldAlly.bag = {}; }
+            }
+            save.flags.made = save.flags.made || {};
+            var tools = ['waterskin', 'canteen', 'pack'];
+            for (j = 0; j < tools.length; j++) { if (R.party.owned(save, tools[j])) { save.flags.made[tools[j]] = true; } }
+            for (regionKey in save.regions) {
+                var region = save.regions[regionKey]; region.biome = R.wild.biome(save, region); R.outpost.ensure(save, region);
+            }
+            save.flags.campSerial = 1;
+            for (j = 0; j < save.camps.length; j++) { save.flags.campSerial = Math.max(save.flags.campSerial, save.camps[j].id + 1); }
             save.version = N.VERSION; return save;
         },
         /** Reads one slot and leaves its raw data untouched on any failure. */

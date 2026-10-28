@@ -24,6 +24,7 @@ html.rogue-dark body.rogue-mode {
 }
 body.rogue-mode > #wrapper, body.rogue-mode > .logo { display: none !important; }
 .rogue-root, .rogue-root * { box-sizing: border-box; }
+html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); scroll-padding-bottom: calc(var(--rogue-bottom-height, 210px) + 12px); }
 .rogue-root [hidden] { display: none !important; }
 .rogue-root {
     font: var(--rogue-font-size, 16px)/1.65 Georgia, 'Noto Serif CJK SC', 'Songti SC', serif;
@@ -125,6 +126,8 @@ body.rogue-mode > #wrapper, body.rogue-mode > .logo { display: none !important; 
 .rogue-camp-status > .rogue-stat { flex-direction: row; gap: 8px; font-size: .875em; }
 .rogue-camp-status .rogue-stat-value { font-size: 1.125em; }
 .rogue-camp-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 20px; }
+.rogue-camp-menu { gap: 8px; margin-top: 12px; }
+.rogue-camp-menu .rogue-menu-tile { min-height: 64px; padding-top: 8px; padding-bottom: 8px; }
 .rogue-menu-tile { position: relative; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; min-height: 76px; padding: 12px 24px 12px 12px; border: 0 !important; background: var(--rogue-fill) !important; text-align: left; }
 .rogue-tile-title { font-size: .9375em; }
 .rogue-menu-tile .rogue-note { font-size: .6875em; }
@@ -238,7 +241,22 @@ body.rogue-mode > #wrapper, body.rogue-mode > .logo { display: none !important; 
 .rogue-flee { grid-column: 1 / -1; }
 .rogue-combat-dialog .rogue-dialog-content > .rogue-note { margin-top: 12px; }
 .rogue-ending { max-width: 480px; margin: 0 auto; padding: 40px 24px; text-align: center; }
-.rogue-ending-art { font: 15px/1.5 Consolas, monospace; margin: 24px 0 32px; color: var(--rogue-muted); }
+.rogue-ending-illustration { display: block; width: 200px; max-width: 100%; height: 110px; margin: 18px auto 24px; color: var(--rogue-muted); }
+.rogue-live-log { max-width: 680px; margin: 0 auto; padding: 4px 16px 6px; background: var(--rogue-fill); }
+.rogue-log-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.rogue-log-heading h3 { font-size: .75em; font-weight: 400; }
+.rogue-log-heading > .rogue-button { min-height: 44px; border: 0; padding: 4px; font-size: .6875em; }
+.rogue-live-entries { max-height: 54px; overflow-y: auto; overscroll-behavior: contain; list-style: none; padding: 0; margin: 0; font-size: .75em; line-height: 1.5; }
+.rogue-live-entries li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 6px; padding: 2px 0; }
+.rogue-log-turn { color: var(--rogue-muted); font-variant-numeric: tabular-nums; }
+.rogue-log-warning { font-weight: 700; }
+.rogue-pack-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 0; font-size: .875em; }
+.rogue-pack-row .rogue-button { font-size: .875em; }
+.rogue-companion > .rogue-button { display: flex; width: 100%; margin-top: 10px; font-size: .875em; }
+.rogue-trade-offer { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; align-items: center; padding: 12px; margin: 12px 0; background: var(--rogue-fill); font-size: .875em; }
+.rogue-trade-offer > p:first-child { grid-column: 1; }
+.rogue-trade-offer > .rogue-note { grid-column: 1; font-size: .8125em; }
+.rogue-trade-offer > .rogue-button { grid-column: 2; grid-row: 1 / 3; font-size: .875em; }
 .rogue-ending h1 { font-size: 1.5em; }
 .rogue-ending-copy { margin: 22px 0 !important; font-size: .9375em; line-height: 1.9; }
 .rogue-ending > .rogue-button { display: flex; width: 100%; min-height: 48px; margin-top: 14px; font-size: .875em; }
@@ -267,5 +285,13 @@ body.rogue-mode > #wrapper, body.rogue-mode > .logo { display: none !important; 
     .rogue-combat-actions .rogue-flee { grid-column: span 2; }
     .rogue-launcher { padding-top: 24px; }
     .rogue-launcher-heading { margin-bottom: 22px; }
+}
+@media (max-height: 640px) {
+    .rogue-live-log { position: relative; min-height: 44px; padding: 2px 80px 2px 12px; }
+    .rogue-log-heading { position: absolute; right: 8px; top: 0; }
+    .rogue-log-heading h3 { display: none; }
+    .rogue-live-entries { max-height: 40px; font-size: .6875em; }
+    .rogue-live-entries li:not(:first-child) { display: none; }
+    .rogue-live-entries li { grid-template-columns: 24px minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .rogue-root * { scroll-behavior: auto !important; } }

@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const files = ['rogue.num.js', 'content/themes.js', 'content/sites.js', 'content/enemies.js',
     'content/items.js', 'content/names.js', 'lang/zh.js', 'rogue.state.js', 'rogue.worldgen.js',
-    'rogue.map.js', 'rogue.settle.js', 'rogue.combat.js', 'rogue.dungeon.js', 'rogue.save.js'];
+    'rogue.map.js', 'rogue.party.js', 'rogue.wild.js', 'rogue.outpost.js', 'rogue.settle.js', 'rogue.combat.js', 'rogue.dungeon.js', 'rogue.save.js'];
 const checks = [];
 /** Creates a headless game realm with observable in-memory local storage. */
 function realm() {
@@ -58,7 +58,8 @@ for (let repeat = 0; repeat < 3; repeat++) {
                 if (tile !== '#') assert.notEqual(reachable[y * region.size + x], undefined);
             }
         }
-        assert.equal(region.sites.length, R.NUM.SITE_QUOTAS[region.tier <= 3 ? 0 : region.tier <= 6 ? 1 : 2].reduce((a, b) => a + b, 0) + (region.tier === 9 ? 1 : 0));
+        assert.equal(region.sites.length, R.NUM.SITE_QUOTAS[region.tier <= 3 ? 0 : region.tier <= 6 ? 1 : 2].reduce((a, b) => a + b, 0) + (region.tier === 9 ? 1 : 0) + 1);
+        assert.equal(region.sites.filter(site => site.type === 'outpost').length, 1);
         for (const site of region.sites) assert.notEqual(reachable[site.y * region.size + site.x], undefined);
         tiles.push(region.tiles);
     }
@@ -214,11 +215,14 @@ const legacyRaw = fs.readFileSync(path.join(root, 'scripts/fixtures/rogue-v1.jso
 const legacy = JSON.parse(legacyRaw);
 env.storage.setItem('rogueSlot0', legacyRaw);
 const upgraded = R.save.load(0);
-assert(upgraded); assert.equal(upgraded.version, 2); assert.equal(upgraded.camps.length, 2);
+assert(upgraded); assert.equal(upgraded.version, R.NUM.VERSION); assert.equal(upgraded.camps.length, 2);
 assert.equal(env.storage.getItem('rogueSlot0'), legacyRaw, 'loading must not rewrite an existing slot');
 assert.equal(JSON.stringify(upgraded.regionGraph), JSON.stringify(legacy.regionGraph));
-assert.equal(JSON.stringify(upgraded.party), JSON.stringify(legacy.party));
-assert.equal(JSON.stringify(upgraded.regions), JSON.stringify(legacy.regions).replaceAll('"ownerCamp":' + legacy.camps[2].id, '"ownerCamp":' + legacy.camps[0].id));
+assert.deepEqual(JSON.parse(JSON.stringify({ ...upgraded.party, companions: [] })), { ...legacy.party, companions: [] });
+for (let i = 0; i < legacy.party.companions.length; i++) { assert.deepEqual(JSON.parse(JSON.stringify(upgraded.party.companions[i])), { ...legacy.party.companions[i], id: legacy.party.companions[i].id || 'legacy:' + i, weapon: 'fists', armour: null, bag: {} }); }
+const originalRegions = JSON.parse(JSON.stringify(upgraded.regions));
+for (const region of Object.values(originalRegions)) { delete region.biome; region.sites = region.sites.filter(site => site.type !== 'outpost'); }
+assert.equal(JSON.stringify(originalRegions), JSON.stringify(legacy.regions).replaceAll('"ownerCamp":' + legacy.camps[2].id, '"ownerCamp":' + legacy.camps[0].id));
 assert.equal(upgraded.camps[0].pop, legacy.camps[0].pop + legacy.camps[2].pop);
 assert.equal(upgraded.flags.tempCamp.x, legacy.camps[2].x);
 assert.equal(R.save.validate(upgraded), true);
@@ -266,6 +270,7 @@ if (process.argv.includes('--playthrough')) {
     G.ui = { render() {}, notice(key) { diagnostics.push(key); } };
     /** Executes only a real public game action, failing with useful expedition diagnostics. */
     function act(action) {
+        if (expedition.flags.wildEvent) { assert(G.state.act({ type: 'event', op: 'leave' })); }
         const ok = G.state.act(action);
         assert(ok, JSON.stringify({ action, diagnostics: diagnostics.slice(-2), turn: expedition.turn, party: expedition.party, stores: G.stores(expedition) }));
         assert(!expedition.over || expedition.endReason === 'ship', JSON.stringify({ reason: expedition.endReason, turn: expedition.turn, party: expedition.party }));
@@ -375,9 +380,9 @@ if (process.argv.includes('--playthrough')) {
             for (let i = 0; i < 12 && (expedition.party.bag.food || 0) < 56; i++) { clearCargo(6); act({ type: 'gather' }); }
         }
         const spring = sites.find(site => site.type === 'spring');
-        if (spring && expedition.party.water + (expedition.party.bag.water || 0) < 120) {
+        if (spring && expedition.party.water + (expedition.party.bag.water || 0) < 160) {
             walkTo(spring.x, spring.y);
-            for (let i = 0; i < 8 && (expedition.party.bag.water || 0) < 40; i++) { clearCargo(8); act({ type: 'gather' }); }
+            for (let i = 0; i < 12 && (expedition.party.bag.water || 0) < 80; i++) { clearCargo(8); act({ type: 'gather' }); }
         }
     }
     /** Moves between regions through their real interior exits using an open graph route. */
@@ -447,6 +452,7 @@ if (process.argv.includes('--playthrough')) {
             assert(expedition.dungeons[site.id].cleared);
             act({ type: 'extract' }); homeAndSupply();
         }
+        if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && (G.stores(expedition).steel || 0) < 4 && G.affords(expedition, G.CONTENT.items.steel.cost)) { craft('steel'); }
         if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && G.affords(expedition, G.CONTENT.items.canteen.cost)) { craft('canteen'); act({ type: 'restock' }); }
         if (currentTier === 5) gatherResource('sulphur', 4);
         while ((expedition.party.bag.medicine || 0) < 8 && G.affords(expedition, G.CONTENT.items.medicine.cost)) craft('medicine');

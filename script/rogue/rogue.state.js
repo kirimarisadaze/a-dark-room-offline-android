@@ -92,6 +92,8 @@
     };
     /** Records translatable log entries so saved text remains localizable. */
     R.log = function (save, key, values) {
+        var last = save.flags.log[save.flags.log.length - 1];
+        if (key === 'log.move' && last && last.key === key && last.values.direction === values.direction) { last.values.n += values.n; last.turn = save.turn; return; }
         save.flags.log.push({ key: key, values: values || {}, turn: save.turn });
         if (save.flags.log.length > N.LOG_LIMIT) { save.flags.log.shift(); }
     };
@@ -142,8 +144,13 @@
             var save = this.current;
             if (!save || (save.over && !save.flags.abyss)) { return false; }
             if (save.flags.combat && action.type !== 'combat') { return false; }
+            if (!save.flags.combat && save.flags.wildEvent && ['event', 'equip', 'unequip', 'transfer', 'use', 'allyUse', 'drop'].indexOf(action.type) < 0) { return false; }
+            if (!save.flags.combat && save.flags.outpost && ['outpost', 'equip', 'unequip', 'transfer', 'use', 'allyUse', 'drop'].indexOf(action.type) < 0) { return false; }
             var result = false;
             if (action.type === 'move') { result = R.map.move(save, action.dir); }
+            else if (action.type === 'event') { result = R.wild.act(save, action); }
+            else if (action.type === 'outpost') { result = R.outpost.act(save, action); }
+            else if (['equip', 'unequip', 'transfer', 'allyUse', 'dismiss', 'drop'].indexOf(action.type) >= 0) { result = R.party.act(save, action); }
             else if (action.type === 'combat') { result = R.combat.act(save.flags.combat, action.action); }
             else if (action.type === 'enter') { result = R.dungeon.enter(save, action.site); }
             else if (action.type === 'descend') { result = R.dungeon.descend(save); }
@@ -152,6 +159,7 @@
             if (!result) { return false; }
             this.advance(result.turns === undefined ? 1 : result.turns);
             R.map.reveal(save);
+            R.wild.warn(save);
             if (R.save) { R.save.write(save); }
             if (R.ui) { R.ui.render(); }
             return true;
@@ -191,6 +199,7 @@
             var i;
             for (i = 0; i < save.camps.length; i++) { population += save.camps[i].pop; }
             if (population === 0) { save.over = true; save.endReason = 'wiped'; delete save.flags.combat; }
+            if (save.over) { delete save.flags.wildEvent; delete save.flags.outpost; }
         }
     };
 })();

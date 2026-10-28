@@ -28,13 +28,24 @@
         }
         if (session.ctx.site) {
             var site = R.map.site(save, session.ctx.site);
-            if (site) { site.state = 'cleared'; R.log(save, 'log.clear', { name: R.t('site.' + site.type) }); }
+            if (site && site.type !== 'outpost') { site.state = 'cleared'; R.log(save, 'log.clear', { name: R.t('site.' + site.type) }); }
         }
+        if (session.ctx.kind === 'outpost') { R.outpost.won(save, session); }
         R.log(save, 'log.win');
         session.result = 'won';
         delete save.flags.combat;
     }
     R.combat = {
+        /** Returns the exact probability used by the next escape attempt, bounded at eight percent. */
+        escapeChance: function (session) {
+            var agility = 0; var strength = 0; var living = 0; var i;
+            for (i = 0; i < session.enemies.length; i++) {
+                var enemy = session.enemies[i];
+                if (enemy.hp > 0) { agility += enemy.agi; strength += enemy.dmg * 0.006 + enemy.maxHp * 0.0005; living += 1; }
+            }
+            if (!living) { return N.HIT_MAX; }
+            return R.clamp(N.ESCAPE_BASE + N.ESCAPE_AGI * (N.PLAYER_AGI - agility / living) - session.round * (N.ESCAPE_DECAY + strength), N.ESCAPE_MIN, N.HIT_MAX);
+        },
         /** Starts a serializable combat session and fixes seeded initiative order. */
         start: function (enemies, ctx) {
             var save = R.state.current;
@@ -56,7 +67,7 @@
             var type = C.themes[tier].enemy;
             var definition = C.enemies[type];
             var depth = ctx.depth || 0;
-            var count = ctx.kind === 'site' && tier >= 4 ? 2 : 1;
+            var count = (ctx.kind === 'site' && tier >= 4) || (ctx.kind === 'outpost' && ctx.stage === 4) ? 2 : 1;
             var enemies = [];
             var i;
             for (i = 0; i < count; i++) {
@@ -77,6 +88,7 @@
             var enemy = targetOf(session, action.target === undefined ? session.target : action.target);
             if (!enemy) { victory(save, session); return { turns: 1, result: 'won' }; }
             session.target = session.enemies.indexOf(enemy);
+            var fleeChance = this.escapeChance(session);
             session.round += 1;
             var i;
             var dodging = action.type === 'dodge';
@@ -88,17 +100,15 @@
                 party.hp = Math.min(party.maxHp, party.hp + medicine.heal);
                 record(session, 'log.heal', { n: medicine.heal });
             } else if (action.type === 'flee') {
-                var agility = 0;
-                var living = 0;
-                for (i = 0; i < session.enemies.length; i++) { if (session.enemies[i].hp > 0) { agility += session.enemies[i].agi; living += 1; } }
-                var chance = R.clamp(N.ESCAPE_BASE + N.ESCAPE_AGI * (N.PLAYER_AGI - agility / living), N.HIT_MIN, N.HIT_MAX);
-                if (R.roll(save) < chance) {
+                if (R.roll(save) < fleeChance) {
                     var id;
                     if (!save.flags.abyss) { for (id in party.bag) { if (C.items[id] && C.items[id].kind === 'resource') { party.bag[id] = Math.floor(party.bag[id] * (1 - N.ESCAPE_LOSS)); } } }
+                    if (session.ctx.kind === 'outpost') { delete save.flags.outpost; }
                     R.log(save, 'log.flee'); session.result = 'fled'; delete save.flags.combat;
                     return { turns: 1, result: 'fled' };
                 }
                 record(session, 'log.fleeFail');
+                R.log(save, 'log.fleeFail');
             } else {
                 var hit = R.clamp(N.HIT_BASE + N.HIT_AGI * (N.PLAYER_AGI - enemy.agi) - (dodging ? N.DODGE_HIT_PENALTY : 0), N.HIT_MIN, N.HIT_MAX);
                 if (R.roll(save) < hit) {
@@ -111,12 +121,13 @@
                 enemy = targetOf(session, session.target);
                 if (!enemy) { break; }
                 var companion = party.companions[i];
-                var companionDamage = N.COMPANION_DAMAGE + companion.str + R.bonus(save, 'companion');
+                var companionDamage = C.items[companion.weapon || 'fists'].dmg + companion.str + R.bonus(save, 'companion');
                 enemy.hp = Math.max(0, enemy.hp - companionDamage);
                 record(session, 'log.hit', { name: R.t('ui.name.' + companion.name), n: companionDamage });
             }
             for (i = 0; i < session.enemies.length; i++) {
                 enemy = session.enemies[i];
+                if (enemy.hp <= 0 && !enemy.logged) { enemy.logged = true; R.log(save, 'log.defeated', { name: R.t('enemy.' + enemy.type) }); }
                 if (enemy.hp <= 0) { continue; }
                 if (dodging && R.roll(save) < N.DODGE_CHANCE) { record(session, 'log.evade'); continue; }
                 var armour = party.armour ? C.items[party.armour].protection : 0;
@@ -124,10 +135,13 @@
                 if (party.companions.length > 0 && R.roll(save) < N.COMPANION_TARGET) {
                     var companionIndex = Math.floor(R.roll(save) * party.companions.length);
                     var ally = party.companions[companionIndex];
+                    armour = ally.armour ? C.items[ally.armour].protection : 0;
+                    incoming = Math.max(1, Math.ceil(enemy.dmg * Math.max(N.ARMOUR_MIN, 1 - armour - R.bonus(save, 'armour')) * (guarding ? N.GUARD_RECEIVE : 1)));
                     ally.hp = Math.max(0, ally.hp - incoming);
                     if (ally.hp === 0) {
                         if (!save.flags.abyss) { save.flags.memorial.push({ name: ally.name, turn: save.turn }); }
                         R.log(save, 'log.companionDied', { name: R.t('ui.name.' + ally.name) });
+                        R.party.recover(save, ally);
                         party.companions.splice(companionIndex, 1);
                     }
                 } else { party.hp = Math.max(0, party.hp - incoming); }
