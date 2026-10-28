@@ -938,5 +938,5 @@ $.Dispatch = function( id ) {
 };
 
 $(function() {
-  Engine.init();
+  if (!window.__ADR_BOOT_ERROR) Engine.init();
 });

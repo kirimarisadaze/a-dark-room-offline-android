@@ -19,6 +19,10 @@
       if (skipSaving || Engine.GAME_OVER || !window.State) { return false; }
       try { Engine.saveGame(); return true; } catch (error) { return false; }
     },
+    reload: function () {
+      if (window.ADRNativeLocalApp === true) { location.href = 'adr-offline://reload'; }
+      else { location.reload(); }
+    },
     prepareRestore: function () { skipSaving = true; OfflineGame.releaseControls(); },
     cancelRestore: function () { skipSaving = false; },
     pause: function () {
@@ -151,7 +155,6 @@
   Engine.saveLanguage = function () { localStorage.lang = 'zh_cn'; };
 
   // An unload save must never overwrite an imported save or a deliberate restart.
-  var originalImport = Engine.import64;
   Engine.import64 = function (value) {
     try {
       var decoded = JSON.parse(Base64.decode(String(value).replace(/[\s.]/g, '')));
@@ -162,13 +165,21 @@
       alert(lang === 'zh_cn' ? '存档代码无效，当前进度已保留。' : 'Invalid save code. Your current progress has been kept.');
       return;
     }
+    try {
+      localStorage.setItem('gameState', JSON.stringify(decoded));
+    } catch (error) {
+      skipSaving = false;
+      alert('无法写入存档，当前进度已保留。请检查手机存储空间后重试。');
+      return;
+    }
     skipSaving = true;
-    originalImport(value);
+    OfflineGame.reload();
   };
   var originalDelete = Engine.deleteSave;
   Engine.deleteSave = function (noReload) {
     skipSaving = true;
-    originalDelete(noReload);
+    originalDelete(true);
+    if (!noReload) { OfflineGame.reload(); }
   };
 
   // Retain scores and restart, and omit the web edition's store advertisements.

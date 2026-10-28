@@ -710,8 +710,8 @@
   {
     "apkPath": "assets/game/offline.js",
     "archivePath": "game/offline.js",
-    "bytes": 23057,
-    "sha256": "d4afaf8399080b0b31b31ddf2d074b8c639ece85456e26c986b108fab1be45d3"
+    "bytes": 23458,
+    "sha256": "e8d64c0225ca993b432b88fb2cbc2f373011a9f58f83778ccafd9b55ae3cbcb2"
   },
   {
     "apkPath": "assets/game/script/Button.js",
@@ -740,8 +740,8 @@
   {
     "apkPath": "assets/game/script/engine.js",
     "archivePath": "game/script/engine.js",
-    "bytes": 27168,
-    "sha256": "e3ab30d0c34cb8cef6a7ab67f88085509eb831ce2b9448a61125cb570a737d88"
+    "bytes": 27198,
+    "sha256": "a220d508e6200b7dded3934f01e77ba197dd9185a191dbfa996d0001b1313abd"
   },
   {
     "apkPath": "assets/game/script/events.js",
