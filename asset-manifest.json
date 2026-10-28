@@ -1,11 +1,5 @@
 [
   {
-    "apkPath": "assets/game/LICENSE.md",
-    "archivePath": "game/LICENSE.md",
-    "bytes": 16734,
-    "sha256": "d7fc444cae8da4b95b9d0356b145dfc530d45b16965da953fa02dbb9ce004572"
-  },
-  {
     "apkPath": "assets/game/about.html",
     "archivePath": "game/about.html",
     "bytes": 19468,
@@ -588,12 +582,6 @@
     "sha256": "e86c144b7c64691cce21c58f84e563a368e7eb4b6b2635c45b0ed04657bea9f2"
   },
   {
-    "apkPath": "assets/game/img/Logo1.jpg",
-    "archivePath": "game/img/Logo1.jpg",
-    "bytes": 36459,
-    "sha256": "6063447e9b56d743b56f539afdb5bf679152f4429a6f2328c74fecca243ee048"
-  },
-  {
     "apkPath": "assets/game/img/adr.png",
     "archivePath": "game/img/adr.png",
     "bytes": 5648,
@@ -616,6 +604,12 @@
     "archivePath": "game/img/ie.png",
     "bytes": 21010,
     "sha256": "c090566aa782e9277eb1edc3e283d20de410879d4ace39722c5ca5ce9c7d99b0"
+  },
+  {
+    "apkPath": "assets/game/img/Logo1.jpg",
+    "archivePath": "game/img/Logo1.jpg",
+    "bytes": 36459,
+    "sha256": "6063447e9b56d743b56f539afdb5bf679152f4429a6f2328c74fecca243ee048"
   },
   {
     "apkPath": "assets/game/img/opera.png",
@@ -702,6 +696,12 @@
     "sha256": "8c27c075103f8f2018513f517af80cd507155c60c3bc5a97d4e08794293cffff"
   },
   {
+    "apkPath": "assets/game/LICENSE.md",
+    "archivePath": "game/LICENSE.md",
+    "bytes": 16734,
+    "sha256": "d7fc444cae8da4b95b9d0356b145dfc530d45b16965da953fa02dbb9ce004572"
+  },
+  {
     "apkPath": "assets/game/mobile.css",
     "archivePath": "game/mobile.css",
     "bytes": 18115,
@@ -712,12 +712,6 @@
     "archivePath": "game/offline.js",
     "bytes": 23458,
     "sha256": "e8d64c0225ca993b432b88fb2cbc2f373011a9f58f83778ccafd9b55ae3cbcb2"
-  },
-  {
-    "apkPath": "assets/game/script/Button.js",
-    "archivePath": "game/script/Button.js",
-    "bytes": 3466,
-    "sha256": "5f572fafc93dddf3619142b24864fe6ccca21a42482a5fcfb0717b2e98c49533"
   },
   {
     "apkPath": "assets/game/script/audio.js",
@@ -732,6 +726,12 @@
     "sha256": "3ef3f660b65ce72cdad46a2c9cdcf1be84e878fbf11fc6bda1925bbc804588ac"
   },
   {
+    "apkPath": "assets/game/script/Button.js",
+    "archivePath": "game/script/Button.js",
+    "bytes": 3466,
+    "sha256": "5f572fafc93dddf3619142b24864fe6ccca21a42482a5fcfb0717b2e98c49533"
+  },
+  {
     "apkPath": "assets/game/script/dropbox.js",
     "archivePath": "game/script/dropbox.js",
     "bytes": 10361,
@@ -742,12 +742,6 @@
     "archivePath": "game/script/engine.js",
     "bytes": 27198,
     "sha256": "a220d508e6200b7dded3934f01e77ba197dd9185a191dbfa996d0001b1313abd"
-  },
-  {
-    "apkPath": "assets/game/script/events.js",
-    "archivePath": "game/script/events.js",
-    "bytes": 39078,
-    "sha256": "c09f55a8821ea47c1015eb275c72b299528d21bb6bf9e05aa8ef8556a9c3cde2"
   },
   {
     "apkPath": "assets/game/script/events/encounters.js",
@@ -790,6 +784,12 @@
     "archivePath": "game/script/events/setpieces.js",
     "bytes": 67718,
     "sha256": "d16d5602299ff212ea18b0b1701b2b63666917b6c8e5e806134d206400bb7906"
+  },
+  {
+    "apkPath": "assets/game/script/events.js",
+    "archivePath": "game/script/events.js",
+    "bytes": 39078,
+    "sha256": "c09f55a8821ea47c1015eb275c72b299528d21bb6bf9e05aa8ef8556a9c3cde2"
   },
   {
     "apkPath": "assets/game/script/fabricator.js",
