@@ -1,4 +1,4 @@
-# 小黑屋 · 离线 v1.0.6 网页资源归档
+# 小黑屋 · 离线 v1.0.7 网页资源归档
 
 **纯 AI 项目**：Android 移植、移动适配、附加功能、测试脚本、文档与发布整理由 AI 根据用户需求和反馈完成；原作及上游代码、翻译、音效和第三方库保留各自作者署名。
 
@@ -19,12 +19,12 @@
 
 ## 安装包与签名
 
-[下载本版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.6/a-dark-room-offline-1.0.6.apk) · [本版 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.6) · [完整版本说明](https://github.com/kirimarisadaze/a-dark-room-offline-android/blob/main/docs/RELEASES.md)
+[下载本版 APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.0.7/a-dark-room-offline-1.0.7.apk) · [本版 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.0.7) · [完整版本说明](https://github.com/kirimarisadaze/a-dark-room-offline-android/blob/main/docs/RELEASES.md)
 
-文件 `a-dark-room-offline-1.0.6.apk`，大小 5,660,415 字节；SHA-256：
+文件 `a-dark-room-offline-1.0.7.apk`，大小 5,664,511 字节；SHA-256：
 
 ```text
-19fe5f7fc6d53280fc81f839c7026c5f884ba8d75a441aa353074cc67bf0abe9
+8ecc1602558d80b5cc1887bbc35f2f6451f9dd4b3cf75a92bb64c2f62221e30c
 ```
 
 保留的原始签名 APK，归档时未重新构建或修改。

@@ -1,4 +1,4 @@
-/* Offline Android integration. Game rules and upstream files remain unchanged. MPL-2.0. */
+/* Offline Android integration and optional local cheats. Upstream files remain unchanged. MPL-2.0. */
 (function () {
   'use strict';
   var skipSaving = false;
@@ -12,6 +12,7 @@
   var fontSize = 16;
   var tiltX = 0;
   var gameSpeed = 1;
+  var cheats = { enabled: false, noCooldown: false, protection: false };
   var initializing = false;
   var gameTimers = {};
   var nextGameTimer = -1;
@@ -34,6 +35,7 @@
     prepareRestore: function () { skipSaving = true; OfflineGame.releaseControls(); },
     cancelRestore: function () { skipSaving = false; },
     getSpeed: function () { return gameSpeed; },
+    getCheats: function () { return $.extend({}, cheats); },
     setSpeed: function (value) {
       var next = Number(value);
       if ([1, 2, 3, 4].indexOf(next) < 0) { return false; }
@@ -163,10 +165,78 @@
     Engine.options.doubleTime = gameSpeed > 1;
     State.config.offlineSpeed = gameSpeed;
     State.config.hyperMode = gameSpeed > 1;
+    var savedCheats = State.config.offlineCheats || {};
+    cheats = {
+      enabled: savedCheats.enabled === true,
+      noCooldown: savedCheats.noCooldown === true,
+      protection: savedCheats.protection === true
+    };
+    State.config.offlineCheats = cheats;
   };
   Engine.triggerHyperMode = function () {
     if (!initializing) { OfflineGame.setSpeed(gameSpeed === 1 ? 2 : 1); }
   };
+
+  function cheatActive(option) { return cheats.enabled && cheats[option]; }
+
+  // Never remove affordability/scene restrictions when skipping a cooldown.
+  var originalCooldown = Button.cooldown;
+  Button.cooldown = function (button) {
+    if (cheatActive('noCooldown')) {
+      Button.clearCooldown(button);
+      $SM.remove('cooldown.' + button.attr('id'));
+      return;
+    }
+    return originalCooldown.apply(Button, arguments);
+  };
+
+  function clearActiveCooldowns() {
+    if (!cheatActive('noCooldown')) { return; }
+    $('.button').each(function () {
+      var button = $(this);
+      if (button.data('onCooldown')) { Button.clearCooldown(button); }
+    });
+  }
+
+  function restoreVitals() {
+    World.setHp(World.getMaxHealth());
+    World.setWater(World.getMaxWater());
+    World.foodMove = World.waterMove = 0;
+    World.starvation = World.thirst = false;
+    var player = $('#wanderer');
+    if (player.length) {
+      player.data('hp', World.health);
+      Events.updateFighterDiv(player);
+      Events.setHeal();
+    }
+  }
+
+  var originalSetHp = World.setHp;
+  World.setHp = function (hp) {
+    return originalSetHp.call(World, cheatActive('protection') && activeModule === World ? World.getMaxHealth() : hp);
+  };
+  var originalUseSupplies = World.useSupplies;
+  World.useSupplies = function () {
+    if (cheatActive('protection')) { restoreVitals(); return true; }
+    return originalUseSupplies.apply(World, arguments);
+  };
+  var originalCheckDeath = Events.checkPlayerDeath;
+  Events.checkPlayerDeath = function () {
+    if (cheatActive('protection') && activeModule === World) { restoreVitals(); return false; }
+    return originalCheckDeath.apply(Events, arguments);
+  };
+
+  function updateCheats() {
+    $('#offline-cheat-enable').prop('checked', cheats.enabled);
+    $('#offline-cheat-options').prop('hidden', !cheats.enabled);
+    $('#offline-cheat-cooldown').prop('checked', cheats.noCooldown);
+    $('#offline-cheat-protection').prop('checked', cheats.protection);
+    $('#offline-cheat-badge').prop('hidden', !cheats.enabled);
+    State.config.offlineCheats = cheats;
+    clearActiveCooldowns();
+    if (cheatActive('protection') && activeModule === World) { restoreVitals(); }
+    OfflineGame.save();
+  }
 
   Engine.isMobile = function () { return false; };
   Engine.event = function () {};
@@ -241,8 +311,8 @@
     get: function () { return activeModule; },
     set: function (module) {
       OfflineGame.releaseControls();
+      if (activeModule !== module) { resetScroll = true; }
       activeModule = module;
-      if (module === World || module === Space) { resetScroll = true; }
       scheduleLayout();
     }
   });
@@ -303,11 +373,13 @@
     // Keep the shared inventory outside individual hidden location panels.
     $('#storesContainer').appendTo('#main');
     $('#outerSlider').off('swipeleft swiperight swipeup swipedown');
+    createSceneSwipes();
     var observer = new MutationObserver(function (changes) {
       if (changes.some(function (change) {
         return Array.prototype.some.call(change.addedNodes, function (node) {
           return node.nodeType === 1 && (node.classList.contains('location') ||
             node.classList.contains('workerRow') || node.classList.contains('outfitRow') ||
+            node.classList.contains('button') || node.classList.contains('storeRow') ||
             ['storesContainer', 'village', 'workers', 'perks', 'blueprints'].indexOf(node.id) >= 0);
         });
       })) { scheduleLayout(); }
@@ -326,6 +398,7 @@
     $('<span>').attr('id', 'offline-message-preview').appendTo(messagesButton);
     $('<button>').attr({ id: 'offline-menu-button', type: 'button', 'aria-controls': 'offline-menu-panel',
       'aria-expanded': 'false' }).text('菜单').appendTo(bar).on('click', function (event) { toggleSheet('menu', event); });
+    $('<span>').attr({ id: 'offline-cheat-badge', hidden: !cheats.enabled }).text('作弊已开').insertBefore('#offline-menu-button');
     messagesButton.on('click', function (event) { toggleSheet('messages', event); });
 
     var menu = makeSheet('menu', '菜单');
@@ -357,9 +430,98 @@
     $('<span>').attr('id', 'offline-font-value').text(fontSize).appendTo(fonts);
     $('<button>').attr({ id: 'offline-font-larger', type: 'button', 'aria-label': '放大字号' })
       .text('A+').on('click', function () { changeFont(1); }).appendTo(fonts);
+    createCheatSettings(menu);
+    $('<p>').addClass('offline-settings-note').text('场景页可左右滑动切换；探索和飞行使用方向键。').appendTo(menu);
     var messages = makeSheet('messages', '消息');
     $('#notifications').appendTo(messages);
     updateMessagePreview();
+  }
+
+  function createCheatSettings(menu) {
+    var section = $('<div>').attr('id', 'offline-cheats').appendTo(menu);
+    function toggle(parent, id, label, checked, handler) {
+      var row = $('<label>').addClass('offline-toggle').appendTo(parent);
+      $('<span>').text(label).appendTo(row);
+      $('<input>').attr({ id: id, type: 'checkbox' }).prop('checked', checked)
+        .on('change', function () { handler(this.checked); updateCheats(); }).appendTo(row);
+    }
+    toggle(section, 'offline-cheat-enable', '作弊模式', cheats.enabled, function (checked) { cheats.enabled = checked; });
+    var options = $('<div>').attr({ id: 'offline-cheat-options', hidden: !cheats.enabled }).appendTo(section);
+    $('<p>').addClass('offline-settings-note').text('关闭后恢复正常规则；已添加的物资会保留。').appendTo(options);
+    toggle(options, 'offline-cheat-cooldown', '行动免冷却', cheats.noCooldown, function (checked) { cheats.noCooldown = checked; });
+    toggle(options, 'offline-cheat-protection', '探索保护', cheats.protection, function (checked) { cheats.protection = checked; });
+    $('<p>').addClass('offline-settings-note').text('探索保护维持生命和水量，行走不消耗食物。').appendTo(options);
+    var actions = $('<div>').addClass('offline-settings-grid').appendTo(options);
+    $('<button>').attr({ id: 'offline-cheat-resources', type: 'button' }).text('常用物资 +1000').appendTo(actions)
+      .on('click', function () {
+        if (!cheats.enabled) { return; }
+        var resources = {};
+        ['wood', 'fur', 'meat', 'bait', 'teeth', 'scales', 'cloth', 'leather', 'cured meat',
+          'iron', 'coal', 'sulphur', 'steel', 'bullets', 'medicine', 'energy cell', 'alien alloy'].forEach(function (name) { resources[name] = 1000; });
+        $SM.addM('stores', resources);
+        $('#offline-cheat-feedback').text('常用物资各增加 1000，已保存。');
+        OfflineGame.save();
+      });
+    $('<button>').attr({ id: 'offline-cheat-heal', type: 'button' }).text('恢复生命与水').appendTo(actions)
+      .on('click', function () {
+        if (!cheats.enabled) { return; }
+        restoreVitals();
+        $('#offline-cheat-feedback').text('生命和水量已恢复。');
+        OfflineGame.save();
+      });
+    $('<div>').attr({ id: 'offline-cheat-feedback', role: 'status', 'aria-live': 'polite' }).appendTo(options);
+  }
+
+  function createSceneSwipes() {
+    var gesture = null;
+    var suppressClickUntil = 0;
+    function allowed() {
+      return !Engine.keyLock && !Engine.GAME_OVER && activeModule !== World && activeModule !== Space &&
+        !Events.activeEvent() && !document.body.classList.contains('offline-sheet-open');
+    }
+    document.addEventListener('pointerdown', function (event) {
+      // A new touch is deliberate; suppress only the click generated by the swipe.
+      suppressClickUntil = 0;
+      if (gesture || !event.isPrimary) { gesture = null; return; }
+      if (event.pointerType === 'mouse') { return; }
+      if (event.target.closest('input,textarea,select,[contenteditable="true"],#header')) { return; }
+      var excluded = 'button,a,input,textarea,select,summary,.button,.headerButton,.offline-sheet,' +
+        '.upBtn,.dnBtn,.upManyBtn,.dnManyBtn,#offline-bottom-bar,#offline-inventory';
+      var bar = document.getElementById('offline-bottom-bar').getBoundingClientRect();
+      if (event.clientX < 24 || event.clientX > innerWidth - 24) { return; }
+      gesture = { id: event.pointerId, x: event.clientX, y: event.clientY, started: performance.now(),
+        module: activeModule, horizontal: false,
+        navigate: allowed() && event.clientY < bar.top && !event.target.closest(excluded) };
+    });
+    document.addEventListener('pointermove', function (event) {
+      if (!gesture || event.pointerId !== gesture.id) { return; }
+      var dx = Math.abs(event.clientX - gesture.x);
+      var dy = Math.abs(event.clientY - gesture.y);
+      if (!gesture.horizontal && dy > 12 && dy > dx / 1.4) { gesture = null; return; }
+      if (dx > 12 && dx > dy * 1.4) { gesture.horizontal = true; }
+    });
+    document.addEventListener('touchmove', function (event) {
+      if (gesture && gesture.horizontal && event.cancelable) { event.preventDefault(); }
+    }, { passive: false });
+    document.addEventListener('pointerup', function (event) {
+      var start = gesture;
+      gesture = null;
+      if (!start || event.pointerId !== start.id) { return; }
+      var dx = event.clientX - start.x;
+      var dy = Math.abs(event.clientY - start.y);
+      if (!start.horizontal || Math.abs(dx) < 56 || Math.abs(dx) < dy * 1.4 || performance.now() - start.started > 900) { return; }
+      suppressClickUntil = performance.now() + 350;
+      if (!start.navigate || !allowed() || activeModule !== start.module) { return; }
+      var tabs = $('#header .headerButton').filter(function () { return this.getBoundingClientRect().width > 0; }).toArray();
+      var current = tabs.indexOf(activeModule.tab && activeModule.tab[0]);
+      var next = current + (dx < 0 ? 1 : -1);
+      if (current < 0 || next < 0 || next >= tabs.length) { return; }
+      tabs[next].click();
+    });
+    document.addEventListener('pointercancel', function () { gesture = null; });
+    document.addEventListener('click', function (event) {
+      if (event.isTrusted && performance.now() < suppressClickUntil) { event.preventDefault(); event.stopImmediatePropagation(); }
+    }, true);
   }
 
   function makeSheet(name, title) {
@@ -408,6 +570,10 @@
   }
   var originalPrintMessage = Notifications.printMessage;
   Notifications.printMessage = function (text) { originalPrintMessage(text); updateMessagePreview(); };
+  var originalVillage = Outside.updateVillage;
+  Outside.updateVillage = function () { var result = originalVillage.apply(Outside, arguments); scheduleLayout(); return result; };
+  var originalStores = Room.updateStoresView;
+  Room.updateStoresView = function () { var result = originalStores.apply(Room, arguments); scheduleLayout(); return result; };
   Notifications.clearHidden = function () { $('#notifications .notification').slice(60).remove(); };
   var originalStartEvent = Events.startEvent;
   Events.startEvent = function () { closeSheets(); return originalStartEvent.apply(Events, arguments); };
@@ -434,14 +600,12 @@
       if (!module.panel) { return; }
       var buttons = module.panel.children('.button');
       if (module === Path) { buttons = buttons.add(module.panel.find('#embarkButton')); }
-      if (!buttons.length) { return; }
       var actions = module.panel.children('.offline-location-actions');
+      if (!buttons.length && !actions.length) { return; }
       if (!actions.length) { actions = $('<div>').addClass('offline-location-actions').prependTo(module.panel); }
-      buttons.appendTo(actions);
+      buttons.filter(function () { return this.parentNode !== actions[0]; }).appendTo(actions);
+      if (module.panel.children().first()[0] !== actions[0]) { actions.prependTo(module.panel); }
     });
-    if (Outside.panel && $('#workers').length && $('#village').length && $('#workers').parent()[0] === Outside.panel[0]) {
-      $('#workers').insertBefore($('#village').parent('details').length ? $('#village').parent() : $('#village'));
-    }
     var fabricateButtons = $('#fabricateButtons');
     if (fabricateButtons.length && Fabricator.panel && Fabricator.panel.children().first()[0] !== fabricateButtons[0]) {
       fabricateButtons.prependTo(Fabricator.panel);
@@ -456,7 +620,9 @@
       var details = $('#' + id);
       if (!details.length) {
         details = $('<details>').attr('id', id).addClass('offline-disclosure').insertBefore(content);
-        $('<summary>').text(title).appendTo(details);
+        if (id === 'offline-inventory' || id === 'offline-village') { details.prop('open', true); }
+        var summary = $('<summary>').appendTo(details);
+        $('<span>').addClass('offline-section-title').text(title).appendTo(summary);
       }
       content.appendTo(details);
     }
@@ -464,7 +630,36 @@
     disclosure('#perks', 'offline-perks', '能力');
     disclosure('#village', 'offline-village', '村庄');
     disclosure('#storesContainer', 'offline-inventory', '仓库');
+    var village = $('#offline-village');
+    if (village.length && Outside.panel) {
+      var population = $('#offline-population');
+      if (!population.length) { population = $('<span>').attr('id', 'offline-population').appendTo(village.children('summary')); }
+      var hasHuts = $SM.get('game.buildings.hut', true) > 0;
+      village.find('.offline-section-title').text(hasHuts ? '村庄' : '森林设施');
+      population.text($('#population').text()).prop('hidden', !hasHuts);
+      var actions = Outside.panel.children('.offline-location-actions');
+      if (actions.length && actions.next()[0] !== village[0]) { village.insertAfter(actions); }
+      var workers = $('#workers');
+      if (workers.length && village.next()[0] !== workers[0]) { workers.insertAfter(village); }
+      workers.attr('data-legend', '村民分工');
+    }
     $('#offline-inventory').prop('hidden', !$('#storesContainer .storeRow').length);
+    // Compact display only; inventory calculations and exported saves keep full counts.
+    Object.keys(State.stores || {}).forEach(function (name) {
+      var row = document.getElementById('row_' + name.replace(/ /g, '-'));
+      if (!row) { return; }
+      var count = Math.max(0, Math.floor(Number(State.stores[name]) || 0));
+      var units = count >= 1e12 ? [1e12, '万亿'] : count >= 1e8 ? [1e8, '亿'] : count >= 1e4 ? [1e4, '万'] : null;
+      var label = String(count);
+      if (units) {
+        var value = count / units[0];
+        label = (value >= 100 || units[0] === 1e12 ? Math.floor(value) : (Math.floor(value * 10) / 10)) + units[1];
+      }
+      row.title = _(name) + '：' + count;
+      row.setAttribute('aria-label', row.title);
+      var quantity = row.querySelector('.row_val');
+      if (quantity && quantity.textContent !== label) { quantity.textContent = label; }
+    });
     var outer = $('#worldOuter');
     if (outer.length && !document.getElementById('offline-world-status')) {
       var status = $('<div>').attr('id', 'offline-world-status').prependTo(outer);
@@ -530,6 +725,15 @@
     if (resetScroll) { window.scrollTo(0, 0); resetScroll = false; }
     if (inWorld) { updateMapViewport(); }
     if (inSpace) { updateFlightStatus(); }
+    var tab = activeModule.tab && activeModule.tab[0];
+    var header = document.getElementById('header');
+    if (tab && header) {
+      var bounds = tab.getBoundingClientRect();
+      var headerBounds = header.getBoundingClientRect();
+      if (bounds.left < headerBounds.left || bounds.right > headerBounds.right) {
+        header.scrollLeft += bounds.left - headerBounds.left - (header.clientWidth - bounds.width) / 2;
+      }
+    }
   }
 
   function createControls() {
