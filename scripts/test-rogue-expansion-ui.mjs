@@ -68,7 +68,7 @@ try {
         assert(!/危险|难度/.test(await page.getByRole('dialog').innerText()));
         await fit(page);
         await page.screenshot({ path: path.join(output, 'explored-world-' + width + '.png') });
-        await page.getByRole('button', { name: '返回', exact: true }).click();
+        await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
         await page.locator('#rogue-tab-camp').evaluate(node => node.click());
         assert.equal(await page.locator('.rogue-menu-tile').count(), 6);
         const turn = await page.evaluate(() => Rogue.state.current.turn);

@@ -4,6 +4,8 @@
 
 ## 新版本流程
 
+版本按改动规模选择：兼容的修复与界面打磨递增补丁号，新增完整功能递增次版本，不兼容变化才递增主版本。只有实质大型更新才使用“大型更新”等标注，每个发布包的 Android `versionCode` 均递增。
+
 1. 从 `main` 修改源文件。Android 版本以 `android/app/src/main/AndroidManifest.xml` 的 `versionName` 为准；每次发布递增 `versionCode`。不要直接修改生成的 `assets/game/`。
 2. 在 `CHANGELOG.md` 写明行为变化、修复与验证范围。涉及界面或逻辑的改动，运行相应离线回归；原生加载变更还需要验证原生拦截器与实际启动行为。
 3. 使用私下保存的 `.local/signing/` 构建；没有原密钥时不能生成可覆盖旧 Release 的 APK。密钥和密码不得写入 Git、Issue 或 Release。

@@ -390,7 +390,7 @@ public final class MainActivity extends Activity implements SensorEventListener 
     }
 
     private void showAbout() {
-        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.2.0")
+        new AlertDialog.Builder(this).setTitle("小黑屋 · 离线 1.2.1")
                 .setMessage("A Dark Room 网页版的独立中文离线封装\n原作：Michael Townsend / doublespeak games 及贡献者\n\n游戏、中文翻译、音效均在安装包中。无需服务器；没有联网权限。进度保存在应用内部，卸载或清除数据前请备份。\n\n上游：github.com/doublespeakgames/adarkroom\n源码基线：1fada4620b6c\n许可：Mozilla Public License 2.0\n\n本封装不属于官方商店版本。")
                 .setPositiveButton("关闭", null)
                 .setNeutralButton("开源许可", (dialog, which) -> showLicense()).show();

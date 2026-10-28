@@ -2,11 +2,11 @@
 
 **纯 AI 项目**：本仓库的 Android 移植、适配、附加功能及文档由 AI 根据用户需求和反馈完成；原作与上游资源保留各自作者署名。完整项目介绍见 [README.md](README.md)，安装包和各版记录见 [GitHub Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases)。
 
-安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 **1.2.0**。使用原密钥构建时可覆盖本项目旧版并保留本机存档。
+安装包：`dist/a-dark-room-offline.apk`。这是基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 开源网页版构建的独立封装，应用包名为 `org.adarkroom.offline`，版本为 **1.2.1**。使用原密钥构建时可覆盖本项目旧版并保留本机存档。
 
 ## 安装与使用
 
-打开应用先显示原作风格的主页面，“开始游戏”进入模式选择。普通模式选择旧存档继续、空存档开始新游戏；Roguelike 进入「长夜」的三旅程选择页，指定种子或随机生成九区域世界，推进聚落、回合战斗与地牢，造飞船通关后解锁深渊。主页不加载游戏引擎；普通模式首次选择存档时把旧版单存档原样迁入普通模式的存档 1。Roguelike 不初始化普通引擎，不改写 `gameState` 或旧多存档数据库。两个模式都可保存并返回主页；Android 返回键按界面层级处理。完整玩法与实现说明见 [ROGUELIKE.md](docs/ROGUELIKE.md)。
+打开应用先显示原作风格的主页面，“开始游戏”进入模式选择。普通模式选择旧存档继续、空存档开始新游戏；Roguelike 进入「无光之地」的三旅程选择页，指定种子或随机生成九区域世界，推进聚落、回合战斗与地牢，造飞船通关后解锁深渊。主页不加载游戏引擎；普通模式首次选择存档时把旧版单存档原样迁入普通模式的存档 1。Roguelike 不初始化普通引擎，不改写 `gameState` 或旧多存档数据库。两个模式都可保存并返回主页；Android 返回键按界面层级处理。完整玩法与实现说明见 [ROGUELIKE.md](docs/ROGUELIKE.md)。
 
 将 APK 传到手机，打开并允许该文件来源安装应用即可。最低 Android 6.0；需要 Android System WebView 80 或更新版本（支持上游的 `??` 语法和触屏控制），旧系统请预先更新 WebView。较新的 Android 手机通常已经具备。
 
@@ -85,12 +85,14 @@ node scripts/test-map-guide.mjs
 node scripts/test-home.mjs
 node scripts/test-save-slots.mjs
 node scripts/test-rogue.mjs --playthrough
+node scripts/test-rogue-playthrough-ui.mjs
 node scripts/test-rogue-ui.mjs --soak
+node scripts/test-rogue-expansion-ui.mjs
 ```
 
 可通过 `PLAYWRIGHT_MODULE` 指定已安装 Playwright 的包目录。测试直接拦截同一虚拟 HTTPS 来源并在浏览器断网模式下提供本地资源；检查点火、存档重载、中文锁定、字号保存、地图、飞船控制和窄屏布局。测试报告及截图位于 `.local/test-results/`。
 
-Roguelike 的纯逻辑测试无需 Playwright，检查一万个区域图种子、地图连通、确定性与存档；`--playthrough` 通过合法行动跑完完整结局和深渊。其浏览器报告位于 `.local/rogue-tests/`；`--soak` 额外进行十分钟真实操作，逐次比对普通存档及数据库原始字节。可去掉此参数进行快速界面验证。当前没有可用真机，1.2.0 的原生安装、系统文件选择器和 WebView 实机体验仍未验证；不将浏览器结果当作真机结论。
+Roguelike 的纯逻辑测试无需 Playwright，检查一万个区域图种子、地图连通、确定性与存档；`--playthrough` 通过合法行动跑完完整结局和深渊。`test-rogue-playthrough-ui.mjs` 从新局通过真实浏览器点击完成全流程，不直接调用行动接口，不注入物资或生命。其浏览器报告位于 `.local/rogue-tests/`；`--soak` 额外进行十分钟真实操作，逐次比对普通存档及数据库原始字节。可去掉此参数进行快速界面验证。当前没有可用真机，1.2.1 的原生安装、系统文件选择器和 WebView 实机体验仍未验证；不将浏览器结果当作真机结论。
 
 1.0.3 修复了 Windows aapt2 把安装包内资源路径写为反斜杠的问题。1.0.4 修复了内部 `data:` 启动文档被拦截并返回 403 的问题；`data:`、`blob:` 和 `about:blank` 交由 WebView 处理，本地 HTTPS 资源仍从 APK 返回，外网仍被拒绝。已在独立 Android 7.0 ARM 模拟器运行安装包内真实拦截器的11项检查：旧版对内部文档返回403，新版全部通过。本地资源也已通过原生 AssetManager 读取验证。APK 签名、ZIP 对齐及无联网权限检查通过，网页功能沿用此前离线回归结果。完整图形运行仍受模拟器 WebView 图形初始化故障限制，尚不能宣称已在真机验证。测试框架及具体范围见 `android/NATIVE_VALIDATION.md`。
 

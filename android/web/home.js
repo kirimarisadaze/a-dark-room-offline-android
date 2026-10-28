@@ -11,7 +11,7 @@
   var close = document.getElementById('offline-home-dialog-close');
   var confirm = document.getElementById('offline-home-dialog-confirm');
   var feedback = document.getElementById('offline-home-feedback');
-  document.getElementById('offline-mode-rogue-description').textContent = Rogue.t('ui.homeDescription');
+  document.getElementById('offline-mode-rogue-description').textContent = Rogue.t('ui.title') + ' · ' + Rogue.t('ui.homeDescription');
   var mode = 'normal';
   var restoring = false;
   var returnFocus = start;

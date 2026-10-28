@@ -4,10 +4,15 @@
     'use strict';
     var R = window.Rogue = window.Rogue || {};
     R.LANG = { zh: {
-        'ui.title': '长夜', 'ui.mode': 'Roguelike 模式',
+        'ui.title': '无光之地', 'ui.mode': 'Roguelike 模式',
+        'ui.originalTitle': '小黑屋',
         'ui.tagline': '带上一点火，去看看世界的尽头。',
         'ui.map': '探索', 'ui.camp': '据点', 'ui.party': '队伍',
         'ui.back': '返回主页面', 'ui.close': '返回', 'ui.cancel': '取消',
+        'ui.exitTitle': '暂别这段旅程？', 'ui.exitBody': '保存当前进度并返回主页面。下次可从这段旅程继续。',
+        'ui.pause': '暂停与菜单', 'ui.exploreNotes': '探索记录', 'ui.clues': '线索', 'ui.goals': '目标',
+        'ui.backTo': '← 返回{page}', 'ui.battleLabel': '战斗', 'ui.endingPage': '旅程结局',
+        'ui.quickSupply': '{name} ×{n}\n使用',
         'ui.homeShort': '← 返回', 'ui.homeDescription': '一局一世界，探索、聚落与回合战斗。',
         'ui.guards': '守卫', 'ui.campExpansion': '扩建与迁移', 'ui.ended': '已结束',
         'ui.turnLabel': '回合', 'ui.reserveHint': '补给会自动带上备用水与口粮。在队伍面板中使用。',
@@ -33,6 +38,7 @@
         'ui.routeBlocked': '道路阻断', 'ui.routeScaffold': '需要栈道工具',
         'ui.north': '向北', 'ui.south': '向南', 'ui.west': '向西', 'ui.east': '向东',
         'ui.move': '移动', 'ui.wait': '休息一回合', 'ui.route': '沿路前往',
+        'ui.crossExit': '穿过出口',
         'ui.distance': '{n} 步', 'ui.here': '就在这里', 'ui.around': '附近',
         'ui.noSites': '火光之外，还没有被记下的路。',
         'ui.legend': '地图图例', 'ui.help': '旅途指南',
@@ -81,7 +87,7 @@
         'ui.chooseSlot': '切换旅程', 'ui.cheat': '旅途援助',
         'ui.cheatHint': '获得一批补给；本局会永久标记为使用过援助。',
         'ui.cheatMark': '使用过援助', 'ui.cheatConfirm': '获得一批补给？',
-        'ui.helpBody': '先在据点收集物资，进入「制造」制作长矛，再寻找附近的林地与猎场。采集物资放进背包，回到火堆旁存入共享仓库。占领站点后，在「人手」中派人持续生产。\n\n九片区域随机相连，最初的火堆也在区域内随机落脚。地图随你的脚步展开；留意区域内的痕迹，寻找出口 +、旧建筑 D 与威胁 !。\n\n世界只容纳两处永久据点：最初的一处，和你清理威胁后自建的一处。携带营地包可以在空地暂歇，临时营地不占永久名额，短暂休整需要自备水与口粮。\n\n旧档案库、铸造厂和反应堆保留着飞船图纸。搜寻城镇废墟、备齐模块，寻找坠落的飞船。\n\n每 50 回合是一日，顶部显示当天进度。行走、战斗与营地生产随有效行动结算；查看界面不会推进时间。每次行动自动保存，相同种子和行动会得到相同结果。',
+        'ui.helpBody': '先在据点收集物资，进入「装备与制造」制作长矛，再寻找附近的林地与猎场。采集物资放进背包，回到火堆旁存入共享仓库。占领站点后，在「站点与村民」中派人持续生产。\n\n九片区域随机相连，最初的火堆也在区域内随机落脚。地图随你的脚步展开；留意区域内的痕迹，寻找出口 +、旧建筑 D 与威胁 !。\n\n世界只容纳两处永久据点：最初的一处，和你清理威胁后自建的一处。携带营地包可以在空地暂歇，临时营地不占永久名额，短暂休整需要自备水与口粮。\n\n旧档案库、铸造厂和反应堆保留着飞船图纸。搜寻城镇废墟、备齐模块，寻找坠落的飞船。\n\n每 50 回合是一日，底部显示当天进度。行走、战斗与营地生产随有效行动结算；查看界面不会推进时间。每次行动自动保存，相同种子和行动会得到相同结果。',
         'ui.combat': '遭遇', 'ui.attack': '攻击', 'ui.guard': '防御反击',
         'ui.dodge': '闪避反击', 'ui.use': '使用', 'ui.flee': '逃跑',
         'ui.medicine': '治疗', 'ui.combatHint': '选定目标后行动；敌人随后依次反击。',
