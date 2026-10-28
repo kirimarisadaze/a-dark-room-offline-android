@@ -12,6 +12,7 @@
   var fontSize = 16;
   var tiltX = 0;
   var gameSpeed = 1;
+  var workerStep = 1;
   var cheats = { enabled: false, noCooldown: false, protection: false };
   var initializing = false;
   var gameTimers = {};
@@ -172,6 +173,7 @@
       protection: savedCheats.protection === true
     };
     State.config.offlineCheats = cheats;
+    workerStep = State.config.offlineWorkerStep === 10 ? 10 : 1;
   };
   Engine.triggerHyperMode = function () {
     if (!initializing) { OfflineGame.setSpeed(gameSpeed === 1 ? 2 : 1); }
@@ -444,6 +446,7 @@
       $('<span>').text(label).appendTo(row);
       $('<input>').attr({ id: id, type: 'checkbox' }).prop('checked', checked)
         .on('change', function () { handler(this.checked); updateCheats(); }).appendTo(row);
+      $('<span>').addClass('offline-check').attr('aria-hidden', 'true').appendTo(row);
     }
     toggle(section, 'offline-cheat-enable', '作弊模式', cheats.enabled, function (checked) { cheats.enabled = checked; });
     var options = $('<div>').attr({ id: 'offline-cheat-options', hidden: !cheats.enabled }).appendTo(section);
@@ -572,6 +575,8 @@
   Notifications.printMessage = function (text) { originalPrintMessage(text); updateMessagePreview(); };
   var originalVillage = Outside.updateVillage;
   Outside.updateVillage = function () { var result = originalVillage.apply(Outside, arguments); scheduleLayout(); return result; };
+  var originalWorkers = Outside.updateWorkersView;
+  Outside.updateWorkersView = function () { var result = originalWorkers.apply(Outside, arguments); scheduleLayout(); return result; };
   var originalStores = Room.updateStoresView;
   Room.updateStoresView = function () { var result = originalStores.apply(Room, arguments); scheduleLayout(); return result; };
   Notifications.clearHidden = function () { $('#notifications .notification').slice(60).remove(); };
@@ -591,6 +596,129 @@
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') { OfflineGame.back(); }
   });
+
+  function arrangeWorkers(village) {
+    var workers = $('#workers');
+    if (!workers.length) { return; }
+    var panel = $('#offline-workers-panel');
+    if (!panel.length) {
+      panel = $('<section>').attr({ id: 'offline-workers-panel', 'aria-label': '村民分工' }).insertBefore(workers);
+      $('<div>').addClass('offline-workers-title').text('村民分工').appendTo(panel);
+      var summary = $('<div>').attr('id', 'offline-workforce').appendTo(panel);
+      [['total', '总人数'], ['assigned', '已分工'], ['gatherers', '自动伐木']].forEach(function (entry) {
+        var stat = $('<div>').appendTo(summary);
+        $('<span>').text(entry[1]).appendTo(stat);
+        $('<strong>').attr('id', 'offline-workforce-' + entry[0]).appendTo(stat);
+      });
+      var steps = $('<div>').attr('id', 'offline-worker-steps').appendTo(panel);
+      $('<span>').text('每次调整').appendTo(steps);
+      [1, 10].forEach(function (amount) {
+        $('<button>').attr({ type: 'button', 'data-step': amount }).text(amount + ' 人').appendTo(steps)
+          .on('click', function () {
+            workerStep = amount;
+            State.config.offlineWorkerStep = amount;
+            scheduleLayout();
+            OfflineGame.save();
+          });
+      });
+      $('<p>').addClass('offline-settings-note').text('未分配的村民会自动伐木。').appendTo(panel);
+      workers.appendTo(panel);
+    }
+    if (village.next()[0] !== panel[0]) { panel.insertAfter(village); }
+    var population = Number($SM.get('game.population', true));
+    var gatherers = Math.max(0, Outside.getNumGatherers());
+    $('#offline-workforce-total').text(population);
+    $('#offline-workforce-assigned').text(Math.max(0, population - gatherers));
+    $('#offline-workforce-gatherers').text(gatherers);
+    $('#offline-worker-steps button').each(function () {
+      $(this).attr('aria-pressed', Number(this.getAttribute('data-step')) === workerStep ? 'true' : 'false');
+    });
+    $('#offline-worker-steps').prop('hidden', !workers.find('.upBtn').length);
+    workers.children('.workerRow').each(function () {
+      var row = $(this);
+      var key = row.attr('key');
+      var income = Outside._INCOME[key];
+      var count = Number(row.find('.row_val > span').text()) || 0;
+      var label = row.children('.row_key').text();
+      row.find('.upBtn,.dnBtn,.upManyBtn,.dnManyBtn').each(function () {
+        var control = $(this);
+        var many = control.hasClass('upManyBtn') || control.hasClass('dnManyBtn');
+        var increase = control.hasClass('upBtn') || control.hasClass('upManyBtn');
+        control.prop('hidden', many !== (workerStep === 10));
+        control.attr({ role: 'button', tabindex: '0', 'aria-disabled': String(control.hasClass('disabled')),
+          'aria-label': (increase ? '增加 ' : '减少 ') + (many ? 10 : 1) + ' 名' + label });
+        control.off('keydown.offline').on('keydown.offline', function (event) {
+          if (event.key !== 'Enter' && event.key !== ' ') { return; }
+          event.preventDefault(); event.stopPropagation();
+          if (!control.hasClass('disabled')) { control.trigger('click'); }
+        });
+      });
+      if (!income) { return; }
+      var details = row.children('.offline-worker-income');
+      if (!details.length) { details = $('<div>').addClass('offline-worker-income').appendTo(row); }
+      var text = (count ? '每 ' : '每人每 ') + income.delay + ' 秒：' + Object.keys(income.stores).map(function (name) {
+        var amount = Math.round(income.stores[name] * (count || 1) * 100) / 100;
+        return _(name) + ' ' + (amount > 0 ? '+' : '−') + Math.abs(amount);
+      }).join(' · ');
+      if (details.text() !== text) { details.text(text); }
+    });
+  }
+
+  function updateCostCard(button, spec) {
+    if (!button.length || !spec || typeof spec.cost !== 'function') { return; }
+    var card = button.parent('.offline-cost-card');
+    if (!card.length) {
+      card = $('<div>').addClass('offline-cost-card').insertBefore(button);
+      button.appendTo(card);
+      $('<div>').addClass('offline-costs').appendTo(card);
+      var label = button.contents().filter(function () { return this.nodeType === 3; }).text().trim();
+      button.data('offline-label', label);
+    }
+    var costs = spec.cost();
+    var maximum = Number(spec.maximum);
+    var limit = button.data('disabled') === true && Number.isFinite(maximum);
+    var rows = Object.keys(costs).map(function (name) {
+      var required = Number(costs[name]);
+      var available = Number($SM.get('stores["' + name + '"]', true));
+      return { name: name, required: required, missing: Math.max(0, Math.ceil(required - available)) };
+    });
+    var signature = JSON.stringify([limit, rows]);
+    if (card.data('offline-cost-state') === signature) { return; }
+    card.data('offline-cost-state', signature);
+    var content = card.children('.offline-costs').empty();
+    var description = [];
+    if (limit) {
+      var limitLabel = maximum === 1 ? (spec.type === 'building' ? '已建造' : '已拥有') : '已达上限';
+      $('<span>').addClass('offline-cost-limit').text(limitLabel).appendTo(content);
+      description.push(limitLabel);
+    } else {
+      rows.forEach(function (item) {
+        var row = $('<div>').addClass('offline-cost-row').appendTo(content);
+        $('<span>').text(_(item.name)).appendTo(row);
+        $('<span>').text(item.required).appendTo(row);
+        description.push(_(item.name) + ' ' + item.required);
+        if (item.missing) {
+          $('<span>').addClass('offline-cost-shortfall').text('还缺 ' + item.missing).appendTo(row);
+          description.push('还缺 ' + item.missing);
+        }
+      });
+    }
+    content.attr('aria-label', '需要材料');
+    button.attr('aria-label', button.data('offline-label') + '，' + description.join('，'));
+  }
+
+  function arrangeCosts() {
+    $('#roomPanel .button[buildThing]').each(function () {
+      var button = $(this), key = button.attr('buildThing');
+      updateCostCard(button, Room.Craftables[key] || Room.TradeGoods[key]);
+    });
+    $('#fabricatorPanel .button[fabricateThing]').each(function () {
+      var button = $(this);
+      updateCostCard(button, Fabricator.Craftables[button.attr('fabricateThing')]);
+    });
+    updateCostCard($('#reinforceButton'), { cost: function () { return { 'alien alloy': Ship.ALLOY_PER_HULL }; } });
+    updateCostCard($('#engineButton'), { cost: function () { return { 'alien alloy': Ship.ALLOY_PER_THRUSTER }; } });
+  }
 
   function arrangePanels() {
     $('.workerRow, .outfitRow').each(function () {
@@ -639,9 +767,7 @@
       population.text($('#population').text()).prop('hidden', !hasHuts);
       var actions = Outside.panel.children('.offline-location-actions');
       if (actions.length && actions.next()[0] !== village[0]) { village.insertAfter(actions); }
-      var workers = $('#workers');
-      if (workers.length && village.next()[0] !== workers[0]) { workers.insertAfter(village); }
-      workers.attr('data-legend', '村民分工');
+      arrangeWorkers(village);
     }
     $('#offline-inventory').prop('hidden', !$('#storesContainer .storeRow').length);
     // Compact display only; inventory calculations and exported saves keep full counts.
@@ -665,6 +791,7 @@
       var status = $('<div>').attr('id', 'offline-world-status').prependTo(outer);
       $('#backpackTitle, #healthCounter, #backpackSpace').appendTo(status);
     }
+    arrangeCosts();
   }
 
   function scheduleLayout() {
