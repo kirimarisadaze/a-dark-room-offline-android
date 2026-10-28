@@ -579,6 +579,8 @@
   Outside.updateWorkersView = function () { var result = originalWorkers.apply(Outside, arguments); scheduleLayout(); return result; };
   var originalStores = Room.updateStoresView;
   Room.updateStoresView = function () { var result = originalStores.apply(Room, arguments); scheduleLayout(); return result; };
+  var originalOutfitting = Path.updateOutfitting;
+  Path.updateOutfitting = function () { var result = originalOutfitting.apply(Path, arguments); scheduleLayout(); return result; };
   Notifications.clearHidden = function () { $('#notifications .notification').slice(60).remove(); };
   var originalStartEvent = Events.startEvent;
   Events.startEvent = function () { closeSheets(); return originalStartEvent.apply(Events, arguments); };
@@ -596,6 +598,29 @@
   document.addEventListener('keydown', function (event) {
     if (event.key === 'Escape') { OfflineGame.back(); }
   });
+
+  function compactStoreCount(value) {
+    var count = Math.max(0, Math.floor(Number(value) || 0));
+    var units = count >= 1e12 ? [1e12, '万亿'] : count >= 1e8 ? [1e8, '亿'] : count >= 1e4 ? [1e4, '万'] : null;
+    if (!units) { return String(count); }
+    var scaled = count / units[0];
+    return (scaled >= 100 || units[0] === 1e12 ? Math.floor(scaled) : Math.floor(scaled * 10) / 10) + units[1];
+  }
+
+  function arrangeOutfitting() {
+    $('#outfitting .outfitRow[key]').each(function () {
+      var row = $(this), fragments = [];
+      row.children('.tooltip').children('.row_key').each(function () {
+        var key = $(this), label = key.text().trim(), value = key.next('.row_val');
+        if (!label) { return; }
+        fragments.push(label + (value.length ? ' ' + (value.hasClass('numAvailable') ? compactStoreCount(value.text()) : value.text()) : ''));
+      });
+      var details = row.children('.offline-outfit-details');
+      if (!details.length) { details = $('<div>').addClass('offline-outfit-details').appendTo(row); }
+      var text = fragments.join(' · ');
+      if (details.text() !== text) { details.text(text); }
+    });
+  }
 
   function arrangeWorkers(village) {
     var workers = $('#workers');
@@ -682,6 +707,9 @@
       var available = Number($SM.get('stores["' + name + '"]', true));
       return { name: name, required: required, missing: Math.max(0, Math.ceil(required - available)) };
     });
+    // Reserve the original material rows even after an item reaches its limit.
+    // Resource updates must never move the action under a player's finger.
+    card[0].style.setProperty('--offline-cost-count', Math.max(1, rows.length));
     var signature = JSON.stringify([limit, rows]);
     if (card.data('offline-cost-state') === signature) { return; }
     card.data('offline-cost-state', signature);
@@ -697,9 +725,13 @@
         $('<span>').text(_(item.name)).appendTo(row);
         $('<span>').text(item.required).appendTo(row);
         description.push(_(item.name) + ' ' + item.required);
+        var shortfall = $('<span>').addClass('offline-cost-shortfall').appendTo(row);
         if (item.missing) {
-          $('<span>').addClass('offline-cost-shortfall').text('还缺 ' + item.missing).appendTo(row);
+          shortfall.text('还缺 ' + item.missing);
           description.push('还缺 ' + item.missing);
+        } else {
+          // An empty fixed column prevents both wrapping and changing row height.
+          shortfall.attr('aria-hidden', 'true');
         }
       });
     }
@@ -732,28 +764,49 @@
       if (!buttons.length && !actions.length) { return; }
       if (!actions.length) { actions = $('<div>').addClass('offline-location-actions').prependTo(module.panel); }
       buttons.filter(function () { return this.parentNode !== actions[0]; }).appendTo(actions);
-      if (module.panel.children().first()[0] !== actions[0]) { actions.prependTo(module.panel); }
+      var shipStatus = module === Ship && module.panel.children('#offline-ship-status');
+      if (shipStatus && shipStatus.length) {
+        if (shipStatus.next()[0] !== actions[0]) { actions.insertAfter(shipStatus); }
+      } else if (module.panel.children().first()[0] !== actions[0]) { actions.prependTo(module.panel); }
     });
     var fabricateButtons = $('#fabricateButtons');
-    if (fabricateButtons.length && Fabricator.panel && Fabricator.panel.children().first()[0] !== fabricateButtons[0]) {
-      fabricateButtons.prependTo(Fabricator.panel);
+    var fabrication = fabricateButtons.closest('#offline-fabrication');
+    if (!fabrication.length) { fabrication = fabricateButtons; }
+    if (fabrication.length && Fabricator.panel && Fabricator.panel.children().first()[0] !== fabrication[0]) {
+      fabrication.prependTo(Fabricator.panel);
     }
     if ($('#hullRow').length && !document.getElementById('offline-ship-status')) {
-      var shipStatus = $('<div>').attr('id', 'offline-ship-status').prependTo(Ship.panel);
-      $('#hullRow, #engineRow').appendTo(shipStatus);
+      var statusPanel = $('<div>').attr('id', 'offline-ship-status').prependTo(Ship.panel);
+      $('#hullRow, #engineRow').appendTo(statusPanel);
     }
-    function disclosure(selector, id, title) {
+    var shipStatus = $('#offline-ship-status');
+    if (shipStatus.length && Ship.panel.children().first()[0] !== shipStatus[0]) { shipStatus.prependTo(Ship.panel); }
+    var bagspace = $('#bagspace');
+    if (bagspace.length && bagspace.parent().children().first()[0] !== bagspace[0]) { bagspace.prependTo('#outfitting'); }
+    function disclosure(selector, id, title, costs) {
       var content = $(selector);
       if (!content.length || content.parent().attr('id') === id) { return; }
       var details = $('#' + id);
       if (!details.length) {
         details = $('<details>').attr('id', id).addClass('offline-disclosure').insertBefore(content);
-        if (id === 'offline-inventory' || id === 'offline-village') { details.prop('open', true); }
+        if (costs || id === 'offline-inventory' || id === 'offline-village') { details.prop('open', true); }
+        if (costs) { details.addClass('offline-cost-section'); }
         var summary = $('<summary>').appendTo(details);
         $('<span>').addClass('offline-section-title').text(title).appendTo(summary);
       }
       content.appendTo(details);
     }
+    disclosure('#buildBtns', 'offline-buildings', '建筑物', true);
+    disclosure('#craftBtns', 'offline-crafting', '制作', true);
+    disclosure('#buyBtns', 'offline-trading', '购买', true);
+    disclosure('#fabricateButtons', 'offline-fabrication', '制造', true);
+    var previousSection = Room.panel.children('.offline-location-actions');
+    ['offline-buildings', 'offline-crafting', 'offline-trading'].forEach(function (id) {
+      var section = $('#' + id);
+      if (!section.length) { return; }
+      if (previousSection.length && previousSection.next()[0] !== section[0]) { section.insertAfter(previousSection); }
+      previousSection = section;
+    });
     disclosure('#blueprints', 'offline-blueprints', '已掌握的蓝图');
     disclosure('#perks', 'offline-perks', '能力');
     disclosure('#village', 'offline-village', '村庄');
@@ -775,17 +828,13 @@
       var row = document.getElementById('row_' + name.replace(/ /g, '-'));
       if (!row) { return; }
       var count = Math.max(0, Math.floor(Number(State.stores[name]) || 0));
-      var units = count >= 1e12 ? [1e12, '万亿'] : count >= 1e8 ? [1e8, '亿'] : count >= 1e4 ? [1e4, '万'] : null;
-      var label = String(count);
-      if (units) {
-        var value = count / units[0];
-        label = (value >= 100 || units[0] === 1e12 ? Math.floor(value) : (Math.floor(value * 10) / 10)) + units[1];
-      }
+      var label = compactStoreCount(count);
       row.title = _(name) + '：' + count;
       row.setAttribute('aria-label', row.title);
       var quantity = row.querySelector('.row_val');
       if (quantity && quantity.textContent !== label) { quantity.textContent = label; }
     });
+    arrangeOutfitting();
     var outer = $('#worldOuter');
     if (outer.length && !document.getElementById('offline-world-status')) {
       var status = $('<div>').attr('id', 'offline-world-status').prependTo(outer);

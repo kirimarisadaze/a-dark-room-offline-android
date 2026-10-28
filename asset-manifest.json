@@ -2,8 +2,8 @@
   {
     "apkPath": "assets/game/about.html",
     "archivePath": "game/about.html",
-    "bytes": 20076,
-    "sha256": "e8bd601cee3fe76c0577b1249eedd394b3f1bc1e3c501ebb98c2af1526fc843a"
+    "bytes": 20491,
+    "sha256": "549da37dd20d843b5771a7bd1ac50824b9dc1c9cd17e26d11e873e3eca3b23bd"
   },
   {
     "apkPath": "assets/game/audio/asteroid-hit-1.flac",
@@ -704,14 +704,14 @@
   {
     "apkPath": "assets/game/mobile.css",
     "archivePath": "game/mobile.css",
-    "bytes": 28336,
-    "sha256": "383998f7554f63fc7b4fdca347a8d828026dd940bc8f2b122376d1425972f4c1"
+    "bytes": 30071,
+    "sha256": "46d004e447bd0f9e87aa264272428b48043e59c9787fd55fc6b90618120a9f17"
   },
   {
     "apkPath": "assets/game/offline.js",
     "archivePath": "game/offline.js",
-    "bytes": 46232,
-    "sha256": "22264197d37856459410c1482194d0b072372ac026e020d8898900919016ddc5"
+    "bytes": 49157,
+    "sha256": "9d7fa2fab8eeace8a48511d7e3eab781474bf2077eeed05e8c60c181d25b48e4"
   },
   {
     "apkPath": "assets/game/script/audio.js",
