@@ -1,0 +1,139 @@
+# SPDX-License-Identifier: MPL-2.0
+name: Android APK
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/android-build.yml'
+      - 'build-android.ps1'
+      - 'scripts/**'
+      - 'android/**'
+      - 'script/**'
+      - 'css/**'
+      - 'img/**'
+      - 'audio/**'
+      - 'lang/**'
+      - 'lib/**'
+      - 'index.html'
+      - 'favicon.ico'
+      - 'LICENSE.md'
+      - 'docs/releases.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  regression:
+    name: Offline regression
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out tested source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated browser test tools
+        shell: bash
+        run: |
+          npm install --prefix "$RUNNER_TEMP/adr-playwright" --no-audit --no-fund --save-exact playwright@1.64.1
+          "$RUNNER_TEMP/adr-playwright/node_modules/.bin/playwright" install --with-deps chromium
+          echo "PLAYWRIGHT_MODULE=$RUNNER_TEMP/adr-playwright/node_modules/playwright" >> "$GITHUB_ENV"
+      - name: Check CI packaging boundaries
+        run: python scripts/test-android-ci.py
+      - name: Prepare offline assets
+        run: python scripts/prepare-android-assets.py
+      - name: Check game model
+        run: node scripts/test-rogue.mjs
+      - name: Check survival regressions
+        run: node scripts/test-rogue-issues.mjs
+      - name: Check storage isolation
+        run: node scripts/test-rogue-storage.mjs
+      - name: Check offline loading
+        run: node scripts/test-offline.mjs
+      - name: Check homepage and save slots
+        run: |
+          node scripts/test-home.mjs
+          node scripts/test-save-slots.mjs
+
+  signed-apk:
+    name: Original-signature APK
+    needs: regression
+    if: >-
+      github.repository == 'kirimarisadaze/a-dark-room-offline-android' &&
+      github.ref == 'refs/heads/main' &&
+      (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    environment: android-signing
+    runs-on: windows-2022
+    timeout-minutes: 25
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Check out exact source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12'
+      - name: Set up JDK 17
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Ensure Android SDK 35 is installed
+        run: |
+          & sdkmanager.bat 'platforms;android-35' 'build-tools;35.0.0'
+          if ($LASTEXITCODE -ne 0) { throw 'Android SDK installation failed.' }
+      - name: Read package and source metadata
+        id: metadata
+        run: python scripts/ci-android.py metadata
+      - name: Restore and check the original signing identity
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: python scripts/ci-android.py restore-signing
+      - name: Build the offline APK
+        run: .\build-android.ps1 -JavaHome $env:JAVA_HOME -AndroidSdk $env:ANDROID_HOME
+      - name: Verify APK and package exact committed source
+        run: python scripts/ci-android.py package
+      - name: Remove temporary signing files
+        if: always()
+        run: python scripts/ci-android.py clean-signing
+      - name: Upload APK, source and verification files
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ steps.metadata.outputs.artifact_name }}
+          path: dist/ci-artifacts/*
+          if-no-files-found: error
+          retention-days: 30
+      - name: Report downloadable build
+        run: |
+          $info = Get-Content dist/ci-artifacts/build-info.json -Raw | ConvertFrom-Json
+          @"
+          ## Android build verified
+          - Version: $($info.version) / $($info.versionCode)
+          - Source commit: $($info.commit)
+          - Certificate SHA-256: $($info.certificateSha256)
+          - Artifact: ${{ steps.metadata.outputs.artifact_name }} (30 days)
+          - Includes APK, exact committed source ZIP, two SHA-256 files and build-info.json.
+          - This is a build artifact; existing Releases and version numbers were not changed.
+          "@ >> $env:GITHUB_STEP_SUMMARY
