@@ -2,13 +2,14 @@
 
 **纯 AI 项目**：Android 移植、移动适配、附加功能、测试脚本、文档与发布整理由 AI 根据用户需求和反馈完成；原作及上游代码、翻译、音效和第三方库保留各自作者署名。
 
-收录 1.0.0–1.3.0 共 19 版。下表日期为历史构建日期，Release 为本次统一归档发布；Git 提交没有回填历史开发日期。推荐下载 **1.3.0**。
+收录 1.0.0–1.3.1 共 20 版。下表日期为历史构建日期，Release 为本次统一归档发布；Git 提交没有回填历史开发日期。推荐下载 **1.3.1**。
 
 ## 下载索引
 
 | 版本 | 构建日期 | 内容 | 状态 | 下载 |
 | --- | --- | --- | --- | --- |
-| [1.3.0](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.0) | 2026-10-28 | 无光之地 · 荒野与同行者 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.0/a-dark-room-offline-1.3.0.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.0/a-dark-room-offline-1.3.0.apk.sha256) |
+| [1.3.1](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.1) | 2026-10-29 | 无光之地 · 储物与探索界面修复 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.1/a-dark-room-offline-1.3.1.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.1/a-dark-room-offline-1.3.1.apk.sha256) |
+| [1.3.0](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.0) | 2026-10-28 | 无光之地 · 荒野与同行者 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.0/a-dark-room-offline-1.3.0.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.0/a-dark-room-offline-1.3.0.apk.sha256) |
 | [1.2.1](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.2.1) | 2026-10-28 | 无光之地 · 导航与界面修复 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.2.1/a-dark-room-offline-1.2.1.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.2.1/a-dark-room-offline-1.2.1.apk.sha256) |
 | [1.2.0](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.2.0) | 2026-10-28 | 长夜 · 荒野与聚落重构 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.2.0/a-dark-room-offline-1.2.0.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.2.0/a-dark-room-offline-1.2.0.apk.sha256) |
 | [1.1.0](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.1.0) | 2026-10-28 | Roguelike 首个完整篇章 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.1.0/a-dark-room-offline-1.1.0.apk.sha256) |
@@ -47,7 +48,7 @@
 
 ## 校验与签名
 
-所有 19 版已经逐个核对包名、versionName / versionCode、APK ZIP / DEX、v1 / v2 签名和无 INTERNET 权限。证书一致，适用于本项目签名版本之间覆盖升级。首次自建会生成新密钥，不能覆盖本仓库发布的签名版本。
+所有 20 版已经逐个核对包名、versionName / versionCode、APK ZIP / DEX、v1 / v2 签名和无 INTERNET 权限。证书一致，适用于本项目签名版本之间覆盖升级。首次自建会生成新密钥，不能覆盖本仓库发布的签名版本。
 
 签名证书 SHA-256：
 
@@ -57,6 +58,7 @@
 
 | APK 版本 | 大小（字节） | SHA-256 |
 | --- | ---: | --- |
+| 1.3.1 | 5,781,157 | `f521bf8a02b9e87fdeb58e61f521de2f70e8a3f8335ecdf1e4d2fc44c8c11b2c` |
 | 1.3.0 | 5,772,965 | `5919a00b570a319a4fc78a8186deba49d380affa29548b6ac205b396128d38a5` |
 | 1.2.1 | 5,756,325 | `2a8c0a521ced5cdb803376bbbf909cd5a7269a23a6f5f939d8336f7508417d9f` |
 | 1.2.0 | 5,756,325 | `671154ab2315c80f03618287955a135e7e96545ab8703f091f2e3bed61099b00` |

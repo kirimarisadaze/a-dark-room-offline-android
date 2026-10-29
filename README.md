@@ -4,13 +4,13 @@
 
 基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的非官方安卓移植。游戏和资源全部装在 APK 中，固定简体中文，安装后可直接断网游玩。
 
-[下载最新版 APK（1.3.0）](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.3.0.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+[下载最新版 APK（1.3.1）](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.3.1.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
-**1.3.0 荒野与同行者更新**：主页入口统一为“生存模式”，篇章名仍为「无光之地」。新增常驻旅途日志、同行者装备与行囊、六种群系、荒野际遇与流浪商人、回营缺水提醒、每区封锁据点的分段攻坚与收编；修复武器无法卸下存仓、水袋重复制造等问题。玩法与验证范围见 [生存模式说明](docs/ROGUELIKE.md)。
+**1.3.1 储物与探索界面修复**：仓库同页显示数量与存入 / 取出，临时营地可独立存放 80 份物资，失效后仍可返回原址取回。高屏地图按空间放大，附近、线索与目标可切换简短预览；据点子页简化日志和重复返回，当前补给与备用物资明确区分。保留 1.3.0 的群系、荒野际遇、同行者与封锁据点。玩法与验证范围见 [生存模式说明](docs/ROGUELIKE.md)。
 
 | 项目 | 说明 |
 | --- | --- |
-| 当前版本 | **1.3.0**，versionCode **19** |
+| 当前版本 | **1.3.1**，versionCode **20** |
 | 应用名称 / 包名 | 小黑屋 · 离线 / `org.adarkroom.offline` |
 | 运行要求 | Android **6.0+**，Android System WebView **80+** |
 | 语言 | 安装包仅含简体中文 |
@@ -43,16 +43,16 @@ AI 继续维护前请先阅读 [AI_README.md](AI_README.md)，其中记录界面
 
 本项目发布的各版包名与签名一致，可直接覆盖升级并保留本机存档。升级前建议先导出一份存档。其他作者的安卓版可能使用不同的包名、签名和存档位置，需要先导出兼容的存档代码再导入。
 
-最新版 **1.3.0** 安装包约 **5.5 MiB**；SHA-256：
+最新版 **1.3.1** 安装包约 **5.5 MiB**；SHA-256：
 
 ```text
-5919a00b570a319a4fc78a8186deba49d380affa29548b6ac205b396128d38a5
+f521bf8a02b9e87fdeb58e61f521de2f70e8a3f8335ecdf1e4d2fc44c8c11b2c
 ```
 
 Release 附有同名 `.sha256`。Windows 可用以下命令检查下载文件：
 
 ```powershell
-Get-FileHash .\a-dark-room-offline-1.3.0.apk -Algorithm SHA256
+Get-FileHash .\a-dark-room-offline-1.3.1.apk -Algorithm SHA256
 ```
 
 ## 功能与操作
@@ -141,7 +141,9 @@ Get-FileHash .\a-dark-room-offline-1.3.0.apk -Algorithm SHA256
   </tr>
 </table>
 
-1.3.0「无光之地」界面（浏览器自动化截图）：
+「无光之地」界面（浏览器自动化截图；下列高屏与储物图为 1.3.1，其余为 1.3.0）：
+
+<img src="docs/screenshots/rogue-explore-tall.png" width="260" alt="夜间高屏探索页放大地图，在快捷页签下预览当前目标"> <img src="docs/screenshots/rogue-storage.png" width="260" alt="仓库直接显示行囊和库存数量以及存入取出按钮"> <img src="docs/screenshots/rogue-temp-storage.png" width="260" alt="临时营地的独立储物容量和现场存取清单">
 
 <table>
   <tr>
@@ -270,6 +272,8 @@ node scripts/test-home.mjs
 node scripts/test-save-slots.mjs
 node scripts/test-rogue.mjs --playthrough
 node scripts/test-rogue-survival.mjs
+node scripts/test-rogue-storage.mjs
+node scripts/test-rogue-storage-ui.mjs
 node scripts/test-rogue-survival-ui.mjs
 node scripts/test-rogue-playthrough-ui.mjs
 node scripts/test-rogue-ui.mjs --soak
@@ -284,13 +288,13 @@ node scripts/test-rogue-expansion-ui.mjs
 - [布局验证记录](android/LAYOUT_VALIDATION.md)
 - [原生资源拦截器验证与限制](android/NATIVE_VALIDATION.md)
 
-所有已归档 APK 已检查签名、包名、版本号及无联网权限。1.0.4 的真实原生拦截器在 Android 7.0 ARM 模拟器通过 11 项检查；模拟器完整 WebView 图形运行受到 GPU / EGL 初始化故障限制。生存模式已分别通过模型行动通关和真实按钮完整通关：后者从新局点击 4651 次，经过九区域、13 处地牢、74 场战斗，在第 4088 回合完成飞船结局，并深入深渊第二层后撤离，未用援助或修改状态，两个普通存档字符串保持不变。新增 8 组生存专项和真实控件验证装备、行囊、商人、警告及据点攻坚；界面回归覆盖备份恢复、嵌套返回与十组手机 / 横屏 / 桌面主题组合。**浏览器测试不等同于真机测试；本次 1.3.0 尚无真机运行验证，真人 3–8 小时时长尚未确认。**
+所有已归档 APK 已检查签名、包名、版本号及无联网权限。1.0.4 的真实原生拦截器在 Android 7.0 ARM 模拟器通过 11 项检查；模拟器完整 WebView 图形运行受到 GPU / EGL 初始化故障限制。生存模式本轮分别通过模型行动通关和真实按钮完整通关：后者从新局点击 4651 次，经过九区域、13 处地牢、74 场战斗，在第 4088 回合完成飞船结局，并深入深渊第二层后撤离，未用援助或修改状态，两个普通存档字符串保持不变。8 组生存专项和新增 5 组储物场景验证装备、商人、据点、容量和原址取回；新增储物 UI 回归覆盖十四组日夜布局、高屏预览和大字降级，另有原界面、备份恢复、嵌套返回、主页和多存档回归。**浏览器测试不等同于真机测试；本次 1.3.1 尚无真机运行验证，真人 3–8 小时时长尚未确认。**
 
 ## 版本与源码归档
 
-[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.3.0 共 19 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
+[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.3.1 共 20 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
 
-- `v1.3.0`：当前发布版的完整可构建源码，包括独立 Roguelike 玩法、界面与测试；Release 附完整源码 ZIP。`v1.0.12` 起各发布版均保留完整工程。
+- `v1.3.1`：当前发布版的完整可构建源码，包括独立生存模式、界面与测试；Release 附完整源码 ZIP。`v1.0.12` 起各发布版均保留完整工程。
 - `release-archives` 与 `v1.0.0`–`v1.0.11`：从对应 APK 提取的实际网页源码与资源，以及归档说明、许可和校验信息。未保存的历史原生工程不会用新版源码冒充。
 - `1.0.0`、`1.0.1`：从保留的原始构建产物恢复，并用原密钥重新签名；不是当时分发 APK 的逐字节备份。
 - `1.0.0`–`1.0.3`：存在已知加载问题，标为历史测试版 / Pre-release，建议安装最新版。

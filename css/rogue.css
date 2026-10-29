@@ -106,11 +106,14 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-context-title { font-size: .9375em; margin-bottom: 5px !important; }
 .rogue-context > .rogue-button { width: 100%; margin-top: 8px; font-size: .8125em; }
 .rogue-context > .rogue-note { font-size: .75em; }
-.rogue-map-message { min-height: 2.2em; padding: 6px 0; color: var(--rogue-muted); font-size: .75em; line-height: 1.7; }
 .rogue-explore-shortcuts, .rogue-quick-supplies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .rogue-explore-shortcuts > .rogue-button { border: 0; background: var(--rogue-fill); font-size: .8125em; padding: 8px; }
+.rogue-explore-preview { display: none; }
 .rogue-quick-supplies > .rogue-button { font-size: .75em; padding: 8px 4px; white-space: pre-line; }
 .rogue-party-reserves { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 12px; font-size: .8125em; }
+.rogue-party-reserves + .rogue-quick-supplies { margin-bottom: 6px; }
+.rogue-camp-local { margin-bottom: 18px; padding: 12px; background: var(--rogue-fill); }
+.rogue-camp-local > .rogue-button { display: flex; width: 100%; margin-top: 8px; font-size: .875em; }
 .rogue-explore-tabs { flex: none; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 0 12px; }
 .rogue-explore-tabs > .rogue-button { border: 0; font-size: .8125em; padding: 8px 4px; }
 .rogue-explore-tabs > .rogue-button[aria-pressed='true'] { color: var(--rogue-surface); background: var(--rogue-ink); }
@@ -260,6 +263,50 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-ending h1 { font-size: 1.5em; }
 .rogue-ending-copy { margin: 22px 0 !important; font-size: .9375em; line-height: 1.9; }
 .rogue-ending > .rogue-button { display: flex; width: 100%; min-height: 48px; margin-top: 14px; font-size: .875em; }
+.rogue-storage-dialog { max-width: 600px; }
+.rogue-storage-summary { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.rogue-storage-summary > p:first-child { flex-basis: 100%; }
+.rogue-storage-supply { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 10px 0; padding: 10px 12px; background: var(--rogue-fill); }
+.rogue-storage-supply > .rogue-button { flex: none; padding: 8px; font-size: .75em; }
+.rogue-storage-controls { display: flex; align-items: center; gap: 6px; margin: 12px 0 4px; }
+.rogue-storage-controls > .rogue-button { flex: 1; padding: 8px 4px; font-size: .75em; }
+.rogue-storage-controls > .rogue-button[aria-pressed='true'] { color: var(--rogue-surface); background: var(--rogue-ink); }
+.rogue-storage-filters { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; margin: 8px 0; }
+.rogue-storage-filters > .rogue-button { border: 0; font-size: .75em; padding: 8px 4px; }
+.rogue-storage-filters > .rogue-button[aria-pressed='true'] { background: var(--rogue-fill); text-decoration: underline; text-underline-offset: 6px; }
+.rogue-storage-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 8px 12px; padding: 12px 0; }
+.rogue-storage-copy h3 { font-size: .9375em; }
+.rogue-storage-copy .rogue-note { font-size: .75em; font-variant-numeric: tabular-nums; }
+.rogue-storage-copy .rogue-eyebrow { font-size: .6875em; }
+.rogue-storage-row-actions { display: grid; grid-template-columns: repeat(2, minmax(56px, 1fr)); gap: 6px; }
+.rogue-storage-row-actions > .rogue-button { padding: 8px 6px; font-size: .75em; }
+.rogue-storage-list + .rogue-pagination { margin-top: 8px; }
+.rogue-storage-list ~ .rogue-button, .rogue-pagination + .rogue-button { display: flex; width: 100%; margin: 12px 0 4px; font-size: .8125em; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) .rogue-live-log { position: relative; min-height: 44px; padding: 2px 80px 2px 16px; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) .rogue-log-heading { position: absolute; right: 8px; top: 0; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) .rogue-log-heading h3 { display: none; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) .rogue-live-entries { max-height: 38px; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) .rogue-live-entries li:not(:first-child) { display: none; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) #rogue-back { display: none; }
+.rogue-root[data-tab='camp']:not([data-camp-view='overview']) .rogue-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+@media (min-height: 850px) and (max-width: 1099px) {
+    .rogue-root[data-tab='map'] .rogue-layout { padding-bottom: 0; }
+    .rogue-explore-shortcuts > .rogue-button[aria-pressed='true'] { color: var(--rogue-surface); background: var(--rogue-ink); }
+    .rogue-explore-preview { display: block; min-height: 88px; margin-top: 8px; }
+    .rogue-explore-preview .rogue-nearby { min-height: 44px; font-size: .8125em; padding: 5px 0; }
+    .rogue-explore-preview .rogue-section-title { margin: 10px 0 4px !important; }
+    .rogue-explore-preview > .rogue-note { font-size: .75em; line-height: 1.6; }
+    .rogue-explore-preview > .rogue-button { border: 0; display: flex; margin-left: auto; padding: 6px 0 6px 12px; font-size: .75em; color: var(--rogue-muted); }
+    .rogue-preview-goals { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 10px; align-items: center; }
+    .rogue-preview-goals .rogue-section-title { margin: 0 !important; }
+    .rogue-preview-goals > .rogue-button { grid-column: 2; grid-row: 1; margin: 0; }
+    .rogue-preview-goals > .rogue-note { grid-column: 1 / -1; }
+}
+@media (max-width: 359px) {
+    .rogue-storage-row { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+    .rogue-storage-row-actions > .rogue-button { min-height: 44px; }
+    .rogue-storage-supply { align-items: flex-start; flex-direction: column; gap: 8px; }
+}
 @media (min-width: 1100px) {
     .rogue-camp-inline-back { display: inline-flex; }
     .rogue-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); gap: 28px; align-items: start; max-width: 1400px; padding: 28px 24px; }

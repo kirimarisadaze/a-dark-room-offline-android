@@ -224,6 +224,8 @@
             var x;
             var y;
             if (!view.dungeon) {
+                var caches = save.flags.caches || [];
+                for (i = 0; i < caches.length; i++) { if (caches[i].region === save.party.region && R.party.weight(caches[i].stores) > 0) { overlays[caches[i].x + ',' + caches[i].y] = { symbol: '*', cls: 'camp' }; } }
                 for (i = 0; i < view.map.sites.length; i++) {
                     var site = view.map.sites[i];
                     if (site.state !== 'unknown') { overlays[site.x + ',' + site.y] = { symbol: R.CONTENT.sites[site.type].symbol, cls: 'site', site: site.id }; }

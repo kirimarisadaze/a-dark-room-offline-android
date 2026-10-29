@@ -103,9 +103,10 @@ try {
     await tap(page.locator('[data-focus="transfer:store"]')); assert.equal((await state(page)).party.weapon, 'spear');
     await tap(page.locator('[data-focus="transfer:store"]')); assert.equal((await state(page)).party.weapon, 'fists');
     await tap(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]'));
-    await tap(page.getByRole('button', { name: '仓库物品 · 存取', exact: true }));
-    assert.match(await page.getByRole('dialog').innerText(), /共享仓库/); await item(page, 'spear');
-    await tap(page.locator('[data-focus="transfer:player"]')); assert.equal((await state(page)).party.bag.spear, 1); await closeAll(page);
+    await tap(page.getByRole('button', { name: '打开仓库', exact: true }));
+    await tap(page.locator('[data-focus="storage-filter:gear"]'));
+    await tap(page.locator('[data-focus="storage-quantity:1"]'));
+    await tap(page.locator('[data-focus="store-take:spear"]')); assert.equal((await state(page)).party.bag.spear, 1); await closeAll(page);
     const ally = (await state(page)).party.companions[0];
     await tap(page.locator('#rogue-panel-party [data-focus="bagView:"]')); await item(page, 'spear'); await tap(page.locator('[data-focus="transfer:' + ally.id + '"]')); await closeAll(page);
     await tap(page.locator('[data-focus="member:' + ally.id + '"]')); await tap(page.getByRole('button', { name: '更换或卸下武器', exact: true })); await tap(page.locator('[data-focus="equip:spear"]'));

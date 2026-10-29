@@ -218,7 +218,7 @@ try {
     assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'map');
     await page.locator('#rogue-tab-camp').click();
     await page.locator('[data-focus="camp-view:recipes"]').click();
-    await page.locator('#rogue-back').click();
+    await page.locator('[data-focus="camp-return"]').click();
     assert.equal(await page.locator('#rogue-panel-camp').getAttribute('data-camp-view'), 'overview');
     await page.locator('#rogue-back').click();
     assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'map');

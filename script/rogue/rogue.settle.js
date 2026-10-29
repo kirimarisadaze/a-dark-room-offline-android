@@ -239,12 +239,17 @@
                 save.camps[0].pop -= 1; rebalance(save, save.camps[0]);
                 save.camps.push({ id: nextId, region: party.region, x: party.x, y: party.y, fire: 1, pop: 1, jobs: {}, stores: {}, buildings: {} });
                 save.activeCamp = save.camps.length - 1; R.log(save, 'log.camp');
-                if (R.atTemp(save)) { delete save.flags.tempCamp; }
+                if (R.atTemp(save)) { R.add(stores, save.flags.tempCamp.stores || {}); delete save.flags.tempCamp; }
+                var cached = R.party.cache(save);
+                if (cached) { R.add(stores, cached.stores); cached.stores = {}; }
             } else if (action.type === 'deployTemp') {
                 if (!this.canPitch(save)) { return R.fail('err.campGround'); }
                 if (!party.bag.campKit) { return R.fail('err.tempKit'); }
                 party.bag.campKit -= 1;
-                save.flags.tempCamp = { region: party.region, x: party.x, y: party.y, expiresAt: save.turn + N.TEMP_TURNS + 1 };
+                R.party.leaveTemp(save);
+                var localCache = R.party.cache(save); var supplies = localCache ? localCache.stores : {};
+                if (localCache) { localCache.stores = {}; }
+                save.flags.tempCamp = { region: party.region, x: party.x, y: party.y, expiresAt: save.turn + N.TEMP_TURNS + 1, stores: supplies };
                 R.log(save, 'log.tempBuilt');
             } else if (action.type === 'restTemp') {
                 if (!R.atTemp(save)) { return R.fail('err.tempAway'); }
@@ -255,7 +260,7 @@
                 R.log(save, 'log.tempRest'); return { turns: N.TEMP_REST_TURNS };
             } else if (action.type === 'packTemp') {
                 if (!R.atTemp(save)) { return R.fail('err.tempAway'); }
-                delete save.flags.tempCamp; R.log(save, 'log.tempPacked');
+                R.party.leaveTemp(save); R.log(save, 'log.tempPacked');
             } else if (action.type === 'dismantle') {
                 if (!camp || camp.id === 0) { return R.fail('err.mainCamp'); }
                 R.outpost.release(save, camp);

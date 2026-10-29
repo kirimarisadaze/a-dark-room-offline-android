@@ -13,6 +13,8 @@
     var campView = 'overview';
     var campFilter = 'weapons';
     var menuPage = 0;
+    var storageOptions = { member: 'player', quantity: 10, filter: 'all', page: 0 };
+    var peekView = 'nearby';
     var modal = null;
     var modalOptions = null;
     var modalStack = [];
@@ -169,8 +171,6 @@
         controlRow.appendChild(dpad);
         var context = el('div', 'rogue-context'); renderContext(save, context); controlRow.appendChild(context);
         panel.appendChild(controlRow); if (save.flags.insideDungeon) { panel.appendChild(tools); }
-        var latest = save.flags.log[save.flags.log.length - 1];
-        if (latest) { var message = el('p', 'rogue-map-message', R.t(latest.key, latest.values)); message.setAttribute('aria-live', 'polite'); panel.appendChild(message); }
         if (save.flags.insideDungeon) {
             var dungeonActions = el('div', 'rogue-action-grid');
             var dungeon = save.dungeons[save.flags.insideDungeon];
@@ -181,19 +181,52 @@
         } else {
             var shortcuts = el('nav', 'rogue-explore-shortcuts');
             shortcuts.setAttribute('aria-label', R.t('ui.exploreNotes'));
-            shortcuts.appendChild(button('ui.around', { type: 'modal', kind: 'nearby' }));
-            shortcuts.appendChild(button('ui.clues', { type: 'modal', kind: 'clues' }));
-            shortcuts.appendChild(button('ui.goals', { type: 'modal', kind: 'goals' })); panel.appendChild(shortcuts);
+            var views = ['nearby', 'clues', 'goals']; var labels = ['ui.around', 'ui.clues', 'ui.goals'];
+            for (i = 0; i < views.length; i++) { var shortcut = button(labels[i], { type: 'peek', view: views[i] }); shortcut.setAttribute('aria-pressed', views[i] === peekView ? 'true' : 'false'); shortcuts.appendChild(shortcut); }
+            panel.appendChild(shortcuts); renderPeek(panel, save);
         }
     }
+    /** Uses spare height for one short exploration preview while preserving full secondary pages. */
+    function renderPeek(panel, save) {
+        if (window.innerHeight < 850 || window.innerWidth >= 1100) { return; }
+        var preview = el('section', 'rogue-explore-preview' + (peekView === 'goals' ? ' rogue-preview-goals' : '')); preview.id = 'rogue-explore-preview';
+        preview.setAttribute('aria-label', R.t(peekView === 'nearby' ? 'ui.around' : 'ui.' + peekView));
+        if (peekView === 'nearby') {
+            renderNearby(preview, save, 1);
+        } else if (peekView === 'clues') {
+            var traces = R.map.clues(save);
+            if (traces.length) { preview.appendChild(el('p', 'rogue-note', R.t(traces[0].key, traces[0].values))); }
+        } else {
+            var goal = quest(save);
+            preview.appendChild(el('h3', 'rogue-section-title', R.t('ui.quest.' + goal)));
+            preview.appendChild(el('p', 'rogue-note', R.t('ui.quest.' + goal + '.desc')));
+        }
+        preview.appendChild(button('ui.peekAll', { type: 'modal', kind: peekView }, { page: R.t(peekView === 'nearby' ? 'ui.around' : 'ui.' + peekView) })); panel.appendChild(preview);
+    }
+    /** Enlarges the map only into measured spare space above the persistent navigation. */
+    function fitMap() {
+        if (activeTab !== 'map' || window.innerHeight < 850 || window.innerWidth >= 1100 || !R.state.current || R.state.current.flags.insideDungeon) { return; }
+        var panel = panels.map; var grid = panel.querySelector('.rogue-grid');
+        if (!grid) { return; }
+        var spare = window.innerHeight - document.getElementById('rogue-bottom').offsetHeight - panel.getBoundingClientRect().top - window.pageYOffset - panel.offsetHeight - 12;
+        var preview = panel.querySelector('.rogue-explore-preview');
+        if (spare < -12 && preview) {
+            var height = preview.offsetHeight + 8; preview.parentNode.removeChild(preview); spare += height;
+            var shortcuts = panel.querySelectorAll('.rogue-explore-shortcuts button'); var i;
+            for (i = 0; i < shortcuts.length; i++) { shortcuts[i].setAttribute('aria-pressed', 'false'); }
+        }
+        var width = panel.querySelector('.rogue-map-viewport').clientWidth - 16;
+        grid.style.fontSize = Math.max(12, Math.min(22, width / (N.MAP_WINDOW * 1.16), 12 + spare / (N.MAP_WINDOW * 1.1))) + 'px';
+    }
     /** Lists discovered local destinations without extending the exploration screen. */
-    function renderNearby(content, save) {
+    function renderNearby(content, save, limit) {
         var sites = save.regions[save.party.region].sites.slice();
         /** Orders revealed sites by their current walking distance. */
         sites.sort(function (a, b) { return Math.abs(a.x - save.party.x) + Math.abs(a.y - save.party.y) - Math.abs(b.x - save.party.x) - Math.abs(b.y - save.party.y); });
         var known = 0; var i;
         for (i = 0; i < sites.length; i++) {
             var site = sites[i]; if (site.state === 'unknown') { continue; } known += 1;
+            if (limit && known > limit) { break; }
             var node = button('ui.here', { type: 'selectSite', site: site.id }, null, false, 'nearby:' + site.id);
             node.className += ' rogue-nearby'; node.textContent = '';
             node.appendChild(el('span', 'rogue-symbol', C.sites[site.type].symbol)); node.appendChild(el('span', '', siteName(site)));
@@ -219,14 +252,19 @@
         }
         if (camp) {
             box.appendChild(el('p', 'rogue-context-title', R.t('ui.campName', { n: camp.id + 1 })));
-            box.appendChild(el('p', 'rogue-note', R.t('ui.inCamp')));
-            box.appendChild(button('ui.restock', { type: 'restock' })); return;
+            box.appendChild(button('ui.restock', { type: 'restock' }));
+            box.appendChild(button('ui.storageOpen', { type: 'campView', view: 'stores' })); return;
         }
         if (R.atTemp(save)) {
             box.appendChild(el('p', 'rogue-context-title', R.t('ui.tempCamp')));
             box.appendChild(el('p', 'rogue-note', R.t('ui.tempRemaining', { n: save.flags.tempCamp.expiresAt - save.turn })));
             box.appendChild(el('p', 'rogue-note', R.t('ui.tempRestCost')));
-            box.appendChild(button('ui.restTemp', { type: 'restTemp' }, null, save.party.water < N.TEMP_REST_SUPPLY || save.party.food < N.TEMP_REST_SUPPLY)); return;
+            box.appendChild(button('ui.restTemp', { type: 'restTemp' }, null, save.party.water < N.TEMP_REST_SUPPLY || save.party.food < N.TEMP_REST_SUPPLY));
+            box.appendChild(button('ui.tempStoreAction', { type: 'storageView', scope: 'temp' })); return;
+        }
+        if (R.party.cache(save)) {
+            box.appendChild(el('p', 'rogue-context-title', R.t('ui.cache')));
+            box.appendChild(button('ui.cacheAction', { type: 'storageView', scope: 'cache' })); return;
         }
         if (here) {
             box.appendChild(el('p', 'rogue-context-title', siteName(here)));
@@ -309,13 +347,14 @@
         var panel = panels.camp; panel.textContent = ''; panel.setAttribute('data-camp-view', campView);
         var camp = save.camps[save.activeCamp];
         var here = R.atCamp(save); if (here && here.id !== camp.id) { here = null; }
-        var titles = { supplies: 'ui.supplies', stores: 'ui.shared', workers: 'ui.workers', buildings: 'ui.buildings', recipes: 'ui.recipes', research: 'ui.research', expansion: 'ui.campExpansion' };
+        var titles = { supplies: 'ui.supplies', stores: 'ui.shared', tempStores: 'ui.tempStorage', workers: 'ui.workers', buildings: 'ui.buildings', recipes: 'ui.recipes', research: 'ui.research', expansion: 'ui.campExpansion' };
         var heading = el('div', 'rogue-panel-heading');
         heading.appendChild(el('h2', '', R.t(campView === 'overview' ? 'ui.campName' : titles[campView], { n: camp.id + 1 })));
         if (campView !== 'overview') { var back = button('ui.backTo', { type: 'campView', view: 'overview' }, { page: R.t('ui.campHome') }, false, 'camp-inline-return'); back.className += ' rogue-camp-inline-back'; heading.appendChild(back); }
         else { heading.appendChild(el('span', 'rogue-eyebrow', R.t('ui.campCapacity', { n: save.camps.length }))); }
         panel.appendChild(heading);
         if (campView !== 'overview') { renderCampDetail(panel, save, camp, here); return; }
+        if (R.atTemp(save)) { var local = el('div', 'rogue-camp-local'); local.appendChild(el('p', 'rogue-note', R.t('ui.tempRemaining', { n: save.flags.tempCamp.expiresAt - save.turn }))); local.appendChild(button('ui.tempStoreAction', { type: 'campView', view: 'tempStores' })); panel.appendChild(local); }
         if (save.camps.length > 1) {
             var selector = el('div', 'rogue-segment'); var s;
             for (s = 0; s < save.camps.length; s++) {
@@ -355,11 +394,8 @@
             actions.appendChild(button('ui.night', { type: 'night' }, null, !here)); panel.appendChild(actions); restPreview(panel, save);
             panel.appendChild(el('p', 'rogue-note', R.t('ui.reserveHint')));
             if (save.flags.trader) { panel.appendChild(button('ui.trade', { type: 'trade' }, null, !here || !R.affords(save, N.TRADE_COST))); }
-        } else if (campView === 'stores') {
-            var resources = el('div', 'rogue-resource-grid'); var store = R.stores(save);
-            for (id in C.items) { if (C.items[id].kind === 'resource' && (store[id] > 0 || ['wood', 'stone', 'food', 'water'].indexOf(id) >= 0)) { stat(resources, 'item.' + id, format(store[id] || 0)); } }
-            panel.appendChild(resources);
-            panel.appendChild(button('ui.warehouseItems', { type: 'bagView', member: 'store' }, null, !here));
+        } else if (campView === 'stores' || campView === 'tempStores') {
+            renderStorage(panel, save, campView === 'stores' ? 'store' : 'temp', storageOptions);
         } else if (campView === 'workers') { renderWorkers(panel, save, camp); }
         else if (campView === 'buildings') {
             var builds = ['fire'].concat(Object.keys(C.buildings)); var visible = pageSlice(builds);
@@ -401,6 +437,7 @@
             if (R.atTemp(save)) {
                 temp.appendChild(el('p', 'rogue-note', R.t('ui.tempRestCost')));
                 temp.appendChild(button('ui.restTemp', { type: 'restTemp' }, null, save.party.water < N.TEMP_REST_SUPPLY || save.party.food < N.TEMP_REST_SUPPLY));
+                temp.appendChild(button('ui.tempStoreAction', { type: 'campView', view: 'tempStores' }));
                 temp.appendChild(button('ui.packTemp', { type: 'confirmPack' }));
             } else if (save.flags.tempCamp && save.flags.tempCamp.region === save.party.region && !save.flags.insideDungeon) {
                 temp.appendChild(button('ui.tempRoute', { type: 'route', x: save.flags.tempCamp.x, y: save.flags.tempCamp.y }, null, !R.map.path(save, save.flags.tempCamp.x, save.flags.tempCamp.y)));
@@ -449,13 +486,14 @@
         var panel = panels.party; panel.textContent = '';
         var heading = el('div', 'rogue-panel-heading'); heading.appendChild(el('h2', '', R.t('ui.party'))); heading.appendChild(el('span', 'rogue-eyebrow', save.party.hp + '/' + save.party.maxHp)); panel.appendChild(heading);
         health(panel, save.party.hp, save.party.maxHp);
+        var reserves = el('div', 'rogue-party-reserves'); stat(reserves, 'ui.water', waterText(save.party.water) + '/' + R.waterMax(save)); stat(reserves, 'ui.food', save.party.food); panel.appendChild(reserves);
         var supplies = el('div', 'rogue-quick-supplies'); var supplyIds = ['water', 'food', 'medicine']; var s;
         for (s = 0; s < supplyIds.length; s++) {
             var supply = supplyIds[s];
-            supplies.appendChild(button('ui.quickSupply', { type: 'use', item: supply }, { name: R.t('item.' + supply), n: format(save.party.bag[supply] || 0) }, !save.party.bag[supply] || (supply === 'medicine' ? save.party.hp === save.party.maxHp : supply === 'water' ? save.party.water >= R.waterMax(save) : save.party.food >= N.SUPPLY_FOOD), 'quick:' + supply));
+            supplies.appendChild(button(supply === 'water' ? 'ui.reserveWater' : supply === 'food' ? 'ui.reserveFood' : 'ui.reserveMedicine', { type: 'use', item: supply }, { n: format(save.party.bag[supply] || 0) }, !save.party.bag[supply] || (supply === 'medicine' ? save.party.hp === save.party.maxHp : supply === 'water' ? save.party.water >= R.waterMax(save) : save.party.food >= N.SUPPLY_FOOD), 'quick:' + supply));
         }
         panel.appendChild(supplies);
-        var reserves = el('div', 'rogue-party-reserves'); stat(reserves, 'ui.water', waterText(save.party.water) + '/' + R.waterMax(save)); stat(reserves, 'ui.food', save.party.food); panel.appendChild(reserves);
+        panel.appendChild(el('p', 'rogue-note', R.t('ui.reserveExplanation')));
         var equipment = section(panel, 'ui.equipment');
         stat(equipment, 'ui.weapon', R.t('item.' + save.party.weapon)); stat(equipment, 'ui.armour', save.party.armour ? R.t('item.' + save.party.armour) : R.t('ui.none'));
         equipment.appendChild(el('p', 'rogue-note', R.t('ui.damage', { n: C.items[save.party.weapon].dmg + R.bonus(save, 'attack') })));
@@ -471,14 +509,74 @@
             card.appendChild(button('ui.manageCompanion', { type: 'memberView', member: ally.id }, null, false, 'member:' + ally.id)); companions.appendChild(card);
         }
         if (!save.party.companions.length) { companions.appendChild(el('p', 'rogue-note', R.t('ui.alone'))); }
-        companions.appendChild(button('ui.recruit', { type: 'recruit' }, null, !R.atCamp(save) || save.party.companions.length >= N.MAX_COMPANIONS)); companions.appendChild(el('p', 'rogue-note', R.t('ui.recruitHint')));
+        var home = R.atCamp(save); var recruitReason = !home ? 'ui.recruitAway' : save.party.companions.length >= N.MAX_COMPANIONS ? 'ui.recruitFull' : home.pop <= 1 ? 'ui.recruitPopulation' : !R.affords(save, { food: N.RECRUIT_FOOD }) ? 'ui.recruitFood' : null;
+        companions.appendChild(button('ui.recruit', { type: 'recruit' }, null, !!recruitReason)); companions.appendChild(el('p', 'rogue-note', R.t(recruitReason || 'ui.recruitHint')));
         var discoveries = disclosure(panel, 'blueprints', 'ui.blueprints');
         if (!save.blueprints.length) { discoveries.appendChild(el('p', 'rogue-note', R.t('ui.noBlueprints'))); }
         for (i = 0; i < save.blueprints.length; i++) { discoveries.appendChild(el('p', '', R.t('item.' + save.blueprints[i]))); }
         if (save.flags.memorial.length) { var memorial = disclosure(panel, 'memorial', 'ui.memorial'); for (i = 0; i < save.flags.memorial.length; i++) { memorial.appendChild(el('p', 'rogue-note', R.t('ui.name.' + save.flags.memorial[i].name))); } }
     }
     /** Names the owner of a personal pack or shared warehouse. */
-    function ownerName(save, id) { var owner = R.party.member(save, id); return id === 'store' ? R.t('ui.shared') : owner === save.party ? R.t('ui.you') : owner ? R.t('ui.name.' + owner.name) : R.t('ui.none'); }
+    function ownerName(save, id) { var owner = R.party.member(save, id); return id === 'store' ? R.t('ui.shared') : id === 'temp' ? R.t('ui.tempStorage') : id === 'cache' ? R.t('ui.cache') : owner === save.party ? R.t('ui.myPack') : owner ? R.t('ui.name.' + owner.name) : R.t('ui.none'); }
+    /** Resolves the local storage entry offered from a pack without exposing a distant warehouse. */
+    function localStore(save) { return R.atTemp(save) ? 'temp' : R.party.cache(save) ? 'cache' : 'store'; }
+    /** Selects the single-page storage group for one known item. */
+    function storageGroup(id) { return ['food', 'water', 'medicine'].indexOf(id) >= 0 ? 'supplies' : C.items[id].kind === 'resource' ? 'materials' : 'gear'; }
+    /** Renders a two-way manifest with clear ownership, quantities and direct deposit/withdraw controls. */
+    function renderStorage(parent, save, scope, options) {
+        var store = R.party.inventory(save, scope); var available = !!store;
+        var bag = scope === 'store' ? R.stores(save) : store ? store.bag : {};
+        var member = R.party.member(save, options.member) || save.party;
+        var memberId = member === save.party ? 'player' : member.id;
+        var heading = el('div', 'rogue-storage-summary');
+        heading.appendChild(el('p', 'rogue-note', R.t(scope === 'store' ? available ? 'ui.storageHere' : 'ui.storageAway' : scope === 'temp' ? available ? 'ui.storageTempHint' : 'err.storageAway' : 'ui.storageCacheHint')));
+        if (scope === 'temp' && available) { heading.appendChild(el('p', 'rogue-note', R.t('ui.storageCapacity', { n: waterText(R.party.weight(bag)), max: N.TEMP_STORAGE }))); }
+        heading.appendChild(el('p', 'rogue-note', R.t('ui.bagCapacity', { n: waterText(R.party.weight(member.bag)), max: R.party.capacity(save, member) }))); parent.appendChild(heading);
+        var members = ['player']; var i; var id;
+        for (i = 0; i < save.party.companions.length; i++) { members.push(save.party.companions[i].id); }
+        if (members.length > 1) {
+            var selectors = el('div', 'rogue-segment');
+            for (i = 0; i < members.length; i++) { var select = button('ui.you', { type: 'storageOption', key: 'member', value: members[i] }, null, false, 'storage-member:' + members[i]); select.textContent = ownerName(save, members[i]); select.setAttribute('aria-pressed', members[i] === memberId ? 'true' : 'false'); selectors.appendChild(select); } parent.appendChild(selectors);
+        }
+        if (member === save.party) {
+            var supply = el('div', 'rogue-storage-supply'); supply.appendChild(el('p', 'rogue-note', R.t('ui.activeSupplies', { water: waterText(save.party.water), max: R.waterMax(save), food: waterText(save.party.food) })));
+            if (scope === 'store') { supply.appendChild(button('ui.restockShort', { type: 'restock' }, null, !available)); }
+            parent.appendChild(supply);
+        }
+        var controls = el('div', 'rogue-storage-controls'); var quantities = [1, 10, 'all']; var labels = ['ui.quantityOne', 'ui.quantityTen', 'ui.quantityAll'];
+        controls.setAttribute('aria-label', R.t('ui.storageQuantity'));
+        for (i = 0; i < quantities.length; i++) { var quantity = button(labels[i], { type: 'storageOption', key: 'quantity', value: quantities[i] }, null, false, 'storage-quantity:' + quantities[i]); quantity.setAttribute('aria-pressed', options.quantity === quantities[i] ? 'true' : 'false'); controls.appendChild(quantity); } parent.appendChild(controls);
+        var filters = ['all', 'supplies', 'materials', 'gear']; var filterKeys = ['ui.storageAll', 'ui.storageSupplies', 'ui.storageMaterials', 'ui.storageGear']; var filter = el('nav', 'rogue-storage-filters');
+        for (i = 0; i < filters.length; i++) { var choice = button(filterKeys[i], { type: 'storageOption', key: 'filter', value: filters[i] }, null, false, 'storage-filter:' + filters[i]); choice.setAttribute('aria-pressed', options.filter === filters[i] ? 'true' : 'false'); filter.appendChild(choice); } parent.appendChild(filter);
+        var items = [];
+        for (id in C.items) { if (id !== 'fists' && ((bag[id] || 0) > 0 || (scope !== 'cache' && (member.bag[id] || 0) > 0)) && (options.filter === 'all' || options.filter === storageGroup(id))) { items.push(id); } }
+        var size = menuSize(); var pages = Math.max(1, Math.ceil(items.length / size)); options.page = Math.min(options.page, pages - 1);
+        var manifest = el('div', 'rogue-storage-list');
+        for (i = options.page * size; i < Math.min(items.length, (options.page + 1) * size); i++) {
+            id = items[i]; var row = el('article', 'rogue-storage-row'); row.setAttribute('data-storage-item', id);
+            var copy = el('div', 'rogue-storage-copy'); copy.appendChild(el('h3', '', R.t('item.' + id)));
+            copy.appendChild(el('p', 'rogue-note', R.t('ui.storageCounts', { bag: waterText(member.bag[id] || 0), store: waterText(bag[id] || 0) })));
+            if (member.weapon === id || member.armour === id) { copy.appendChild(el('span', 'rogue-eyebrow', R.t('ui.equippedMark'))); }
+            if (['waterskin', 'canteen', 'pack'].indexOf(id) >= 0) { copy.appendChild(el('span', 'rogue-eyebrow', R.t('ui.personalToolMark'))); }
+            row.appendChild(copy);
+            var actions = el('div', 'rogue-storage-row-actions'); var put = available ? R.party.transferAmount(save, memberId, scope, id, options.quantity) : 0; var take = available ? R.party.transferAmount(save, scope, memberId, id, options.quantity) : 0;
+            if (scope !== 'cache') {
+                var deposit = button('ui.storageDeposit', { type: 'transfer', from: memberId, to: scope, item: id, quantity: options.quantity }, { n: put }, !put, 'store-put:' + id);
+                deposit.setAttribute('aria-label', R.t('ui.storageDepositLabel', { name: R.t('item.' + id), n: put })); actions.appendChild(deposit);
+            }
+            var withdraw = button('ui.storageWithdraw', { type: 'transfer', from: scope, to: memberId, item: id, quantity: options.quantity }, { n: take }, !take, 'store-take:' + id);
+            withdraw.setAttribute('aria-label', R.t('ui.storageWithdrawLabel', { name: R.t('item.' + id), n: take })); actions.appendChild(withdraw); row.appendChild(actions); manifest.appendChild(row);
+        }
+        if (!items.length) { manifest.appendChild(el('p', 'rogue-note', R.t('ui.storageNoItems'))); } parent.appendChild(manifest);
+        if (pages > 1) {
+            var nav = el('nav', 'rogue-pagination'); nav.appendChild(button('ui.previous', { type: 'storageOption', key: 'page', value: options.page - 1 }, null, options.page === 0)); nav.appendChild(el('span', 'rogue-note', R.t('ui.page', { n: options.page + 1, max: pages }))); nav.appendChild(button('ui.next', { type: 'storageOption', key: 'page', value: options.page + 1 }, null, options.page >= pages - 1)); parent.appendChild(nav);
+        }
+        if (available && scope !== 'cache') {
+            var materials = false;
+            for (id in member.bag) { if (storageGroup(id) === 'materials' && R.party.transferAmount(save, memberId, scope, id, 'all') > 0) { materials = true; break; } }
+            parent.appendChild(button('ui.stowMaterials', { type: 'stowMaterials', member: memberId, to: scope }, null, !materials)); parent.appendChild(el('p', 'rogue-note', R.t('ui.stowHint')));
+        }
+    }
     /** Renders one member's real attack, armour, health and safe dismissal controls. */
     function renderMember(content, save) {
         var id = modalOptions.member; var owner = R.party.member(save, id);
@@ -520,7 +618,7 @@
         if (items.length > menuSize()) {
             var nav = el('div', 'rogue-pagination'); nav.appendChild(button('ui.previous', { type: 'bagPage', page: page - 1 }, null, page === 0)); nav.appendChild(el('span', 'rogue-note', (page + 1) + '/' + Math.ceil(items.length / menuSize()))); nav.appendChild(button('ui.next', { type: 'bagPage', page: page + 1 }, null, (page + 1) * menuSize() >= items.length)); content.appendChild(nav);
         }
-        if (!gearOnly && id === 'player') { content.appendChild(button('ui.warehouseItems', { type: 'bagView', member: 'store' }, null, !R.atCamp(save))); }
+        if (!gearOnly && owner) { var storeId = localStore(save); content.appendChild(button(storeId === 'temp' ? 'ui.tempStoreAction' : storeId === 'cache' ? 'ui.cacheAction' : 'ui.storageOpen', { type: 'storageView', scope: storeId, member: id })); }
     }
     /** Presents explicit destinations for one physical item, including automatic removal of its last worn copy. */
     function renderItem(content, save) {
@@ -528,6 +626,7 @@
         var bag = owner ? owner.bag : R.stores(save); var amount = Math.min(item.kind === 'resource' ? N.DROP_BUNDLE : 1, bag[id] || 0);
         content.appendChild(el('h3', 'rogue-section-title', R.t('item.' + id) + ' ×' + format(bag[id] || 0)));
         content.appendChild(el('p', 'rogue-note', R.t('ui.transferHint', { n: format(amount) })));
+        if (owner && (owner.weapon === id || owner.armour === id)) { content.appendChild(el('p', 'rogue-note', R.t('ui.wornTransferHint'))); }
         if (owner && (item.kind === 'weapon' || item.kind === 'armour')) {
             content.appendChild(el('p', 'rogue-note', R.t('ui.gearHint')));
             content.appendChild(button(owner[item.kind] === id ? 'ui.unequip' : 'ui.equip', owner[item.kind] === id ? { type: 'unequip', member: from, kind: item.kind } : { type: 'equip', member: from, item: id }, null, !amount));
@@ -537,9 +636,11 @@
         var destinations = ['player']; var i;
         for (i = 0; i < save.party.companions.length; i++) { destinations.push(save.party.companions[i].id); }
         if (R.atCamp(save)) { destinations.push('store'); }
+        else if (R.atTemp(save)) { destinations.push('temp'); }
         for (i = 0; i < destinations.length; i++) {
             var to = destinations[i]; if (to === from) { continue; }
-            content.appendChild(button(to === 'store' ? 'ui.storeItem' : 'ui.giveItem', { type: 'transfer', from: from, to: to, item: id }, { name: ownerName(save, to), n: format(amount) }, !amount || ['waterskin', 'canteen', 'pack'].indexOf(id) >= 0, 'transfer:' + to));
+            var transferable = R.party.transferAmount(save, from, to, id);
+            content.appendChild(button(to === 'store' ? 'ui.storeItem' : to === 'temp' ? 'ui.tempStoreItem' : 'ui.giveItem', { type: 'transfer', from: from, to: to, item: id }, { name: ownerName(save, to), n: format(transferable) }, !transferable, 'transfer:' + to));
         }
     }
     /** Renders fixed event choices and their exact rewards or carried-resource prices. */
@@ -754,7 +855,7 @@
     /** Names the actual destination of the current secondary page's return control. */
     function returnPage(save) {
         var parent = modalStack.length ? modalStack[modalStack.length - 1].kind : null;
-        if (parent && ['member', 'bag', 'gear', 'item', 'event', 'outpost'].indexOf(parent) >= 0) { return 'ui.page.' + parent; }
+        if (parent && ['member', 'bag', 'gear', 'item', 'storage', 'event', 'outpost'].indexOf(parent) >= 0) { return 'ui.page.' + parent; }
         if (parent) { return parent === 'menu' ? 'ui.menu' : parent === 'combat' ? 'ui.battleLabel' : parent === 'new' ? 'ui.newrun' : 'ui.exploreNotes'; }
         if (!save) { return 'ui.slots'; }
         if (save.over && !save.flags.abyss) { return 'ui.endingPage'; }
@@ -765,10 +866,10 @@
         overlay.textContent = '';
         if (!modal) { overlay.hidden = true; frame.removeAttribute('aria-hidden'); frame.inert = false; document.body.classList.remove('rogue-modal-open'); return; }
         overlay.hidden = false; frame.setAttribute('aria-hidden', 'true'); frame.inert = true; document.body.classList.add('rogue-modal-open');
-        var dialog = el('section', 'rogue-dialog' + (modal === 'combat' ? ' rogue-combat-dialog' : ''));
+        var dialog = el('section', 'rogue-dialog' + (modal === 'combat' ? ' rogue-combat-dialog' : '') + (modal === 'storage' ? ' rogue-storage-dialog' : ''));
         dialog.setAttribute('role', 'dialog'); dialog.setAttribute('aria-modal', 'true'); dialog.setAttribute('aria-labelledby', 'rogue-dialog-title');
         var heading = el('div', 'rogue-dialog-heading');
-        var titles = { member: 'ui.page.member', bag: 'ui.page.bag', gear: 'ui.page.gear', item: 'ui.page.item', event: 'ui.page.event', outpost: 'site.outpost', combat: 'ui.combat', world: 'ui.exploreNotes', nearby: 'ui.exploreNotes', clues: 'ui.exploreNotes', goals: 'ui.exploreNotes', menu: 'ui.settings', guide: 'ui.help', time: 'ui.timeTitle', journal: 'ui.journal', new: 'ui.newrun', confirm: modalOptions ? modalOptions.title : 'ui.confirm' };
+        var titles = { storage: modalOptions && modalOptions.scope === 'temp' ? 'ui.tempStorage' : modalOptions && modalOptions.scope === 'cache' ? 'ui.cache' : 'ui.storage', member: 'ui.page.member', bag: 'ui.page.bag', gear: 'ui.page.gear', item: 'ui.page.item', event: 'ui.page.event', outpost: 'site.outpost', combat: 'ui.combat', world: 'ui.exploreNotes', nearby: 'ui.exploreNotes', clues: 'ui.exploreNotes', goals: 'ui.exploreNotes', menu: 'ui.settings', guide: 'ui.help', time: 'ui.timeTitle', journal: 'ui.journal', new: 'ui.newrun', confirm: modalOptions ? modalOptions.title : 'ui.confirm' };
         var title = el('h2', '', R.t(titles[modal])); title.id = 'rogue-dialog-title'; heading.appendChild(title);
         dialog.appendChild(heading);
         var content = el('div', 'rogue-dialog-content'); var save = R.state.current;
@@ -784,6 +885,7 @@
         if (modal === 'member') { renderMember(content, save); }
         else if (modal === 'bag' || modal === 'gear') { renderBag(content, save, modal === 'gear'); }
         else if (modal === 'item') { renderItem(content, save); }
+        else if (modal === 'storage') { renderStorage(content, save, modalOptions.scope, modalOptions); }
         else if (modal === 'event') { renderEvent(content, save); }
         else if (modal === 'outpost') { renderOutpost(content, save); }
         else if (modal === 'combat') { combatActions = renderCombat(content, save); }
@@ -808,7 +910,7 @@
         else if (modal === 'guide') {
             content.appendChild(el('p', 'rogue-help-copy', R.t('ui.helpBody')));
             var legend = el('div', 'rogue-legend');
-            var symbols = [['@', 'ui.legendPlayer'], ['^', 'ui.tempCamp'], ['B', 'ui.legendCamp'], ['+', 'ui.legendExit'], ['.', 'ui.legendFloor'], ['#', 'ui.legendWall']];
+            var symbols = [['@', 'ui.legendPlayer'], ['^', 'ui.tempCamp'], ['*', 'ui.cache'], ['B', 'ui.legendCamp'], ['+', 'ui.legendExit'], ['.', 'ui.legendFloor'], ['#', 'ui.legendWall']];
             var id;
             for (id in C.sites) { symbols.push([C.sites[id].symbol, 'site.' + id]); }
             var i;
@@ -861,6 +963,7 @@
     /** Opens a specified run and records its slot in the URL for refresh continuity. */
     function start(save) {
         R.state.current = save; selected = null; clearModals(); R.map.reset(); activeTab = 'map'; campView = 'overview'; menuPage = 0; tabScroll = { map: 0, camp: 0, party: 0 };
+        storageOptions = { member: 'player', quantity: 10, filter: 'all', page: 0 }; peekView = 'nearby';
         try { history.replaceState(null, '', '?mode=rogue&slot=' + save.slot); } catch (error) { /* File-origin WebViews may restrict history replacement. */ }
         R.ui.render(); window.scrollTo(0, 0);
     }
@@ -889,11 +992,14 @@
         if (action.type === 'tab') { switchTab(action.tab); }
         else if (action.type === 'back') { R.ui.back(); }
         else if (action.type === 'campView') { activeTab = 'camp'; campView = action.view; menuPage = 0; R.ui.render(); window.scrollTo(0, 0); }
+        else if (action.type === 'peek') { if (document.getElementById('rogue-explore-preview')) { peekView = action.view; R.ui.render(); if (!document.getElementById('rogue-explore-preview')) { R.ui.open(action.view); } } else { R.ui.open(action.view); } }
+        else if (action.type === 'storageView') { R.ui.open('storage', { scope: action.scope, member: action.member || 'player', quantity: 10, filter: 'all', page: 0 }); }
+        else if (action.type === 'storageOption') { var options = modal === 'storage' ? modalOptions : storageOptions; options[action.key] = action.value; if (action.key !== 'page') { options.page = 0; } if (modal) { modalScroll = 0; } R.ui.render(); }
         else if (action.type === 'exploreView') { modal = action.view; modalScroll = 0; R.ui.render(); focusDialog(); }
         else if (action.type === 'campFilter') { campFilter = action.filter; menuPage = 0; R.ui.render(); window.scrollTo(0, 0); }
         else if (action.type === 'campPage') { menuPage = Math.max(0, menuPage + action.delta); R.ui.render(); window.scrollTo(0, 0); }
         else if (action.type === 'memberView') { R.ui.open('member', { member: action.member }); }
-        else if (action.type === 'bagView') { R.ui.open('bag', { member: action.member, page: 0 }); }
+        else if (action.type === 'bagView') { if (action.member === 'store') { R.ui.open('storage', { scope: 'store', member: 'player', quantity: 10, filter: 'all', page: 0 }); } else { R.ui.open('bag', { member: action.member, page: 0 }); } }
         else if (action.type === 'gearView') { R.ui.open('gear', { member: action.member, kind: action.kind, page: 0 }); }
         else if (action.type === 'itemView') { R.ui.open('item', { member: action.member, item: action.item }); }
         else if (action.type === 'bagPage') { modalOptions.page = Math.max(0, action.page); modalScroll = 0; R.ui.render(); }
@@ -993,6 +1099,8 @@
         if (keys[event.key] && activeTab === 'map') { event.preventDefault(); dispatch({ type: 'move', dir: keys[event.key] }); }
         else if (event.code === 'Space' && activeTab === 'map' && event.target.tagName !== 'BUTTON') { event.preventDefault(); dispatch({ type: 'wait' }); }
     }
+    /** Reflows responsive previews and fixed-control spacing when the viewport changes. */
+    function resized() { if (root) { R.ui.render(); } }
     R.ui = {
         costText: costText,
         preferences: { dark: false, font: 16, waterWarning: true },
@@ -1001,7 +1109,8 @@
             root = el('div', 'rogue-root'); root.id = 'rogue-root';
             try {
                 var prefs = JSON.parse(localStorage.getItem('roguePreferences') || 'null');
-                var normal = JSON.parse(localStorage.getItem('gameState') || 'null');
+                var normal = null;
+                if (!prefs) { try { normal = JSON.parse(localStorage.getItem('gameState') || 'null'); } catch (invalidNormal) { /* Independent preferences remain usable with a damaged ordinary save. */ } }
                 this.preferences.waterWarning = !prefs || prefs.waterWarning !== false;
                 this.preferences.dark = prefs ? !!prefs.dark : !!(normal && normal.config && normal.config.lightsOff);
                 this.preferences.font = R.clamp(Number(prefs ? prefs.font : localStorage.getItem('offlineFontSize')) || 16, 16, 22);
@@ -1033,7 +1142,7 @@
             var menu = button('ui.menu', { type: 'modal', kind: 'menu' }); menu.id = 'rogue-menu'; nav.appendChild(menu);
             footer.appendChild(nav); frame.appendChild(footer); root.appendChild(frame);
             overlay = el('div', 'rogue-overlay'); overlay.hidden = true; root.appendChild(overlay); document.body.appendChild(root);
-            root.addEventListener('click', clicked); root.addEventListener('toggle', toggled, true); root.addEventListener('submit', submitted); document.addEventListener('keydown', keyed);
+            root.addEventListener('click', clicked); root.addEventListener('toggle', toggled, true); root.addEventListener('submit', submitted); document.addEventListener('keydown', keyed); window.addEventListener('resize', resized);
             this.render();
         },
         /** Repaints current values while preserving scroll, focus and open management sections. */
@@ -1049,8 +1158,9 @@
             var nextView = !save ? 'slots' : running ? 'run' : 'ending';
             if (root.getAttribute('data-view') !== nextView) { scrollY = 0; }
             root.setAttribute('data-tab', activeTab);
+            root.setAttribute('data-camp-view', campView);
             root.setAttribute('data-view', nextView);
-            var campTitles = { supplies: 'ui.supplies', stores: 'ui.shared', workers: 'ui.workers', buildings: 'ui.buildings', recipes: 'ui.recipes', research: 'ui.research', expansion: 'ui.campExpansion' };
+            var campTitles = { supplies: 'ui.supplies', stores: 'ui.shared', tempStores: 'ui.tempStorage', workers: 'ui.workers', buildings: 'ui.buildings', recipes: 'ui.recipes', research: 'ui.research', expansion: 'ui.campExpansion' };
             document.getElementById('rogue-page-title').textContent = R.t(!save ? 'ui.slots' : running ? activeTab === 'camp' && campView !== 'overview' ? campTitles[campView] : 'ui.' + activeTab : 'ui.ended');
             document.getElementById('rogue-layout').hidden = !running;
             document.getElementById('rogue-launcher').hidden = !!save;
@@ -1069,7 +1179,7 @@
             if (save && !modal && save.flags.wildEvent) { modal = 'event'; }
             if (save && !modal && save.flags.outpost) { modal = 'outpost'; }
             var previouslyOpen = !overlay.hidden;
-            renderModal(); this.renderNotice(); restoreFocus(token);
+            renderModal(); this.renderNotice(); fitMap(); restoreFocus(token);
             modalScroll = null;
             if (modal && (!previouslyOpen || !overlay.contains(document.activeElement))) { focusDialog(); }
             if (Math.abs(window.pageYOffset - scrollY) > 1) { window.scrollTo(0, scrollY); }
@@ -1125,6 +1235,7 @@
         /** Removes all Rogue interface nodes and event handlers on shutdown. */
         unmount: function () {
             document.removeEventListener('keydown', keyed);
+            window.removeEventListener('resize', resized);
             if (root) { root.removeEventListener('click', clicked); root.removeEventListener('toggle', toggled, true); root.removeEventListener('submit', submitted); root.parentNode.removeChild(root); }
             root = null; panels = {}; clearModals(); selected = null; noticeKey = null; activeTab = 'map';
             document.body.classList.remove('rogue-modal-open'); document.documentElement.classList.remove('rogue-dark');

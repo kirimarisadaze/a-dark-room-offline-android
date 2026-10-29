@@ -30,6 +30,7 @@
         TEMP_REST_TURNS: 5,
         TEMP_REST_HP: 4,
         TEMP_REST_SUPPLY: 2,
+        TEMP_STORAGE: 80,
         CLUE_RADIUS: 14,
         MENU_PAGE_SIZE: 4,
         DROP_BUNDLE: 10,

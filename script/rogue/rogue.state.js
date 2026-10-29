@@ -150,7 +150,7 @@
             if (action.type === 'move') { result = R.map.move(save, action.dir); }
             else if (action.type === 'event') { result = R.wild.act(save, action); }
             else if (action.type === 'outpost') { result = R.outpost.act(save, action); }
-            else if (['equip', 'unequip', 'transfer', 'allyUse', 'dismiss', 'drop'].indexOf(action.type) >= 0) { result = R.party.act(save, action); }
+            else if (['equip', 'unequip', 'transfer', 'stowMaterials', 'allyUse', 'dismiss', 'drop'].indexOf(action.type) >= 0) { result = R.party.act(save, action); }
             else if (action.type === 'combat') { result = R.combat.act(save.flags.combat, action.action); }
             else if (action.type === 'enter') { result = R.dungeon.enter(save, action.site); }
             else if (action.type === 'descend') { result = R.dungeon.descend(save); }
@@ -171,7 +171,7 @@
             for (i = 0; i < count; i++) {
                 if (save.over && !save.flags.abyss) { break; }
                 save.turn += 1;
-                if (save.flags.tempCamp && save.flags.tempCamp.expiresAt <= save.turn) { delete save.flags.tempCamp; R.log(save, 'log.tempExpired'); }
+                if (save.flags.tempCamp && !save.flags.abyss && save.flags.tempCamp.expiresAt <= save.turn) { R.party.leaveTemp(save); R.log(save, 'log.tempExpired'); }
                 if (!save.flags.abyss) { R.settle.settleCamps(save); }
                 this.tickPartyEffects(save);
                 save.day = Math.floor(save.turn / N.TURNS_PER_DAY);

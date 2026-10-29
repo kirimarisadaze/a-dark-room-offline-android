@@ -106,6 +106,14 @@
                 if (save.flags.tempCamp) {
                     var temp = save.flags.tempCamp;
                     if (!save.regions[temp.region] || !position(temp, N.REGION_SIZE) || !number(temp.expiresAt) || temp.expiresAt % 1 || temp.expiresAt < 0) { return false; }
+                    if (temp.stores !== undefined && !inventory(temp.stores)) { return false; }
+                }
+                if (save.flags.caches !== undefined) {
+                    if (!Array.isArray(save.flags.caches)) { return false; }
+                    for (i = 0; i < save.flags.caches.length; i++) {
+                        var cache = save.flags.caches[i];
+                        if (!cache || !save.regions[cache.region] || !position(cache, N.REGION_SIZE) || !inventory(cache.stores)) { return false; }
+                    }
                 }
                 if (save.flags.insideDungeon) {
                     var dungeon = save.dungeons[save.flags.insideDungeon];
