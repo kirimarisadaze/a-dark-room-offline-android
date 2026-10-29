@@ -3,11 +3,11 @@
 
 [A Dark Room](https://github.com/doublespeakgames/adarkroom) 的非官方简体中文 Android 移植。游戏与资源随 APK 提供，安装后可断网游玩，无账号、服务器或首次资源下载。
 
-**[下载 APK · v1.3.2](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2.apk)** · [最新 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+**[下载 APK · v1.3.2](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2.apk)** · [1.3.3 测试构建](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/workflows/android-build.yml) · [最新 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
 ## 开始游玩
 
-- **要求**：Android **6.0+**，Android System WebView **80+**；当前版本 **1.3.2 / 21**，APK 约 **5.5 MiB**。
+- **要求**：Android **6.0+**，Android System WebView **80+**；正式版 **1.3.2 / 21**，测试构建 **1.3.3 / 22**，APK 约 **5.5 MiB**。
 - **普通模式**：原作故事与移动端操作，支持日夜主题、字号、探索方向键和地标图鉴。
 - **生存模式「无光之地」**：随机九区、据点经营、同行者、回合战斗与地牢，制造飞船通关后解锁深渊。
 - **存档**：每种模式各 3 个独立栏位，自动保存，支持文件备份与恢复；同签名发布包可覆盖升级。
