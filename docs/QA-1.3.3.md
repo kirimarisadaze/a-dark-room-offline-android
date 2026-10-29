@@ -1,7 +1,7 @@
 <!-- SPDX-License-Identifier: MPL-2.0 -->
-# 1.3.3 测试构建与集成验证
+# 1.3.3 构建、发布与集成验证
 
-2026-10-29，PR #2 的新手目标与补给反馈整合到自动打包主线。应用候选版本为 **1.3.3 / 22**，保持原包名与原签名；APK、精确提交源码及校验文件从 [Android APK Actions](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/workflows/android-build.yml) 下载。正式 Latest 仍为 1.3.2，本次没有创建或覆盖正式 Release。
+2026-10-29，PR #2 的新手目标与补给反馈整合到自动打包主线。应用版本为 **1.3.3 / 22**，保持原包名与原签名；[Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.3) 提供 APK、最终标签对应的完整源码 ZIP 和各自 SHA-256。GitHub 另提供 Source code ZIP / tar.gz，历史版本附件保留。
 
 ## 已执行的组合回归
 
@@ -32,6 +32,8 @@ PR #2 最新提交的云端回归 [40886440046](https://github.com/kirimarisadaz
 
 ## 构建与验证边界
 
-本次候选版本按 PR 审核后合入，云端依次执行离线回归、原证书核验、现有 Android 构建、签名 / 包名 / 版本 / 对齐 / 无联网权限与资源校验，再上传构建产物。实际运行、文件哈希和下载复核结果记录在版本准备 PR；不能将此流程说明当作尚未执行的构建结果。
+主线 [Actions 40888195897](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/40888195897) 已实际通过离线回归、原证书核验、Android 构建、签名清理与产物上传。已下载五个产物，核对原证书、单 signer、v1 / v2、包名 / 版本 / 对齐 / 无联网权限、170 资源字节、每个源码 Git blob 和两个哈希；私下扫描日志与解压产物未发现实际凭证。
 
-浏览器布局图是自动化截图，**未做 Android 真机安装、系统文件选择器或 WebView 80 实机验证**。测试 APK 使用 versionCode 22，可覆盖原签名的 1.3.2 / 21；建议体验前备份存档。Actions 产物保留 30 天，长期正式版本仍从 Releases 获取。
+APK 来自提交 `b38d3fea36552f16bcf0768a8de2aebae48e9224`，5,785,253 字节，SHA-256 为 `05c79c516aaa7db9b356de13deb86a9f2105c7c107a201efc8436873c5c190c1`。后续发布准备仅改文档与元数据，需复核全部 APK 构建输入一致，再从最终发布标签重新生成源码 ZIP；正式附件不能复用旧提交的源码包。最终标签、源码哈希及匿名下载验收记录在发布 PR。
+
+浏览器布局图是自动化截图，**未做 Android 真机安装、系统文件选择器或 WebView 80 实机验证**。APK 使用 versionCode 22，可覆盖原签名的 1.3.2 / 21；建议体验前备份存档。Actions 产物保留 30 天，长期正式版本从 Releases 获取。
