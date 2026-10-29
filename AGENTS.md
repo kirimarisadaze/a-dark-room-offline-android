@@ -15,6 +15,7 @@
 1. `git status` + `git log -5`，确认已有进度，**不要重写已经做完的东西**
 2. 读一遍 AI_README.md 的「技术、许可与存档边界」与「验证要求」两节
 3. 需求有歧义时，先给方案再动手；不要按自己的理解自由发挥
+4. 多人或多个 AI 按 [协作流程](docs/AI_COLLABORATION.md) 分任务，在独立目录与 `codex/` 分支开发，经 PR 测试和独立审核后合入，由发布负责人统一发包
 
 ---
 
@@ -151,6 +152,9 @@ node scripts/test-rogue-storage.mjs
 | 想知道什么 | 看哪里 |
 |---|---|
 | 世界观、历史决策、已确认规则 | `AI_README.md` |
+| 任务分工、分支、PR、审核与交接 | [AI 多人协作流程](docs/AI_COLLABORATION.md) |
+| 换电脑、新 AI 窗口与恢复打包 | [新环境接手](docs/HANDOFF.md) |
+| GitHub 云端签名打包与产物下载 | [自动打包](docs/CI.md) |
 | 玩法细节、命令清单、测试范围 | `docs/ROGUELIKE.md` |
 | 发布与签名流程 | `docs/RELEASING.md` |
 | 当前版本与变更 | `CHANGELOG.md` |

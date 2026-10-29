@@ -49,8 +49,10 @@ async function home(page) {
   await page.goto(base + 'home.html');
   await page.waitForFunction(() => window.OfflineHome);
 }
+/** Waits for the normal room and its saved theme stylesheet to finish loading. */
 async function ready(page) {
-  await page.waitForFunction(() => window.OfflineGame && window.State && window.Room && Engine.activeModule === Room);
+  await page.waitForFunction(() => window.OfflineGame && window.State && window.Room && Engine.activeModule === Room &&
+    Engine.isLightsOff() === !!$SM.get('config.lightsOff'));
 }
 async function storage(page) {
   return page.evaluate(() => JSON.stringify(Object.fromEntries(Object.keys(localStorage).sort().map(key => [key, localStorage.getItem(key)]))));
