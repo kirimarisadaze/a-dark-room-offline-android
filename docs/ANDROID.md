@@ -5,7 +5,7 @@
 
 以下命令均在仓库根目录执行。应用包名为 `org.adarkroom.offline`；版本以 [AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml) 为准，发布包及历史索引见 [Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 和 [版本归档](RELEASES.md)。
 
-换电脑或新 AI 窗口先读 [新环境接手](HANDOFF.md)，重新核实工具、任务进度与发布身份；正式构建前恢复原签名。
+换电脑或新 AI 窗口先读 [新环境接手](HANDOFF.md)。可使用 [GitHub 自动打包](CI.md) 在云端构建并下载原签名 APK；下文介绍本机构建，需要重新准备工具并恢复原签名。
 
 [离线实现](#完全离线如何实现) · [源码构建](#从源码构建) · [测试与验证](#测试与验证范围) · [源码归档](#版本与源码归档) · [目录结构](#目录结构)
 

@@ -2,7 +2,7 @@
 
 本项目为纯 AI 项目，需求和体验反馈由用户提供。新增 Android 封装、适配、文档及测试代码按 MPL-2.0 提供，上游署名与许可必须保留。
 
-换电脑或新 AI 窗口先按 [新环境接手](HANDOFF.md) 恢复工具、任务上下文和原签名。当前未配置 GitHub Actions 自动签名构建；合并 PR 不会自动产出 APK。
+换电脑或新 AI 窗口先读 [新环境接手](HANDOFF.md)。[GitHub 自动打包](CI.md) 可在主线更新或手动触发后生成原签名 APK、源码 ZIP 和校验文件；正式 Release 仍按以下流程独立发布。本机构建时才需在该目录恢复私有签名。
 
 ## 新版本流程
 
@@ -12,7 +12,7 @@
 
 1. 从最新 `origin/main` 建立 `codex/release-<version>` 分支，整合已合入任务的变更说明并准备版本。Android 版本以 `android/app/src/main/AndroidManifest.xml` 的 `versionName` 为准；每次发布递增 `versionCode`。不要直接修改生成的 `assets/game/`。
 2. 在 `CHANGELOG.md` 写明行为变化、修复与验证范围。涉及界面或逻辑的改动，运行相应离线回归；原生加载变更还需要验证原生拦截器与实际启动行为。
-3. 使用私下保存的 `.local/signing/` 构建；没有原密钥时不能生成可覆盖旧 Release 的 APK。密钥和密码不得写入 Git、Issue 或 Release。
+3. 可从已验证成功的主线 Actions 运行下载原签名 APK；本机构建则使用私下保存的 `.local/signing/`。没有原密钥或受控云端签名时，不能生成可覆盖旧 Release 的 APK。密钥和密码不得写入 Git、Issue 或 Release。
 4. 运行构建与 `-VerifyOnly`，核对版本、包名、签名、对齐、无联网权限。复制为带版本号的 APK，生成 SHA-256，保留原始包。
 5. 更新 `README.md` 当前版本与下载 / 校验链接、`docs/PLAYING.md` 的安装包版本与 SHA-256，以及 `docs/releases.json` / `docs/RELEASES.md`。构建与测试说明统一维护在 `docs/ANDROID.md`。在提交前检查文件清单，排除 `.local/`、工具、设备数据和个人资料。
 6. 将版本准备提交为 PR，经过独立审核合入后，以实际合并提交复核或重建 APK，确认版本与全部资源对应，再在该提交创建 `v<version>` 标签。合入后若源码再变更，重新走 PR 与受影响检查；每一版保留完整工程，不再使用早期归档分支的部分源码模式。
@@ -46,6 +46,8 @@ gh release create v1.0.15 --verify-tag --title "小黑屋 · 离线 v1.0.15" --n
 ```
 
 上述示例假定版本化文件、校验值和说明已经准备好，不会自动修改 Android 清单或替你处理签名。
+
+使用云端 APK 时记录对应 run ID、提交和 `build-info.json`，逐项核对下载哈希与原证书。只更新发布文档后复用该 APK，须先确认最终提交的全部 APK 构建输入没有变化；最终源码 ZIP 从实际标签提交重新生成。Actions 产物中的旧提交源码 ZIP 不能直接冒充后续发布提交的源码。
 
 ## 发布说明约定
 
