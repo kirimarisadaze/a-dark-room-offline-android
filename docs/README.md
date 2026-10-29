@@ -39,6 +39,7 @@
 | 窄屏、大字与主题历史验证 | [LAYOUT_VALIDATION.md](../android/LAYOUT_VALIDATION.md) |
 | 原生资源拦截与真机验证限制 | [NATIVE_VALIDATION.md](../android/NATIVE_VALIDATION.md) |
 | 1.3.2 撤离、整备与返回专项 | [QA-1.3.2.md](QA-1.3.2.md) |
+| 新手目标、补给反馈与后续改进 | [需求核查](NEWCOMER_EXPERIENCE.md) · [专项验证](QA-SURVIVAL-ONBOARDING.md) |
 
 验证记录按各自版本和范围阅读；浏览器自动化截图与模型通关不等同于 Android 真机实测。
 
