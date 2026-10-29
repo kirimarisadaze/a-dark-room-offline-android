@@ -82,7 +82,7 @@ async function exitHome(page) {
     const pause = page.getByRole('button', { name: '暂停与菜单', exact: true });
     if (await pause.isVisible()) await pause.click();
     else await page.locator('#rogue-menu').click();
-    await page.getByRole('button', { name: '返回主页面', exact: true }).click();
+    await page.getByRole('button', { name: '暂离旅程', exact: true }).click();
     await page.getByRole('button', { name: '确认', exact: true }).click();
 }
 /** Records an acceptance result. */
@@ -141,7 +141,7 @@ try {
     await page.locator('[data-focus="craft:spear"]').click();
     assert.equal(await page.evaluate(() => Rogue.state.current.party.weapon), 'spear');
     await page.locator('[data-focus="camp-return"]').click();
-    await page.getByRole('button', { name: '补充水与口粮', exact: true }).click();
+    await page.getByRole('button', { name: '整备水与口粮', exact: true }).click();
     await page.locator('#rogue-tab-map').click();
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '向西', exact: true }).click();
     await page.getByRole('button', { name: '采集', exact: true }).click();
@@ -157,11 +157,11 @@ try {
     assert(lastTile.y + lastTile.height <= campBottom.y, 'all camp categories should fit on a standard phone');
     await page.locator('#rogue-tab-map').click();
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '向东', exact: true }).click();
-    await page.getByRole('button', { name: '补充水与口粮', exact: true }).click();
+    await page.getByRole('button', { name: '整备水与口粮', exact: true }).click();
     for (let i = 0; i < 5; i++) await page.getByRole('button', { name: '向北', exact: true }).click();
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: '采集', exact: true }).click();
     for (let i = 0; i < 5; i++) await page.getByRole('button', { name: '向南', exact: true }).click();
-    await page.getByRole('button', { name: '补充水与口粮', exact: true }).click();
+    await page.getByRole('button', { name: '整备水与口粮', exact: true }).click();
     await page.locator('#rogue-tab-camp').click();
     await page.locator('[data-focus="camp-view:recipes"]').click();
     await page.locator('[data-focus="filter:tools"]').click();
@@ -235,7 +235,7 @@ try {
     assert.equal(await page.locator('.rogue-dialog-footer .rogue-return').innerText(), '← 返回菜单');
     await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
     assert.equal(await page.locator('#rogue-dialog-title').innerText(), '行囊与设置');
-    await page.getByRole('button', { name: '返回主页面', exact: true }).click();
+    await page.getByRole('button', { name: '暂离旅程', exact: true }).click();
     await page.getByRole('button', { name: '取消', exact: true }).click();
     assert.equal(await page.locator('#rogue-dialog-title').innerText(), '行囊与设置');
     await page.keyboard.press('Escape');

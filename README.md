@@ -4,13 +4,13 @@
 
 基于 [doublespeakgames/adarkroom](https://github.com/doublespeakgames/adarkroom) 的非官方安卓移植。游戏和资源全部装在 APK 中，固定简体中文，安装后可直接断网游玩。
 
-[下载最新版 APK（1.3.1）](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.3.1.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+[下载最新版 APK（1.3.2）](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest/download/a-dark-room-offline-1.3.2.apk) · [全部版本](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
-**1.3.1 储物与探索界面修复**：仓库同页显示数量与存入 / 取出，临时营地可独立存放 80 份物资，失效后仍可返回原址取回。高屏地图按空间放大，附近、线索与目标可切换简短预览；据点子页简化日志和重复返回，当前补给与备用物资明确区分。保留 1.3.0 的群系、荒野际遇、同行者与封锁据点。玩法与验证范围见 [生存模式说明](docs/ROGUELIKE.md)。
+**1.3.2 撤离与整备修复**：地牢缺补给时可确认受伤撤离，避免被补给门槛困住；无实际变化的整备不耗回合，也不能重复将水井备用水刷入仓库。菜单区分暂离与返回，说明自动保存，建造、制造与研究按钮增加明确的无障碍名称。保留独立临时储物、群系、同行者与封锁据点。玩法与验证范围见 [生存模式说明](docs/ROGUELIKE.md)。
 
 | 项目 | 说明 |
 | --- | --- |
-| 当前版本 | **1.3.1**，versionCode **20** |
+| 当前版本 | **1.3.2**，versionCode **21** |
 | 应用名称 / 包名 | 小黑屋 · 离线 / `org.adarkroom.offline` |
 | 运行要求 | Android **6.0+**，Android System WebView **80+** |
 | 语言 | 安装包仅含简体中文 |
@@ -43,16 +43,16 @@ AI 继续维护前请先阅读 [AI_README.md](AI_README.md)，其中记录界面
 
 本项目发布的各版包名与签名一致，可直接覆盖升级并保留本机存档。升级前建议先导出一份存档。其他作者的安卓版可能使用不同的包名、签名和存档位置，需要先导出兼容的存档代码再导入。
 
-最新版 **1.3.1** 安装包约 **5.5 MiB**；SHA-256：
+最新版 **1.3.2** 安装包约 **5.5 MiB**；SHA-256：
 
 ```text
-f521bf8a02b9e87fdeb58e61f521de2f70e8a3f8335ecdf1e4d2fc44c8c11b2c
+71d7b40403a6471e4ae4404375820cd9e13851f9ef8f89bec1bf1c27f4aff076
 ```
 
 Release 附有同名 `.sha256`。Windows 可用以下命令检查下载文件：
 
 ```powershell
-Get-FileHash .\a-dark-room-offline-1.3.1.apk -Algorithm SHA256
+Get-FileHash .\a-dark-room-offline-1.3.2.apk -Algorithm SHA256
 ```
 
 ## 功能与操作
@@ -273,6 +273,7 @@ node scripts/test-save-slots.mjs
 node scripts/test-rogue.mjs --playthrough
 node scripts/test-rogue-survival.mjs
 node scripts/test-rogue-storage.mjs
+node scripts/test-rogue-issues.mjs
 node scripts/test-rogue-storage-ui.mjs
 node scripts/test-rogue-survival-ui.mjs
 node scripts/test-rogue-playthrough-ui.mjs
@@ -288,13 +289,13 @@ node scripts/test-rogue-expansion-ui.mjs
 - [布局验证记录](android/LAYOUT_VALIDATION.md)
 - [原生资源拦截器验证与限制](android/NATIVE_VALIDATION.md)
 
-所有已归档 APK 已检查签名、包名、版本号及无联网权限。1.0.4 的真实原生拦截器在 Android 7.0 ARM 模拟器通过 11 项检查；模拟器完整 WebView 图形运行受到 GPU / EGL 初始化故障限制。生存模式本轮分别通过模型行动通关和真实按钮完整通关：后者从新局点击 4651 次，经过九区域、13 处地牢、74 场战斗，在第 4088 回合完成飞船结局，并深入深渊第二层后撤离，未用援助或修改状态，两个普通存档字符串保持不变。8 组生存专项和新增 5 组储物场景验证装备、商人、据点、容量和原址取回；新增储物 UI 回归覆盖十四组日夜布局、高屏预览和大字降级，另有原界面、备份恢复、嵌套返回、主页和多存档回归。**浏览器测试不等同于真机测试；本次 1.3.1 尚无真机运行验证，真人 3–8 小时时长尚未确认。**
+所有已归档 APK 已检查签名、包名、版本号及无联网权限。历史原生拦截器与模拟器限制见上述原生验证记录。本轮模型合法行动通关含深渊共 5345 回合；真实按钮从新局执行 4073 次有效行动、4619 次点击，经过九区域、13 处地牢和 74 场战斗，第 4084 回合完成飞船结局，再到达深渊第二层、撤离、刷新并确认返回主页，未注入状态或使用援助，两个普通存档字符串不变。另通过 960 组紧急撤离边界、七组问题专项、十组新增日夜布局，以及既有核心、生存、储物、UI、主页与多存档回归；详情见 [1.3.2 核验记录](docs/QA-1.3.2.md)。**本版未做 Android 真机安装、系统文件选择器和 WebView 实机验证，真人通关时长与长期平衡仍未确认。**
 
 ## 版本与源码归档
 
-[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.3.1 共 20 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
+[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.3.2 共 21 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](docs/RELEASES.md)，机器可读清单见 [releases.json](docs/releases.json)。
 
-- `v1.3.1`：当前发布版的完整可构建源码，包括独立生存模式、界面与测试；Release 附完整源码 ZIP。`v1.0.12` 起各发布版均保留完整工程。
+- `v1.3.2`：当前发布版的完整可构建源码，包括独立生存模式、界面与测试；Release 附完整源码 ZIP。`v1.0.12` 起各发布版均保留完整工程。
 - `release-archives` 与 `v1.0.0`–`v1.0.11`：从对应 APK 提取的实际网页源码与资源，以及归档说明、许可和校验信息。未保存的历史原生工程不会用新版源码冒充。
 - `1.0.0`、`1.0.1`：从保留的原始构建产物恢复，并用原密钥重新签名；不是当时分发 APK 的逐字节备份。
 - `1.0.0`–`1.0.3`：存在已知加载问题，标为历史测试版 / Pre-release，建议安装最新版。

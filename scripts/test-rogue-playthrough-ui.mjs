@@ -113,9 +113,10 @@ async function input(action) {
     const type = action.type;
     if (['move', 'wait', 'gather', 'occupy', 'clear', 'enter', 'extract', 'descend', 'restock', 'launch'].includes(type)) {
         await tab('map');
-        const token = type === 'launch' ? 'confirmLaunch:' : type + ':' + (action.dir || action.site || '');
+        const emergency = type === 'extract' && await page.locator('#rogue-panel-map [data-focus="confirmExtract:"]').count() > 0;
+        const token = type === 'launch' ? 'confirmLaunch:' : emergency ? 'confirmExtract:' : type + ':' + (action.dir || action.site || '');
         await click(page.locator('#rogue-panel-map [data-focus="' + token + '"]'));
-        if (type === 'launch') await click(page.getByRole('button', { name: '确认', exact: true }));
+        if (type === 'launch' || emergency) await click(page.getByRole('button', { name: '确认', exact: true }));
         if (type === 'enter') { dungeons++; await capture('dungeon-' + dungeons + '-entrance'); }
     } else if (type === 'forage') {
         await camp('overview'); await click(page.locator('[data-focus="forage:"]'));
@@ -190,6 +191,8 @@ async function fight() {
 }
 /** Completes one intentional UI action and any encounter that it triggers. */
 async function act(action) { if (expedition.flags.wildEvent) await input({ type: 'event', op: 'leave' }); await input(action); await fight(); if (expedition.flags.wildEvent) await input({ type: 'event', op: 'leave' }); }
+/** Refills supplies through the public control only when it offers a useful action. */
+async function resupply() { if (G.settle.restockPlan(expedition)?.changed) await act({ type: 'restock' }); }
 /** Captures actual expedition UI and checks fixed title and navigation bounds. */
 async function capture(name) {
     const layout = await page.evaluate(() => {
@@ -242,7 +245,7 @@ try {
     async function homeAndSupply() {
         const camp = expedition.camps.find(camp => camp.region === expedition.party.region);
         assert(camp, 'local camp required'); await walkTo(camp.x, camp.y);
-        await act({ type: 'restock' });
+        await resupply();
         const here = G.atCamp(expedition);
         for (let i = 0; i < 8 && expedition.party.companions.length < 2; i++) {
             if (here.pop <= 1) { await act({ type: 'night' }); continue; }
@@ -302,11 +305,11 @@ try {
     async function craft(id) { await act({ type: 'craft', item: id }); }
     for (let i = 0; i < 35; i++) await act({ type: 'forage' });
     for (const building of ['garden', 'garden', 'garden', 'well', 'workshop']) await act({ type: 'build', building });
-    await craft('spear'); await act({ type: 'fire' }); await act({ type: 'restock' });
+    await craft('spear'); await act({ type: 'fire' }); await resupply();
     await gatherResource('hunting', 5); await gatherResource('hunting', 5);
-    await craft('coat'); await craft('waterskin'); await act({ type: 'restock' });
+    await craft('coat'); await craft('waterskin'); await resupply();
     await gatherResource('hunting', 5); await gatherResource('hunting', 3);
-    await craft('pack'); await act({ type: 'restock' });
+    await craft('pack'); await resupply();
     await gatherResource('hunting', 4);
     await gatherResource('hunting', 2);
     for (let i = 0; i < 5 && expedition.camps[0].pop < 4; i++) await act({ type: 'night' });
@@ -410,18 +413,18 @@ try {
             await act({ type: 'extract' }); await homeAndSupply();
         }
         if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && (G.stores(expedition).steel || 0) < 4 && G.affords(expedition, G.CONTENT.items.steel.cost)) { await craft('steel'); }
-        if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && G.affords(expedition, G.CONTENT.items.canteen.cost)) { await craft('canteen'); await act({ type: 'restock' }); }
+        if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && G.affords(expedition, G.CONTENT.items.canteen.cost)) { await craft('canteen'); await resupply(); }
         if (currentTier === 5) await gatherResource('sulphur', 4);
         while ((expedition.party.bag.medicine || 0) < 8 && G.affords(expedition, G.CONTENT.items.medicine.cost)) await craft('medicine');
         if (currentTier === 7) {
             await gatherResource('crystal', 4);
             while ((G.stores(expedition).steel || 0) < 18) await craft('steel');
-            await craft('suit'); await act({ type: 'restock' });
+            await craft('suit'); await resupply();
         }
         if (currentTier >= 7 && expedition.blueprints.includes('railgun') && !expedition.party.bag.railgun) {
             while ((G.stores(expedition).crystal || 0) < 8) await gatherResource('crystal', 3);
             while ((G.stores(expedition).steel || 0) < 18) await craft('steel');
-            await craft('railgun'); await act({ type: 'restock' });
+            await craft('railgun'); await resupply();
         }
         await capture('region-' + currentTier);
         console.log('UI PLAY tier=' + currentTier + ' turn=' + expedition.turn + ' hp=' + expedition.party.hp + ' blueprints=' + expedition.blueprints.join(','));

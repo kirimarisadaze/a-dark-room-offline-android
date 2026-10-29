@@ -45,6 +45,17 @@
     function format(value) { return value >= 10 ? String(Math.floor(value)) : String(Math.floor(value * 10) / 10); }
     /** Keeps quarter-unit biome water costs visible without rounding down the remaining supply. */
     function waterText(value) { return String(Math.round(value * 100) / 100); }
+    /** Shows resupply only when it can change carried supplies or stored materials. */
+    function restockButton(save, compact, available) {
+        var plan = available === false ? null : R.settle.restockPlan(save);
+        var idle = plan && !plan.changed;
+        var ready = idle && save.party.water >= R.waterMax(save) && save.party.food >= N.SUPPLY_FOOD && (save.party.bag.water || 0) >= (save.party.bag.pack ? N.TRAVEL_RESERVE : N.TRAVEL_RESERVE_SMALL) && (save.party.bag.food || 0) >= (save.party.bag.pack ? N.FOOD_RESERVE_PACK : N.FOOD_RESERVE);
+        var key = idle ? ready ? 'ui.restockReady' : 'ui.restockEmpty' : compact ? 'ui.restockShort' : 'ui.restock';
+        var node = button(key, { type: 'restock' }, null, !plan || !plan.changed);
+        node.setAttribute('aria-label', R.t(idle ? key : 'ui.restock'));
+        node.title = R.t(!plan ? 'ui.awayCamp' : idle && !ready ? 'ui.restockBlockedHint' : 'ui.restockHint');
+        return node;
+    }
     /** Builds a localized resource-cost sentence. */
     function costText(cost) {
         var values = [];
@@ -99,7 +110,9 @@
         var available = Object.keys(shortfall).length === 0;
         copy.appendChild(el('p', 'rogue-cost' + (available ? '' : ' rogue-shortfall'), R.t(available ? 'ui.cost' : 'ui.need', { cost: costText(available ? cost : shortfall) })));
         row.appendChild(copy);
-        row.appendChild(button(action.type === 'craft' ? 'ui.craftOne' : action.type === 'research' ? 'ui.researchAction' : action.type === 'fire' ? 'ui.fireUpgrade' : 'ui.build', action, null, disabled || !available));
+        var actionKey = action.type === 'craft' ? 'ui.craftOne' : action.type === 'research' ? 'ui.researchAction' : action.type === 'fire' ? 'ui.fireUpgrade' : 'ui.build';
+        var control = button(actionKey, action, null, disabled || !available);
+        control.setAttribute('aria-label', R.t('ui.namedAction', { action: R.t(actionKey), name: R.t(key, values) })); row.appendChild(control);
         parent.appendChild(row);
     }
     /** Returns the next concrete goal for the current run. */
@@ -174,10 +187,12 @@
         if (save.flags.insideDungeon) {
             var dungeonActions = el('div', 'rogue-action-grid');
             var dungeon = save.dungeons[save.flags.insideDungeon];
-            dungeonActions.appendChild(button('ui.extract', { type: 'extract' }, null, !save.flags.abyss && (save.party.water < dungeon.depth || save.party.food < dungeon.depth)));
+            var returnCost = R.dungeon.returnCost(save);
+            dungeonActions.appendChild(button('ui.extract', { type: returnCost.shortfall ? 'confirmExtract' : 'extract' }, null, !!save.flags.combat));
             if (dungeon.afterClear === 'infinite') { dungeonActions.appendChild(button('ui.descend', { type: 'descend' }, null, !dungeon.floor.cleared)); }
             panel.appendChild(dungeonActions);
-            panel.appendChild(el('p', 'rogue-note', R.t(save.flags.abyss ? 'ui.abyssHint' : 'ui.extractCost', { n: dungeon.depth })));
+            panel.appendChild(el('p', 'rogue-note', R.t(save.flags.abyss ? 'ui.abyssHint' : 'ui.extractCost', returnCost)));
+            if (returnCost.shortfall) { panel.appendChild(el('p', 'rogue-note rogue-shortfall', R.t('ui.extractEmergency', { n: returnCost.damage }))); }
         } else {
             var shortcuts = el('nav', 'rogue-explore-shortcuts');
             shortcuts.setAttribute('aria-label', R.t('ui.exploreNotes'));
@@ -252,7 +267,7 @@
         }
         if (camp) {
             box.appendChild(el('p', 'rogue-context-title', R.t('ui.campName', { n: camp.id + 1 })));
-            box.appendChild(button('ui.restock', { type: 'restock' }));
+            box.appendChild(restockButton(save, false));
             box.appendChild(button('ui.storageOpen', { type: 'campView', view: 'stores' })); return;
         }
         if (R.atTemp(save)) {
@@ -369,7 +384,7 @@
         if (!here) { panel.appendChild(el('p', 'rogue-note', R.t('ui.awayCamp'))); }
         var actions = el('div', 'rogue-action-grid rogue-camp-actions');
         var forage = button('ui.forageShort', { type: 'forage' }, null, !here); forage.setAttribute('aria-label', R.t('ui.forage')); actions.appendChild(forage);
-        var refill = button('ui.restockShort', { type: 'restock' }, null, !here); refill.setAttribute('aria-label', R.t('ui.restock')); actions.appendChild(refill);
+        actions.appendChild(restockButton(save, true, here));
         var rest = button('ui.restShort', { type: 'campView', view: 'supplies' }, null, false, 'camp-view:supplies'); rest.setAttribute('aria-label', R.t('ui.supplies')); actions.appendChild(rest); panel.appendChild(actions);
         var store = R.stores(save); var resources = 0; var sites = 0; var built = 0; var researched = 0; var key; var i;
         for (key in store) { if (store[key] > 0) { resources += 1; } }
@@ -390,8 +405,9 @@
         if (campView === 'supplies') {
             panel.appendChild(el('p', 'rogue-note', R.t(here ? 'ui.inCamp' : 'ui.awayCamp')));
             var actions = el('div', 'rogue-action-grid');
-            actions.appendChild(button('ui.restock', { type: 'restock' }, null, !here)); actions.appendChild(button('ui.deposit', { type: 'deposit' }, null, !here));
+            actions.appendChild(restockButton(save, false, here)); actions.appendChild(button('ui.deposit', { type: 'deposit' }, null, !here));
             actions.appendChild(button('ui.night', { type: 'night' }, null, !here)); panel.appendChild(actions); restPreview(panel, save);
+            panel.appendChild(el('p', 'rogue-note', R.t('ui.restockHint')));
             panel.appendChild(el('p', 'rogue-note', R.t('ui.reserveHint')));
             if (save.flags.trader) { panel.appendChild(button('ui.trade', { type: 'trade' }, null, !here || !R.affords(save, N.TRADE_COST))); }
         } else if (campView === 'stores' || campView === 'tempStores') {
@@ -540,7 +556,7 @@
         }
         if (member === save.party) {
             var supply = el('div', 'rogue-storage-supply'); supply.appendChild(el('p', 'rogue-note', R.t('ui.activeSupplies', { water: waterText(save.party.water), max: R.waterMax(save), food: waterText(save.party.food) })));
-            if (scope === 'store') { supply.appendChild(button('ui.restockShort', { type: 'restock' }, null, !available)); }
+            if (scope === 'store') { supply.appendChild(restockButton(save, true, available)); }
             parent.appendChild(supply);
         }
         var controls = el('div', 'rogue-storage-controls'); var quantities = [1, 10, 'all']; var labels = ['ui.quantityOne', 'ui.quantityTen', 'ui.quantityAll'];
@@ -819,7 +835,7 @@
             node.appendChild(el('p', 'rogue-note', R.t('ui.knownSites', { n: found }))); visited.appendChild(node);
         }
     }
-    /** Renders appearance, pacing and explicit save/navigation controls. */
+    /** Renders appearance, pacing, automatic-save information and session navigation. */
     function renderMenu(content, save) {
         var appearance = section(content, 'ui.theme');
         var theme = el('div', 'rogue-segment');
@@ -839,7 +855,7 @@
             for (i = 0; i < labels.length; i++) { var choose = button(labels[i], { type: 'speed', speed: i + 1 }); choose.setAttribute('aria-pressed', save.speed === i + 1 ? 'true' : 'false'); speeds.appendChild(choose); }
             speed.appendChild(speeds); speed.appendChild(el('p', 'rogue-note', R.t('ui.speedHint')));
             var controls = el('div', 'rogue-menu-actions');
-            controls.appendChild(button('ui.save', { type: 'save' }));
+            content.appendChild(el('p', 'rogue-note', R.t('ui.autoSaveHint')));
             controls.appendChild(button('ui.chooseSlot', { type: 'slots' }));
             controls.appendChild(button('ui.journal', { type: 'modal', kind: 'journal' })); content.appendChild(controls);
             if (window.ADRNativeLocalApp) {
@@ -849,7 +865,7 @@
             var help = disclosure(content, 'assistance', 'ui.cheat'); help.appendChild(el('p', 'rogue-note', R.t('ui.cheatHint'))); help.appendChild(button('ui.cheat', { type: 'confirmCheat' }, null, save.over));
         }
         content.appendChild(button('ui.help', { type: 'modal', kind: 'guide' }));
-        content.appendChild(button('ui.back', { type: 'home' }));
+        content.appendChild(button(save ? 'ui.exitRun' : 'ui.back', { type: 'home' }));
         if (save) { content.appendChild(el('p', 'rogue-note', R.t('ui.seedValue', { n: save.seed }))); }
     }
     /** Names the actual destination of the current secondary page's return control. */
@@ -1004,6 +1020,7 @@
         else if (action.type === 'itemView') { R.ui.open('item', { member: action.member, item: action.item }); }
         else if (action.type === 'bagPage') { modalOptions.page = Math.max(0, action.page); modalScroll = 0; R.ui.render(); }
         else if (action.type === 'confirmDismiss') { R.ui.open('confirm', { title: 'ui.dismissTitle', body: 'ui.dismissBody', action: { type: 'dismiss', member: action.member } }); }
+        else if (action.type === 'confirmExtract') { R.ui.open('confirm', { title: 'ui.extractTitle', body: 'ui.extractEmergency', values: { n: R.dungeon.returnCost(save).damage }, action: { type: 'extract' } }); }
         else if (action.type === 'confirmClaim') { R.ui.open('confirm', { title: 'ui.claimTitle', body: save.camps.length >= N.MAX_CAMPS ? 'ui.claimReplaceBody' : 'ui.claimBody', action: { type: 'outpost', op: 'claim', replace: save.camps.length >= N.MAX_CAMPS } }); }
         else if (action.type === 'waterWarning') { R.ui.preferences.waterWarning = !R.ui.preferences.waterWarning; preferences(); if (save) { R.wild.warn(save); R.save.write(save); } R.ui.render(); }
         else if (action.type === 'confirmTemp') { if (save.flags.tempCamp) { R.ui.open('confirm', { title: 'ui.tempReplaceTitle', body: 'ui.tempReplaceBody', action: { type: 'deployTemp' } }); } else { R.state.act({ type: 'deployTemp' }); } }
@@ -1053,7 +1070,6 @@
         } else if (action.type === 'theme') { R.ui.preferences.dark = action.dark; preferences(); R.ui.render(); }
         else if (action.type === 'font') { R.ui.preferences.font = R.clamp(R.ui.preferences.font + action.delta, 16, 22); preferences(); R.ui.render(); }
         else if (action.type === 'speed') { save.speed = action.speed; R.save.write(save); R.ui.render(); }
-        else if (action.type === 'save') { if (R.save.write(save)) { R.ui.notice('ui.saved'); } }
         else if (action.type === 'native') { window.location.href = 'adr-offline://' + action.target; }
         else if (action.type === 'restoreBackup') { R.importJSON(action.raw); }
         else if (action.type === 'target') { save.flags.combat.target = action.target; R.save.write(save); R.ui.render(); }
@@ -1178,6 +1194,7 @@
             if (save && save.flags.combat && !modal) { modal = 'combat'; }
             if (save && !modal && save.flags.wildEvent) { modal = 'event'; }
             if (save && !modal && save.flags.outpost) { modal = 'outpost'; }
+            root.setAttribute('data-page', modal || (nextView === 'run' ? activeTab === 'camp' ? 'camp-' + campView : activeTab : nextView));
             var previouslyOpen = !overlay.hidden;
             renderModal(); this.renderNotice(); fitMap(); restoreFocus(token);
             modalScroll = null;

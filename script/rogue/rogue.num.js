@@ -18,6 +18,7 @@
         DUNGEON_FIGHT_CHANCE: 0.35,
         CROSS_CHANCE: 0.20,
         EXTRACT_CHASE: 0.20,
+        EXTRACT_SHORTFALL_DAMAGE: 2,
         ENCOUNTER_CHECK: 8,
         FOOD_PER_POP: 1,
         MAX_CAMPS: 2,

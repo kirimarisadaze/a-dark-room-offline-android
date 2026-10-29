@@ -157,7 +157,7 @@
             else if (action.type === 'extract') { result = R.dungeon.extract(save); }
             else { result = R.settle.act(save, action); }
             if (!result) { return false; }
-            this.advance(result.turns === undefined ? 1 : result.turns);
+            this.advance(result.turns === undefined ? 1 : result.turns, result.emergencyReturn);
             R.map.reveal(save);
             R.wild.warn(save);
             if (R.save) { R.save.write(save); }
@@ -165,7 +165,7 @@
             return true;
         },
         /** Advances settlement and survival in the specified order without repeating an action. */
-        advance: function (count) {
+        advance: function (count, emergencyReturn) {
             var save = this.current;
             var i;
             for (i = 0; i < count; i++) {
@@ -173,20 +173,21 @@
                 save.turn += 1;
                 if (save.flags.tempCamp && !save.flags.abyss && save.flags.tempCamp.expiresAt <= save.turn) { R.party.leaveTemp(save); R.log(save, 'log.tempExpired'); }
                 if (!save.flags.abyss) { R.settle.settleCamps(save); }
-                this.tickPartyEffects(save);
+                this.tickPartyEffects(save, emergencyReturn);
                 save.day = Math.floor(save.turn / N.TURNS_PER_DAY);
                 if (save.turn % N.TURNS_PER_DAY === 0 && !save.flags.abyss) { R.settle.onNewDay(save); }
                 this.checkEnding(save);
             }
         },
-        /** Settles survival effects while allowing safe preparation at a camp. */
-        tickPartyEffects: function (save) {
+        /** Settles survival without double-charging the injuries already paid for emergency return. */
+        tickPartyEffects: function (save, emergencyReturn) {
             if (R.atCamp(save) && !save.flags.combat) {
                 save.party.hp = Math.min(save.party.maxHp, save.party.hp + N.RECOVER_HP);
             }
-            if (save.flags.exhaustion) {
-                save.party.hp = Math.max(0, save.party.hp - save.flags.exhaustion);
-                delete save.flags.exhaustion;
+            delete save.flags.exhaustion;
+            var damage = !emergencyReturn && !save.flags.abyss && !R.atCamp(save) && save.turn % N.SUPPLY_GRACE === 0 ? (save.party.water <= 0 ? N.THIRST_DAMAGE : 0) + (save.party.food <= 0 ? N.HUNGER_DAMAGE : 0) : 0;
+            if (damage) {
+                save.party.hp = Math.max(0, save.party.hp - damage);
                 R.log(save, 'log.thirst');
             }
         },

@@ -117,7 +117,11 @@
                 return crossed === 'crossed' ? { turns: 1 } : R.fail('err.blocked');
             }
             var tile = view.tiles[y * view.map.size + x];
-            if (x <= 0 || y <= 0 || x >= view.map.size - 1 || y >= view.map.size - 1 || tile === '#' || tile === '~') { return R.fail('err.wall'); }
+            if (x <= 0 || y <= 0 || x >= view.map.size - 1 || y >= view.map.size - 1 || tile === '#' || tile === '~') {
+                R.fail('err.wall');
+                if (view.dungeon && !save.flags.abyss && (save.party.water <= 0 || save.party.food <= 0)) { R.log(save, 'log.stranded'); return { turns: 1 }; }
+                return false;
+            }
             view.position.x = x; view.position.y = y;
             var arrivedCamp = R.atCamp(save);
             if (arrivedCamp) { save.activeCamp = save.camps.indexOf(arrivedCamp); }
@@ -126,9 +130,6 @@
             if (!save.flags.abyss) {
                 save.party.water = Math.max(0, save.party.water - R.wild.waterCost(save));
                 if (save.flags.moves % N.MOVES_PER_FOOD === 0) { save.party.food = Math.max(0, save.party.food - 1); }
-                if (save.flags.moves % N.SUPPLY_GRACE === 0) {
-                    save.flags.exhaustion = (save.party.water <= 0 ? N.THIRST_DAMAGE : 0) + (save.party.food <= 0 ? N.HUNGER_DAMAGE : 0);
-                }
             }
             if (view.dungeon) {
                 save.flags.dungeonMoves += 1;

@@ -319,10 +319,13 @@ if (process.argv.includes('--playthrough')) {
     function homeAndSupply() {
         const camp = expedition.camps.find(camp => camp.region === expedition.party.region);
         assert(camp, 'local camp required'); walkTo(camp.x, camp.y);
-        act({ type: 'restock' });
-        for (let i = 0; i < 8 && expedition.party.hp < expedition.party.maxHp; i++) act({ type: 'wait' });
+        if (G.settle.restockPlan(expedition)?.changed) act({ type: 'restock' });
+        for (let i = 0; i < 20 && (expedition.party.hp < expedition.party.maxHp || expedition.party.companions.some(ally => ally.hp < ally.maxHp)); i++) act({ type: 'wait' });
         const here = G.atCamp(expedition);
         while (expedition.party.companions.length < 2 && here.pop > 1 && G.settle.employed(expedition, here) < here.pop && G.affords(expedition, { food: G.NUM.RECRUIT_FOOD })) act({ type: 'recruit' });
+        if (here.buildings.workshop) {
+            while ((expedition.party.bag.medicine || 0) < 12 && G.affords(expedition, G.CONTENT.items.medicine.cost) && G.bagWeight(expedition) < G.party.capacity(expedition, expedition.party)) act({ type: 'craft', item: 'medicine' });
+        }
     }
     /** Gathers only through valid site actions, depositing and preparing at the local camp. */
     function gatherResource(type, count) {
@@ -350,13 +353,15 @@ if (process.argv.includes('--playthrough')) {
     }
     /** Crafts one affordable item through the normal action pipeline. */
     function craft(id) { act({ type: 'craft', item: id }); }
+    /** Uses a supply action only when stock, reserves or active gauges can actually change. */
+    function resupply() { if (G.settle.restockPlan(expedition)?.changed) act({ type: 'restock' }); }
     for (let i = 0; i < 35; i++) act({ type: 'forage' });
     for (const building of ['garden', 'garden', 'garden', 'well', 'workshop']) act({ type: 'build', building });
-    craft('spear'); act({ type: 'fire' }); act({ type: 'restock' });
+    craft('spear'); act({ type: 'fire' }); resupply();
     gatherResource('hunting', 5); gatherResource('hunting', 5);
-    craft('coat'); craft('waterskin'); act({ type: 'restock' });
+    craft('coat'); craft('waterskin'); resupply();
     gatherResource('hunting', 5); gatherResource('hunting', 3);
-    craft('pack'); act({ type: 'restock' });
+    craft('pack'); resupply();
     gatherResource('hunting', 4);
     gatherResource('hunting', 2);
     for (let i = 0; i < 5 && expedition.camps[0].pop < 4; i++) act({ type: 'night' });
@@ -413,6 +418,7 @@ if (process.argv.includes('--playthrough')) {
     function settleLocal() {
         let attempts = 0;
         while (true) {
+            if (expedition.party.water + (expedition.party.bag.water || 0) < 120 || expedition.party.food + (expedition.party.bag.food || 0) < 60) wildSupply();
             walkTo(G.NUM.REGION_CENTER, G.NUM.REGION_CENTER);
             if (!expedition.regions[expedition.party.region].sites.some(site => site.type === 'threat' && site.state !== 'cleared')) break;
             assert(attempts++ < 20);
@@ -453,18 +459,18 @@ if (process.argv.includes('--playthrough')) {
             act({ type: 'extract' }); homeAndSupply();
         }
         if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && (G.stores(expedition).steel || 0) < 4 && G.affords(expedition, G.CONTENT.items.steel.cost)) { craft('steel'); }
-        if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && G.affords(expedition, G.CONTENT.items.canteen.cost)) { craft('canteen'); act({ type: 'restock' }); }
+        if (expedition.blueprints.includes('canteen') && !expedition.party.bag.canteen && G.affords(expedition, G.CONTENT.items.canteen.cost)) { craft('canteen'); resupply(); }
         if (currentTier === 5) gatherResource('sulphur', 4);
         while ((expedition.party.bag.medicine || 0) < 8 && G.affords(expedition, G.CONTENT.items.medicine.cost)) craft('medicine');
         if (currentTier === 7) {
             gatherResource('crystal', 4);
             while ((G.stores(expedition).steel || 0) < 18) craft('steel');
-            craft('suit'); act({ type: 'restock' });
+            craft('suit'); resupply();
         }
         if (currentTier >= 7 && expedition.blueprints.includes('railgun') && !expedition.party.bag.railgun) {
             while ((G.stores(expedition).crystal || 0) < 8) gatherResource('crystal', 3);
             while ((G.stores(expedition).steel || 0) < 18) craft('steel');
-            craft('railgun'); act({ type: 'restock' });
+            craft('railgun'); resupply();
         }
         console.log('PLAY tier=' + currentTier + ' turn=' + expedition.turn + ' hp=' + expedition.party.hp + ' blueprints=' + expedition.blueprints.join(','));
     }

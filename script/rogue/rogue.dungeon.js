@@ -62,21 +62,30 @@
             R.log(save, 'log.descend', { n: dungeon.depth });
             return dungeon.floor;
         },
-        /** Pays depth-based return supplies and optionally starts a seeded pursuit battle. */
+        /** Reports independent return costs and the health lost when supplies run short. */
+        returnCost: function (save) {
+            var dungeon = active(save);
+            var cost = dungeon && !save.flags.abyss ? dungeon.depth * N.DUNGEON_SUPPLY : 0;
+            var shortfall = Math.max(0, cost - save.party.water) + Math.max(0, cost - save.party.food);
+            return { water: cost, food: cost, shortfall: shortfall, damage: Math.min(Math.max(0, save.party.hp - 1), Math.ceil(shortfall * N.EXTRACT_SHORTFALL_DAMAGE)) };
+        },
+        /** Returns to the surface, paying missing supplies with nonfatal emergency injuries. */
         extract: function (save) {
             var dungeon = active(save);
             if (!dungeon || save.flags.combat) { return false; }
             if (save.flags.abyss) { this.returnAbyss(save); return { turns: 1, extracted: true }; }
-            var cost = dungeon.depth * N.DUNGEON_SUPPLY;
-            if (save.party.water < cost || save.party.food < cost) { return R.fail('err.supplies'); }
-            save.party.water -= cost; save.party.food -= cost;
+            var cost = this.returnCost(save);
+            save.party.water = Math.max(0, save.party.water - cost.water);
+            save.party.food = Math.max(0, save.party.food - cost.food);
+            save.party.hp -= cost.damage;
             if (dungeon.cleared && dungeon.afterClear === 'infinite') { delete dungeon.floor; }
             delete save.flags.insideDungeon;
             R.log(save, 'log.extract');
-            if (R.roll(save) < N.EXTRACT_CHASE) {
+            if (cost.shortfall) { R.log(save, 'log.extractHurt', { n: cost.damage }); }
+            if (R.roll(save) < N.EXTRACT_CHASE && !cost.shortfall) {
                 R.log(save, 'log.chase'); R.combat.encounter(save, { kind: 'chase', depth: dungeon.depth });
             }
-            return { turns: 1, extracted: true };
+            return { turns: 1, extracted: true, emergencyReturn: !!cost.shortfall };
         },
         /** Starts the unlocked abyss while preserving the party's pre-entry inventory and health. */
         enterAbyss: function (save) {

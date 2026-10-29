@@ -54,8 +54,46 @@
             }
         }
     }
+    /** Plans useful resupply without cycling carried reserves back through the warehouse. */
+    function restockPlan(save) {
+        var camp = R.atCamp(save);
+        if (!camp) { return null; }
+        var party = save.party; var bag = R.clone(party.bag); var stores = R.clone(R.stores(save)); var id;
+        for (id in bag) {
+            if (C.items[id].kind === 'resource' && id !== 'water' && id !== 'food') { stores[id] = (stores[id] || 0) + bag[id]; delete bag[id]; }
+        }
+        var waterReserve = party.bag.pack ? N.TRAVEL_RESERVE : N.TRAVEL_RESERVE_SMALL;
+        var foodReserveLimit = party.bag.pack ? N.FOOD_RESERVE_PACK : N.FOOD_RESERVE;
+        var excessWater = Math.max(0, (bag.water || 0) - waterReserve);
+        var excessFood = Math.max(0, (bag.food || 0) - foodReserveLimit);
+        if (excessWater) { stores.water = (stores.water || 0) + excessWater; bag.water -= excessWater; }
+        if (excessFood) { stores.food = (stores.food || 0) + excessFood; bag.food -= excessFood; }
+        var neededWater = Math.max(0, R.waterMax(save) - party.water);
+        var carriedWater = camp.buildings.well ? 0 : Math.min(neededWater, bag.water || 0);
+        if (carriedWater) { bag.water -= carriedWater; }
+        var warehouseWater = camp.buildings.well ? neededWater : Math.min(neededWater - carriedWater, Math.floor(stores.water || 0));
+        if (!camp.buildings.well && warehouseWater) { stores.water -= warehouseWater; }
+        var neededFood = Math.max(0, N.SUPPLY_FOOD - party.food);
+        var carriedFood = Math.min(neededFood, bag.food || 0);
+        if (carriedFood) { bag.food -= carriedFood; }
+        var warehouseFood = Math.min(neededFood - carriedFood, Math.floor(stores.food || 0));
+        if (warehouseFood) { stores.food -= warehouseFood; }
+        var capacity = Math.max(0, R.party.capacity(save, party) - R.party.weight(bag));
+        var foodReserve = Math.min(Math.max(0, foodReserveLimit - (bag.food || 0)), Math.floor(stores.food || 0), capacity);
+        if (foodReserve > 0) { bag.food = (bag.food || 0) + foodReserve; stores.food -= foodReserve; capacity -= foodReserve; }
+        var reserve = Math.min(Math.max(0, waterReserve - (bag.water || 0)), capacity, camp.buildings.well ? Infinity : Math.floor(stores.water || 0));
+        if (reserve > 0) { bag.water = (bag.water || 0) + reserve; if (!camp.buildings.well) { stores.water -= reserve; } }
+        var water = party.water + carriedWater + warehouseWater; var food = party.food + carriedFood + warehouseFood;
+        var changed = water !== party.water || food !== party.food;
+        for (id in party.bag) { changed = changed || (party.bag[id] || 0) !== (bag[id] || 0); }
+        for (id in bag) { changed = changed || (party.bag[id] || 0) !== (bag[id] || 0); }
+        for (id in R.stores(save)) { changed = changed || (R.stores(save)[id] || 0) !== (stores[id] || 0); }
+        for (id in stores) { changed = changed || (R.stores(save)[id] || 0) !== (stores[id] || 0); }
+        return { bag: bag, stores: stores, water: water, food: food, changed: changed };
+    }
     R.settle = {
         employed: employed,
+        restockPlan: restockPlan,
         /** Checks outdoor empty ground shared by permanent and temporary camp placement. */
         canPitch: function (save) {
             return !save.flags.insideDungeon && !R.atCamp(save) && !R.map.here(save) && R.map.current(save).tiles[save.party.y * N.REGION_SIZE + save.party.x] === '.';
@@ -295,19 +333,11 @@
                 if (action.type === 'forage') { R.add(stores, N.FORAGE); R.log(save, 'log.forage'); }
                 else if (action.type === 'deposit') { deposit(save); R.log(save, 'log.deposit'); }
                 else if (action.type === 'restock') {
-                    deposit(save);
-                    var neededWater = R.waterMax(save) - party.water;
-                    var refillWater = camp.buildings.well ? neededWater : Math.min(neededWater, Math.floor(stores.water || 0));
-                    party.water += refillWater;
-                    if (!camp.buildings.well) { stores.water = Math.max(0, (stores.water || 0) - refillWater); }
-                    var refillFood = Math.min(N.SUPPLY_FOOD - party.food, Math.floor(stores.food || 0));
-                    party.food += refillFood; stores.food = Math.max(0, (stores.food || 0) - refillFood);
-                    var capacity = (party.bag.pack ? N.BAG_UPGRADED : N.BAG_BASE) - R.bagWeight(save);
-                    var foodReserve = Math.min(party.bag.pack ? N.FOOD_RESERVE_PACK : N.FOOD_RESERVE, Math.floor(stores.food || 0), capacity);
-                    if (foodReserve > 0) { party.bag.food = foodReserve; stores.food -= foodReserve; }
-                    var maximumReserve = party.bag.pack ? N.TRAVEL_RESERVE : N.TRAVEL_RESERVE_SMALL;
-                    var reserve = Math.min(maximumReserve, capacity - foodReserve, camp.buildings.well ? maximumReserve : Math.floor(stores.water || 0));
-                    if (reserve > 0) { party.bag.water = reserve; if (!camp.buildings.well) { stores.water -= reserve; } }
+                    var plan = restockPlan(save);
+                    if (!plan.changed) { return R.fail('err.restockNoChange'); }
+                    for (i in party.bag) { delete party.bag[i]; } R.add(party.bag, plan.bag);
+                    for (i in stores) { delete stores[i]; } R.add(stores, plan.stores);
+                    party.water = plan.water; party.food = plan.food;
                     R.log(save, 'log.restock');
                 } else if (action.type === 'night') {
                     party.hp = party.maxHp;
