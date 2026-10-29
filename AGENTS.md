@@ -153,6 +153,7 @@ node scripts/test-rogue-storage.mjs
 |---|---|
 | 世界观、历史决策、已确认规则 | `AI_README.md` |
 | 任务分工、分支、PR、审核与交接 | [AI 多人协作流程](docs/AI_COLLABORATION.md) |
+| 换电脑、新 AI 窗口与恢复打包 | [新环境接手](docs/HANDOFF.md) |
 | 玩法细节、命令清单、测试范围 | `docs/ROGUELIKE.md` |
 | 发布与签名流程 | `docs/RELEASING.md` |
 | 当前版本与变更 | `CHANGELOG.md` |

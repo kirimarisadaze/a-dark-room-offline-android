@@ -22,7 +22,7 @@
 | 游戏画面 | [界面截图](docs/SCREENSHOTS.md) |
 | 构建与测试 | [Android 开发说明](docs/ANDROID.md) · [验证记录](docs/README.md#版本与验证) |
 | 参与维护 | [贡献指南](CONTRIBUTING.md) · [AI 多人协作](docs/AI_COLLABORATION.md) · [发布流程](docs/RELEASING.md) |
-| AI 接手 | [开工规则](AGENTS.md) · [维护约定](AI_README.md) |
+| AI 接手 | [新电脑 / 新窗口](docs/HANDOFF.md) · [开工规则](AGENTS.md) · [维护约定](AI_README.md) |
 | 历史与资料 | [版本归档](docs/RELEASES.md) · [上游资料](docs/upstream/README.md) · [全部文档](docs/README.md) |
 
 ## 来源与许可

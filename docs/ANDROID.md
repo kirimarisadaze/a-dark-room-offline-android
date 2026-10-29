@@ -5,6 +5,8 @@
 
 以下命令均在仓库根目录执行。应用包名为 `org.adarkroom.offline`；版本以 [AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml) 为准，发布包及历史索引见 [Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 和 [版本归档](RELEASES.md)。
 
+换电脑或新 AI 窗口先读 [新环境接手](HANDOFF.md)，重新核实工具、任务进度与发布身份；正式构建前恢复原签名。
+
 [离线实现](#完全离线如何实现) · [源码构建](#从源码构建) · [测试与验证](#测试与验证范围) · [源码归档](#版本与源码归档) · [目录结构](#目录结构)
 
 ## 完全离线如何实现
@@ -68,6 +70,8 @@ dist/a-dark-room-offline.apk.sha256
 首次构建会在 `.local/signing/` 生成独立签名密钥；请私下备份整个目录，后续更新继续使用同一密钥。私钥和密码不在公开仓库或源码压缩包中。
 
 在新电脑直接克隆并生成的密钥与 GitHub Release 的签名不同，因此自建 APK 不能覆盖这里发布的 APK。需要切换时先备份存档，或自行修改包名以便并行安装。不能仅靠相同包名和版本号绕过 Android 的签名检查。
+
+原私钥不绑定电脑。恢复位置、证书指纹比对和云端签名方案的当前状态见 [包名、签名与换电脑](HANDOFF.md#包名签名与换电脑)。
 
 ### 打包完整源码
 

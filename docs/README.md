@@ -23,6 +23,7 @@
 | 源码与入口位置 | [目录结构](ANDROID.md#目录结构) |
 | Issue / PR 与验证要求 | [贡献指南](../CONTRIBUTING.md) |
 | AI 开工规则与已确认约定 | [AGENTS.md](../AGENTS.md) · [AI_README.md](../AI_README.md) |
+| 换电脑、新 AI 窗口、私有签名恢复与接续发版 | [新环境接手](HANDOFF.md) |
 | 不同任务、独立目录、分支、审核与交接 | [AI 多人协作流程](AI_COLLABORATION.md) |
 | 版本选择、原签名、源码包与 GitHub 发布 | [发布维护说明](RELEASING.md) |
 
