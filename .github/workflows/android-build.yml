@@ -64,6 +64,8 @@ jobs:
         run: node scripts/test-rogue-issues.mjs
       - name: Check storage isolation
         run: node scripts/test-rogue-storage.mjs
+      - name: Check survival onboarding
+        run: node scripts/test-rogue-onboarding.mjs
       - name: Check offline loading
         run: node scripts/test-offline.mjs
       - name: Check homepage and save slots
