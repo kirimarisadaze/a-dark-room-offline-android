@@ -12,7 +12,7 @@
 2. 在 `CHANGELOG.md` 写明行为变化、修复与验证范围。涉及界面或逻辑的改动，运行相应离线回归；原生加载变更还需要验证原生拦截器与实际启动行为。
 3. 使用私下保存的 `.local/signing/` 构建；没有原密钥时不能生成可覆盖旧 Release 的 APK。密钥和密码不得写入 Git、Issue 或 Release。
 4. 运行构建与 `-VerifyOnly`，核对版本、包名、签名、对齐、无联网权限。复制为带版本号的 APK，生成 SHA-256，保留原始包。
-5. 更新 `README.md` 当前版本、下载地址、哈希及 `docs/releases.json` / `docs/RELEASES.md`。在提交前检查文件清单，排除 `.local/`、工具、设备数据和个人资料。
+5. 更新 `README.md` 当前版本与下载 / 校验链接、`docs/PLAYING.md` 的安装包版本与 SHA-256，以及 `docs/releases.json` / `docs/RELEASES.md`。构建与测试说明统一维护在 `docs/ANDROID.md`。在提交前检查文件清单，排除 `.local/`、工具、设备数据和个人资料。
 6. 将版本准备提交为 PR，经过独立审核合入后，以实际合并提交复核或重建 APK，确认版本与全部资源对应，再在该提交创建 `v<version>` 标签。合入后若源码再变更，重新走 PR 与受影响检查；每一版保留完整工程，不再使用早期归档分支的部分源码模式。
 7. 运行 `python scripts/package-source.py`，将 ZIP 复制为带版本号的文件并生成 SHA-256。源码 ZIP 与标签应包含同一版工程文件。
 8. 确认远端 `main` 包含已审核的发布提交，推送对应标签，用准确的发布说明创建 Release，附带版本化 APK、APK 校验值、完整源码 ZIP 和源码校验值；正常发布设为 Latest，测试版设为 Pre-release。
@@ -21,7 +21,7 @@
 版本准备完成后的提交示例（将版本号、文件列表和说明替换为本次内容）：
 
 ```powershell
-git add -- android/app/src/main/AndroidManifest.xml android/app/src/main/java/org/adarkroom/offline/MainActivity.java README.md CHANGELOG.md docs/releases.json docs/RELEASES.md
+git add -- android/app/src/main/AndroidManifest.xml android/app/src/main/java/org/adarkroom/offline/MainActivity.java README.md CHANGELOG.md docs/PLAYING.md docs/releases.json docs/RELEASES.md
 git diff --cached --check
 git diff --cached --stat
 git commit -m "Release Android v1.0.15"

@@ -80,6 +80,9 @@
 
 这里记录的是已确认的边界和偏好，不要求每次都重做整个工程。常规实现自主判断；实际冲突按最新用户指令解决并同步此文件。修复过程中发现新的真实问题应处理并验证，不额外发明审批步骤。
 
+- 仓库首页 `README.md` 保持简短，保留下载、运行要求、两种模式、文档导航和许可署名；安装 / 备份 / FAQ 见 [玩家指南](docs/PLAYING.md)，构建与测试见 [Android 开发说明](docs/ANDROID.md)，截图见 [截图页](docs/SCREENSHOTS.md)，完整索引见 [文档目录](docs/README.md)。不要把长教程和全部截图重新堆回首页。
+- 根目录保留必要网页 / 构建入口及 `AGENTS.md`、本文件、`CONTRIBUTING.md`、`CHANGELOG.md` 和 `LICENSE.md`。重复 Android README 已合并到 `docs/ANDROID.md`；原 `doc/` 设计资料与英文贡献指南原文归入 `docs/upstream/`，不移动运行资源来整理目录。发版时同步首页下载链接和 `docs/PLAYING.md` 的安装包版本、校验值。
+
 ## 1.3.0 起的长期补充
 
 - 主页面和玩家说明统一称“生存模式”，篇章名仍为“无光之地”；内部 `rogue` 文件名和存储键保留兼容。
