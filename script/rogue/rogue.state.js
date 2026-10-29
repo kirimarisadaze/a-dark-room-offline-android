@@ -129,7 +129,7 @@
                     fire: 1, pop: N.START_POP, jobs: {}, stores: R.clone(N.START_STORES), buildings: {} }],
                 activeCamp: 0, regionGraph: R.worldgen.buildRegionGraph(seed), regions: {}, dungeons: {},
                 blueprints: R.save ? R.save.blueprints() : [],
-                flags: { rng: seed || 1831565813, log: [], moves: 0, dungeonMoves: 0, memorial: [], abyssBest: 0 }
+                flags: { rng: seed || 1831565813, log: [], moves: 0, dungeonMoves: 0, memorial: [], abyssBest: 0, supplyLevels: {}, workshopGuide: false }
             };
             save.regions['0,0'] = R.worldgen.buildRegion(save, '0,0');
             var refuge = save.regions['0,0'].refuge;
@@ -137,6 +137,7 @@
             save.camps[0].x = refuge.x; save.camps[0].y = refuge.y;
             R.map.reveal(save);
             R.log(save, 'log.begin');
+            R.log(save, 'log.firstSteps');
             return save;
         },
         /** Executes one validated player action, settles turns and saves exactly once. */

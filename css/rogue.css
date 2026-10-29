@@ -5,6 +5,7 @@ body.rogue-mode {
     --rogue-muted: #73736d;
     --rogue-line: #bcbcb7;
     --rogue-fill: #efefea;
+    --rogue-warning: #a12e24;
     min-height: 100vh;
     height: auto;
     margin: 0;
@@ -20,6 +21,7 @@ html.rogue-dark body.rogue-mode {
     --rogue-muted: #b1b2a9;
     --rogue-line: #62635a;
     --rogue-fill: #383a32;
+    --rogue-warning: #ffaba0;
     color-scheme: dark;
 }
 body.rogue-mode > #wrapper, body.rogue-mode > .logo { display: none !important; }
@@ -77,9 +79,16 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-root[data-tab='camp'] #rogue-panel-map, .rogue-root[data-tab='camp'] #rogue-panel-party,
 .rogue-root[data-tab='party'] #rogue-panel-map, .rogue-root[data-tab='party'] #rogue-panel-camp { display: none; }
 .rogue-status-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 10px 0 2px; }
-.rogue-status-grid .rogue-stat { display: flex; flex-direction: row; align-items: baseline; gap: 4px; font-size: .8125em; }
+.rogue-status-grid .rogue-stat { display: flex; flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 0 4px; font-size: .8125em; }
 .rogue-status-grid .rogue-stat > span:first-child { font-size: .875em; }
 .rogue-stat-value, .rogue-inventory-count, .rogue-worker-count { font-variant-numeric: tabular-nums; }
+.rogue-supply-warning, .rogue-supply-warning > .rogue-muted { color: var(--rogue-warning); font-weight: 700; }
+.rogue-supply-level { margin-left: 4px; font-size: .8125em; line-height: 1.4; }
+.rogue-return-water { display: flex; flex-wrap: wrap; gap: 0 12px; margin-top: 6px !important; color: var(--rogue-muted); font-size: .75em; font-variant-numeric: tabular-nums; }
+.rogue-return-water.rogue-supply-warning { color: var(--rogue-warning); }
+.rogue-next-goal { border: 0 !important; padding: 6px 0 !important; min-height: 44px; font-size: .8125em; font-weight: 700; text-align: left; }
+.rogue-goal-materials { margin: 12px 0; padding-left: 20px; font-size: .875em; font-variant-numeric: tabular-nums; }
+.rogue-goal-materials ~ .rogue-button { display: flex; width: 100%; margin-top: 12px; }
 .rogue-map-viewport { display: flex; justify-content: center; align-items: center; position: relative; padding: 8px 8px 18px; overflow: hidden; background: var(--rogue-fill); }
 .rogue-grid { flex: none; font-family: Consolas, 'Cascadia Mono', monospace; font-size: 12px; line-height: 1.1; letter-spacing: .55em; font-variant-ligatures: none; font-weight: 400; text-align: left; user-select: none; -webkit-user-select: none; }
 .rogue-map-row { height: 1.1em; white-space: pre; }
@@ -105,6 +114,7 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-context { min-width: 0; }
 .rogue-context-title { font-size: .9375em; margin-bottom: 5px !important; }
 .rogue-context > .rogue-button { width: 100%; margin-top: 8px; font-size: .8125em; }
+.rogue-context > .rogue-next-goal { margin-top: 0; }
 .rogue-context > .rogue-note { font-size: .75em; }
 .rogue-explore-shortcuts, .rogue-quick-supplies { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
 .rogue-explore-shortcuts > .rogue-button { border: 0; background: var(--rogue-fill); font-size: .8125em; padding: 8px; }
@@ -252,7 +262,7 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-live-entries { max-height: 54px; overflow-y: auto; overscroll-behavior: contain; list-style: none; padding: 0; margin: 0; font-size: .75em; line-height: 1.5; }
 .rogue-live-entries li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 6px; padding: 2px 0; }
 .rogue-log-turn { color: var(--rogue-muted); font-variant-numeric: tabular-nums; }
-.rogue-log-warning { font-weight: 700; }
+.rogue-log-warning { color: var(--rogue-warning); font-weight: 700; }
 .rogue-pack-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 0; font-size: .875em; }
 .rogue-pack-row .rogue-button { font-size: .875em; }
 .rogue-companion > .rogue-button { display: flex; width: 100%; margin-top: 10px; font-size: .875em; }

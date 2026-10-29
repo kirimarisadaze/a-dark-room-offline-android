@@ -355,6 +355,10 @@
                     if (!R.affords(save, cost)) { return R.fail('err.resources'); }
                     R.pay(save, cost); camp.buildings[action.building] = (camp.buildings[action.building] || 0) + 1;
                     R.log(save, 'log.build', { name: R.t('ui.building.' + action.building) });
+                    if (action.building === 'workshop' && !save.flags.workshopGuide) {
+                        save.flags.workshopGuide = true;
+                        R.log(save, R.party.owned(save, 'waterskin') || R.party.owned(save, 'canteen') ? 'log.workshopReady' : 'log.workshopNext');
+                    }
                 } else if (action.type === 'craft') {
                     item = C.items[action.item];
                     if (!item || !item.cost) { return false; }
@@ -372,6 +376,7 @@
                         var oldMax = party.maxHp; party.armour = action.item; party.maxHp = N.BASE_HP + item.hp; party.hp += party.maxHp - oldMax;
                     }
                     R.log(save, 'log.craft', { name: R.t('item.' + action.item) });
+                    if (action.item === 'waterskin') { R.log(save, 'log.waterskinNext', { n: R.waterMax(save) }); }
                 } else if (action.type === 'research') {
                     definition = null;
                     for (i = 0; i < C.research.length; i++) { if (C.research[i].id === action.research) { definition = C.research[i]; } }
