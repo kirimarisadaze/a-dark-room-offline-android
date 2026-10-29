@@ -104,22 +104,43 @@
             var extraction = save.flags.insideDungeon ? save.dungeons[save.flags.insideDungeon].depth : 0;
             return { cost: route.cost + extraction, camp: route.camp };
         },
+        /** Reads active supply levels and every personal reserve without mutating the run. */
+        supplies: function (save) {
+            var result = {}; var ids = ['water', 'food']; var i; var j;
+            for (i = 0; i < ids.length; i++) {
+                var id = ids[i]; var value = save.party[id];
+                var max = id === 'water' ? R.waterMax(save) : N.SUPPLY_FOOD;
+                var reserve = save.party.bag[id] || 0;
+                for (j = 0; j < save.party.companions.length; j++) { reserve += save.party.companions[j].bag[id] || 0; }
+                result[id] = { value: value, max: max, reserve: reserve, level: save.flags.abyss ? '' : value <= 0 ? 'empty' : value < max * N.SUPPLY_WARNING_RATIO ? 'low' : '' };
+            }
+            return result;
+        },
         /** Logs supply transitions once, including carried reserve water in all personal packs. */
         warn: function (save) {
             if (save.flags.abyss || save.over) { return; }
+            var supplies = this.supplies(save);
             var enabled = !R.ui || !R.ui.preferences || R.ui.preferences.waterWarning !== false;
             var route = enabled ? this.homeRoute(save) : null;
-            var available = save.party.water + (save.party.bag.water || 0); var i;
-            for (i = 0; i < save.party.companions.length; i++) { available += save.party.companions[i].bag.water || 0; }
+            var available = supplies.water.value + supplies.water.reserve;
             var state = !enabled || R.atCamp(save) ? '' : !route ? 'unknown' : available < route.cost ? 'short:' + route.camp : '';
             if (state && state !== save.flags.waterWarning) { R.log(save, state === 'unknown' ? 'log.waterUnknown' : 'log.waterWarning', { n: route ? route.cost : 0, water: available }); }
             save.flags.waterWarning = state;
-            var low = save.party.food + (save.party.bag.food || 0) <= N.LOW_FOOD;
-            if (low && !save.flags.lowFood) { R.log(save, 'log.foodWarning'); }
-            save.flags.lowFood = low;
             var campLow = (R.stores(save).food || 0) < save.camps.reduce(/** Counts settlement mouths without changing workers. */ function (total, camp) { return total + camp.pop; }, 0);
             if (campLow && !save.flags.campLowFood) { R.log(save, 'log.campFoodWarning'); }
             save.flags.campLowFood = campLow;
+            var levels = save.flags.supplyLevels || {}; var id;
+            for (id in supplies) {
+                var supply = supplies[id];
+                if (supply.level && supply.level !== levels[id]) {
+                    R.log(save, supply.level === 'empty' ? 'log.supplyEmptyWarning' : 'log.supplyLowWarning', {
+                        name: R.t('ui.' + id),
+                        action: R.t(R.atCamp(save) ? 'ui.supplyAtCamp' : supply.reserve > 0 ? 'ui.supplyUseReserve' : 'ui.supplyFind')
+                    });
+                }
+                levels[id] = supply.level;
+            }
+            save.flags.supplyLevels = levels;
         },
         /** Draws one biome-weighted event on a valid wilderness encounter check. */
         encounter: function (save) {

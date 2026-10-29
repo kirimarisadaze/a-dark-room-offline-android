@@ -47,6 +47,12 @@
                 if (!p || !number(p.hp) || p.hp < 0 || !number(p.maxHp) || p.maxHp < N.BASE_HP || p.hp > p.maxHp || !CWeapon(p.weapon) || (p.armour && (!R.CONTENT.items[p.armour] || R.CONTENT.items[p.armour].kind !== 'armour'))) { return false; }
                 if (!number(p.water) || p.water < 0 || !number(p.food) || p.food < 0 || !inventory(p.bag) || !Array.isArray(p.companions) || p.companions.length > N.MAX_COMPANIONS) { return false; }
                 if (!save.flags || !Array.isArray(save.flags.log) || !Array.isArray(save.flags.memorial) || !number(save.flags.rng) || !Array.isArray(save.blueprints) || !save.regions || !save.regionGraph || !save.dungeons) { return false; }
+                if (save.flags.supplyLevels !== undefined) {
+                    if (!save.flags.supplyLevels || typeof save.flags.supplyLevels !== 'object' || Array.isArray(save.flags.supplyLevels)) { return false; }
+                    var supplyId;
+                    for (supplyId in save.flags.supplyLevels) { if (['water', 'food'].indexOf(supplyId) < 0 || ['', 'low', 'empty'].indexOf(save.flags.supplyLevels[supplyId]) < 0) { return false; } }
+                }
+                if (save.flags.workshopGuide !== undefined && typeof save.flags.workshopGuide !== 'boolean') { return false; }
                 if (!logs(save.flags.log) || (save.over && ['ship', 'wiped', 'died'].indexOf(save.endReason) < 0)) { return false; }
                 if (!save.regions[p.region] || !number(p.x) || !number(p.y) || p.x % 1 || p.y % 1 || p.x <= 0 || p.y <= 0 || p.x >= N.REGION_SIZE - 1 || p.y >= N.REGION_SIZE - 1) { return false; }
                 var i;
@@ -142,6 +148,8 @@
         },
         /** Preserves legacy terrain and folds surplus settlements into the main camp on upgrade. */
         upgrade: function (save) {
+            save.flags.supplyLevels = save.flags.supplyLevels || {};
+            if (save.flags.workshopGuide === undefined) { save.flags.workshopGuide = false; }
             if (save.version === N.VERSION) { return save; }
             while (save.camps.length > N.MAX_CAMPS) {
                 var old = save.camps.pop();

@@ -86,6 +86,29 @@
         row.appendChild(el('span', 'rogue-stat-value', value));
         parent.appendChild(row); return row;
     }
+    /** Shows a supply gauge with a textual warning as well as theme-aware color. */
+    function supplyStat(parent, save, id) {
+        var supply = R.wild.supplies(save)[id];
+        var value = id === 'water' ? waterText(supply.value) + '/' + supply.max : format(supply.value);
+        var row = stat(parent, 'ui.' + id, value);
+        row.setAttribute('data-supply', id); row.setAttribute('data-level', supply.level);
+        if (supply.level) {
+            row.className += ' rogue-supply-warning';
+            row.querySelector('.rogue-stat-value').appendChild(el('span', 'rogue-supply-level', R.t('ui.supply.' + supply.level)));
+        }
+    }
+    /** Displays the known minimum water cost and reserves without promising a risk-free return. */
+    function returnWater(parent, save) {
+        if (save.flags.abyss || R.atCamp(save)) { return; }
+        var route = R.wild.homeRoute(save); var supply = R.wild.supplies(save).water;
+        var available = supply.value + supply.reserve;
+        var short = R.ui.preferences.waterWarning !== false && route && available < route.cost;
+        var line = el('p', 'rogue-return-water' + (short ? ' rogue-supply-warning' : ''));
+        line.setAttribute('data-route', short ? 'short' : route ? 'known' : 'unknown');
+        line.appendChild(el('span', '', route ? R.t('ui.homeWater', { n: waterText(route.cost) }) : R.t('ui.homeUnknown')));
+        line.appendChild(el('span', '', R.t(short ? 'ui.homeWaterShort' : 'ui.homeWaterStock', { water: waterText(available) })));
+        line.title = R.t('ui.homeWaterHint'); parent.appendChild(line);
+    }
     /** Creates an accessible health meter without canvas or images. */
     function health(parent, hp, max, label) {
         var meter = el('div', 'rogue-health');
@@ -118,6 +141,8 @@
     /** Returns the next concrete goal for the current run. */
     function quest(save) {
         if (save.party.weapon === 'fists') { return 'start'; }
+        if (!R.party.owned(save, 'waterskin') && !R.party.owned(save, 'canteen') && !(save.flags.made && (save.flags.made.waterskin || save.flags.made.canteen))) { return 'waterskin'; }
+        if (!save.camps.some(/** Recognizes a workshop at either permanent camp. */ function (camp) { return !!camp.buildings.workshop; })) { return 'workshop'; }
         var occupied = false;
         var key;
         var i;
@@ -126,6 +151,35 @@
         if (Object.keys(save.regions).length === 1) { return 'travel'; }
         if (save.blueprints.indexOf('hull') < 0 || save.blueprints.indexOf('drive') < 0 || save.blueprints.indexOf('core') < 0) { return 'blueprint'; }
         return 'ship';
+    }
+    /** Keeps the first actionable goal visible without adding a separate exploration panel. */
+    function nextGoal(parent, save) {
+        var goal = quest(save);
+        if (['start', 'waterskin', 'workshop'].indexOf(goal) < 0) { return false; }
+        var control = button('ui.goalNext', { type: 'modal', kind: 'goals' }, { name: R.t('ui.quest.' + goal) }, false, 'next-goal');
+        control.className += ' rogue-next-goal'; parent.appendChild(control); return true;
+    }
+    /** Explains the next goal with live material counts and direct, time-free navigation. */
+    function renderGoal(content, save) {
+        var goal = quest(save);
+        content.appendChild(el('h3', 'rogue-section-title', R.t('ui.quest.' + goal)));
+        content.appendChild(el('p', 'rogue-help-copy', R.t('ui.quest.' + goal + '.desc')));
+        var item = goal === 'start' ? 'spear' : goal === 'waterskin' ? 'waterskin' : null;
+        var cost = item ? C.items[item].cost : goal === 'workshop' ? R.settle.cost(save, C.buildings.workshop.cost) : null;
+        if (cost) {
+            var materials = el('ul', 'rogue-goal-materials'); var id;
+            for (id in cost) { materials.appendChild(el('li', '', R.t('ui.goalMaterial', { name: R.t('item.' + id), have: format(R.stores(save)[id] || 0), need: format(cost[id]) }))); }
+            content.appendChild(materials);
+            content.appendChild(button('ui.goalRecipe', { type: 'goalPage', view: item ? 'recipes' : 'buildings', filter: item === 'spear' ? 'weapons' : 'tools' }, { name: R.t(item ? 'item.' + item : 'ui.building.workshop') }));
+            if (!R.atCamp(save)) { content.appendChild(el('p', 'rogue-note', R.t('ui.goalReturn'))); }
+        }
+        if (goal === 'waterskin') {
+            var sites = save.regions[save.party.region].sites; var i; var hunting = null;
+            for (i = 0; i < sites.length; i++) { if (sites[i].type === 'hunting' && sites[i].state !== 'unknown') { hunting = sites[i]; break; } }
+            content.appendChild(el('p', 'rogue-note', R.t('ui.goalHunting')));
+            if (hunting) { content.appendChild(button('ui.goalHuntingMap', { type: 'selectSite', site: hunting.id })); }
+        }
+        content.appendChild(button('ui.help', { type: 'modal', kind: 'guide' }));
     }
     /** Renders the local character window and the controls directly beneath it. */
     function renderMap(save) {
@@ -142,8 +196,8 @@
         title.appendChild(button('ui.regionMap', { type: 'modal', kind: 'world' })); panel.appendChild(title);
         var status = el('div', 'rogue-status-grid');
         stat(status, 'ui.hp', save.party.hp + '/' + save.party.maxHp);
-        stat(status, 'ui.water', waterText(save.party.water) + '/' + R.waterMax(save));
-        stat(status, 'ui.food', save.party.food);
+        supplyStat(status, save, 'water');
+        supplyStat(status, save, 'food');
 
         var viewport = el('div', 'rogue-map-viewport');
         viewport.setAttribute('role', 'img'); viewport.setAttribute('aria-label', R.t('ui.mapLabel'));
@@ -167,6 +221,7 @@
         viewport.appendChild(grid);
         var coordinates = el('div', 'rogue-map-coordinate', view.position.x + ' / ' + view.position.y);
         viewport.appendChild(coordinates); panel.appendChild(viewport); panel.appendChild(status);
+        returnWater(panel, save);
         var tools = el('div', 'rogue-map-tools');
         tools.appendChild(el('span', 'rogue-note', R.t(save.flags.insideDungeon ? view.map.cleared ? 'ui.dungeonCleared' : 'ui.objective' : 'ui.legendFog')));
         tools.appendChild(button('ui.legend', { type: 'modal', kind: 'guide' }));
@@ -214,7 +269,7 @@
         } else {
             var goal = quest(save);
             preview.appendChild(el('h3', 'rogue-section-title', R.t('ui.quest.' + goal)));
-            preview.appendChild(el('p', 'rogue-note', R.t('ui.quest.' + goal + '.desc')));
+            preview.appendChild(el('p', 'rogue-note', R.t('ui.quest.' + goal + (['start', 'waterskin', 'workshop'].indexOf(goal) >= 0 ? '.preview' : '.desc'))));
         }
         preview.appendChild(button('ui.peekAll', { type: 'modal', kind: peekView }, { page: R.t(peekView === 'nearby' ? 'ui.around' : 'ui.' + peekView) })); panel.appendChild(preview);
     }
@@ -266,7 +321,7 @@
             box.appendChild(button('ui.route', { type: 'route', x: selected.x, y: selected.y }, null, !path)); return;
         }
         if (camp) {
-            box.appendChild(el('p', 'rogue-context-title', R.t('ui.campName', { n: camp.id + 1 })));
+            if (!nextGoal(box, save)) { box.appendChild(el('p', 'rogue-context-title', R.t('ui.campName', { n: camp.id + 1 }))); }
             box.appendChild(restockButton(save, false));
             box.appendChild(button('ui.storageOpen', { type: 'campView', view: 'stores' })); return;
         }
@@ -391,6 +446,7 @@
         for (key in camp.buildings) { built += camp.buildings[key]; }
         for (key in save.regions) { for (i = 0; i < save.regions[key].sites.length; i++) { if (save.regions[key].sites[i].ownerCamp === camp.id) { sites += 1; } } }
         for (i = 0; i < C.research.length; i++) { if (save.flags['tech.' + C.research[i].id]) { researched += 1; } }
+        nextGoal(panel, save);
         var menu = el('nav', 'rogue-camp-menu');
         campTile(menu, 'stores', 'ui.shared', R.t('ui.storesSummary', { n: resources }));
         campTile(menu, 'workers', 'ui.workers', R.t('ui.workersSummary', { n: Math.max(0, camp.pop - R.settle.employed(save, camp)), sites: sites }));
@@ -502,7 +558,8 @@
         var panel = panels.party; panel.textContent = '';
         var heading = el('div', 'rogue-panel-heading'); heading.appendChild(el('h2', '', R.t('ui.party'))); heading.appendChild(el('span', 'rogue-eyebrow', save.party.hp + '/' + save.party.maxHp)); panel.appendChild(heading);
         health(panel, save.party.hp, save.party.maxHp);
-        var reserves = el('div', 'rogue-party-reserves'); stat(reserves, 'ui.water', waterText(save.party.water) + '/' + R.waterMax(save)); stat(reserves, 'ui.food', save.party.food); panel.appendChild(reserves);
+        var reserves = el('div', 'rogue-party-reserves'); supplyStat(reserves, save, 'water'); supplyStat(reserves, save, 'food'); panel.appendChild(reserves);
+        returnWater(panel, save);
         var supplies = el('div', 'rogue-quick-supplies'); var supplyIds = ['water', 'food', 'medicine']; var s;
         for (s = 0; s < supplyIds.length; s++) {
             var supply = supplyIds[s];
@@ -912,10 +969,7 @@
             var traces = R.map.clues(save); var t;
             for (t = 0; t < traces.length; t++) { content.appendChild(el('p', 'rogue-clue', R.t(traces[t].key, traces[t].values))); }
         } else if (modal === 'goals') {
-            var goal = quest(save);
-            content.appendChild(el('h3', 'rogue-section-title', R.t('ui.quest.' + goal)));
-            content.appendChild(el('p', 'rogue-help-copy', R.t('ui.quest.' + goal + '.desc')));
-            content.appendChild(button('ui.help', { type: 'modal', kind: 'guide' }));
+            renderGoal(content, save);
         }
         else if (modal === 'menu') { renderMenu(content, save); }
         else if (modal === 'time') {
@@ -1008,6 +1062,7 @@
         if (action.type === 'tab') { switchTab(action.tab); }
         else if (action.type === 'back') { R.ui.back(); }
         else if (action.type === 'campView') { activeTab = 'camp'; campView = action.view; menuPage = 0; R.ui.render(); window.scrollTo(0, 0); }
+        else if (action.type === 'goalPage') { clearModals(); activeTab = 'camp'; campView = action.view; campFilter = action.filter; menuPage = 0; R.ui.render(); window.scrollTo(0, 0); }
         else if (action.type === 'peek') { if (document.getElementById('rogue-explore-preview')) { peekView = action.view; R.ui.render(); if (!document.getElementById('rogue-explore-preview')) { R.ui.open(action.view); } } else { R.ui.open(action.view); } }
         else if (action.type === 'storageView') { R.ui.open('storage', { scope: action.scope, member: action.member || 'player', quantity: 10, filter: 'all', page: 0 }); }
         else if (action.type === 'storageOption') { var options = modal === 'storage' ? modalOptions : storageOptions; options[action.key] = action.value; if (action.key !== 'page') { options.page = 0; } if (modal) { modalScroll = 0; } R.ui.render(); }

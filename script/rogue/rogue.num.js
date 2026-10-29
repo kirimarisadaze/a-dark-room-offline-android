@@ -114,6 +114,7 @@
         LOG_LIMIT: 120,
         WILD_EVENT_CHANCE: 0.50,
         LOW_FOOD: 4,
+        SUPPLY_WARNING_RATIO: 0.25,
         OUTPOST_STAGES: 5,
         OUTPOST_REPAIR: { wood: 20, stone: 10 },
         COMBAT_LOG_LIMIT: 5,
