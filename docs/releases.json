@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/kirimarisadaze/a-dark-room-offline-android",
   "packageName": "org.adarkroom.offline",
-  "latest": "1.3.2",
+  "latest": "1.3.3",
   "developmentMethod": "pure AI implementation of this port, human-authored upstream retained",
   "upstreamRepository": "https://github.com/doublespeakgames/adarkroom",
   "upstreamCommit": "1fada4620b6c66bd07bf15a3f1eb8223df8bc1d7",
@@ -526,7 +526,7 @@
       "internetPermission": false,
       "gameAssets": 170,
       "rawBackslashEntries": 0,
-      "status": "latest",
+      "status": "historical",
       "artifactProvenance": "built-from-complete-project-with-original-key",
       "sourceScope": "complete-project",
       "tag": "v1.3.2",
@@ -541,6 +541,34 @@
       "sourceUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/tree/v1.3.2",
       "knownIssue": "尚未真机运行验证；真人通关时长与长期平衡仍待评估。",
       "sourceArchiveUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2-source.zip"
+    },
+    {
+      "version": "1.3.3",
+      "versionCode": 22,
+      "file": "a-dark-room-offline-1.3.3.apk",
+      "bytes": 5785253,
+      "sha256": "05c79c516aaa7db9b356de13deb86a9f2105c7c107a201efc8436873c5c190c1",
+      "certificateSha256": "84604fa048968f6f4bac6ba50fec1ff75566d501a5d4d4ba4ce32221fea81713",
+      "internetPermission": false,
+      "gameAssets": 170,
+      "rawBackslashEntries": 0,
+      "status": "latest",
+      "artifactProvenance": "github-actions-original-key",
+      "sourceScope": "complete-project",
+      "tag": "v1.3.3",
+      "packageName": "org.adarkroom.offline",
+      "title": "无光之地 · 新手目标与补给反馈",
+      "originalBuildDate": "2026-10-29",
+      "archivedOn": "2026-10-29",
+      "developmentMethod": "AI-implemented port based on human-authored upstream",
+      "releaseUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.3",
+      "downloadUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk",
+      "checksumUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk.sha256",
+      "sourceUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/tree/v1.3.3",
+      "knownIssue": "未做 Android 真机验证；现有通关时长、终局铁库存与点击数尚未达到平衡目标。",
+      "sourceArchiveUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3-source.zip",
+      "apkBuildCommit": "b38d3fea36552f16bcf0768a8de2aebae48e9224",
+      "buildRunUrl": "https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/40888195897"
     }
   ]
 }

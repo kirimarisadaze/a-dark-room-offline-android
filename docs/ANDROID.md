@@ -130,9 +130,9 @@ node scripts/test-rogue-expansion-ui.mjs
 
 ## 版本与源码归档
 
-[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.3.2 共 21 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](RELEASES.md)，机器可读清单见 [releases.json](releases.json)。
+[Release 页面](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) 收录 **1.0.0–1.3.3 共 22 版**的 APK 与 SHA-256，每版单独说明改动、保存范围和已知问题。详细索引见 [版本归档](RELEASES.md)，机器可读清单见 [releases.json](releases.json)。
 
-- `v1.3.2`：当前发布版的完整可构建源码，包括独立生存模式、界面与测试；Release 附完整源码 ZIP。`v1.0.12` 起各发布版均保留完整工程。
+- `v1.3.3`：当前发布版的完整可构建源码，包括独立生存模式、界面与测试；Release 附完整源码 ZIP。`v1.0.12` 起各发布版均保留完整工程。
 - `release-archives` 与 `v1.0.0`–`v1.0.11`：从对应 APK 提取的实际网页源码与资源，以及归档说明、许可和校验信息。未保存的历史原生工程不会用新版源码冒充。
 - `1.0.0`、`1.0.1`：从保留的原始构建产物恢复，并用原密钥重新签名；不是当时分发 APK 的逐字节备份。
 - `1.0.0`–`1.0.3`：存在已知加载问题，标为历史测试版 / Pre-release，建议安装最新版。

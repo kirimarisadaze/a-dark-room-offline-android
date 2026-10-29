@@ -14,16 +14,16 @@
 
 本项目发布的各版包名与签名一致，可直接覆盖升级并保留本机存档。升级前建议先导出一份存档。其他作者的安卓版可能使用不同的包名、签名和存档位置，需要先导出兼容的存档代码再导入。
 
-最新版 **1.3.2** 安装包约 **5.5 MiB**；SHA-256：
+最新版 **1.3.3** 安装包约 **5.5 MiB**；SHA-256：
 
 ```text
-71d7b40403a6471e4ae4404375820cd9e13851f9ef8f89bec1bf1c27f4aff076
+05c79c516aaa7db9b356de13deb86a9f2105c7c107a201efc8436873c5c190c1
 ```
 
 Release 附有同名 `.sha256`。Windows 可用以下命令检查下载文件：
 
 ```powershell
-Get-FileHash .\a-dark-room-offline-1.3.2.apk -Algorithm SHA256
+Get-FileHash .\a-dark-room-offline-1.3.3.apk -Algorithm SHA256
 ```
 
 ## 功能与操作
