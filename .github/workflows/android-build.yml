@@ -101,7 +101,9 @@ jobs:
           java-version: '17'
       - name: Ensure Android SDK 35 is installed
         run: |
-          & sdkmanager.bat 'platforms;android-35' 'build-tools;35.0.0'
+          $sdkManager = Join-Path $env:ANDROID_HOME 'cmdline-tools\latest\bin\sdkmanager.bat'
+          if (-not (Test-Path -LiteralPath $sdkManager -PathType Leaf)) { throw 'Android SDK manager is missing from ANDROID_HOME.' }
+          & $sdkManager "--sdk_root=$env:ANDROID_HOME" 'platforms;android-35' 'build-tools;35.0.0'
           if ($LASTEXITCODE -ne 0) { throw 'Android SDK installation failed.' }
       - name: Read package and source metadata
         id: metadata
