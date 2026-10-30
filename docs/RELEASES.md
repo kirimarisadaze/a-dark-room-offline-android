@@ -2,13 +2,14 @@
 
 **纯 AI 项目**：Android 移植、移动适配、附加功能、测试脚本、文档与发布整理由 AI 根据用户需求和反馈完成；原作及上游代码、翻译、音效和第三方库保留各自作者署名。
 
-收录 1.0.0–1.3.3 共 22 版。下表日期为实际构建日期；1.0.0–1.3.2 曾统一归档发布，1.3.3 起按实际主线发版。Git 提交没有回填历史开发日期。推荐下载 **1.3.3**。
+收录 1.0.0–1.3.7 共 23 版。下表日期为实际构建日期；1.0.0–1.3.2 曾统一归档发布，1.3.3 起按实际主线发版。Git 提交没有回填历史开发日期。推荐下载 **1.3.7**。
 
 ## 下载索引
 
 | 版本 | 构建日期 | 内容 | 状态 | 下载 |
 | --- | --- | --- | --- | --- |
-| [1.3.3](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.3) | 2026-10-29 | 无光之地 · 新手目标与补给反馈 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk.sha256) |
+| [1.3.7](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.7) | 2026-10-30 | 无光之地 · 探索与建设布局 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.7/a-dark-room-offline-1.3.7.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.7/a-dark-room-offline-1.3.7.apk.sha256) |
+| [1.3.3](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.3) | 2026-10-29 | 无光之地 · 新手目标与补给反馈 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk.sha256) |
 | [1.3.2](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.2) | 2026-10-29 | 无光之地 · 撤离与整备修复 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2.apk.sha256) |
 | [1.3.1](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.1) | 2026-10-29 | 无光之地 · 储物与探索界面修复 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.1/a-dark-room-offline-1.3.1.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.1/a-dark-room-offline-1.3.1.apk.sha256) |
 | [1.3.0](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.0) | 2026-10-28 | 无光之地 · 荒野与同行者 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.0/a-dark-room-offline-1.3.0.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.0/a-dark-room-offline-1.3.0.apk.sha256) |
@@ -34,6 +35,7 @@
 ## 产物来源与源码范围
 
 - **1.0.0 / 1.0.1**：当时的已签名分发文件没有保留，从原始 aligned 构建恢复，并用原密钥重新签名；不是原分发文件的逐字节备份。
+- **1.3.7**：APK 来自原签名 [Actions 41024830216](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/41024830216)，构建提交 `3d58015d9d17aa1b11051ede23b961dd18193391`。发布元数据只改文档，全部 APK 构建输入保持一致；最终源码 ZIP 从 `v1.3.7` 标签重新生成。本地签名的 1.3.4–1.3.6 为未公开测试构建，不补建历史 Release。
 - **1.3.3**：APK 来自已验证的主线 [Actions 40888195897](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/40888195897)，使用原签名。发布准备只改文档与发布元数据，全部 APK 构建输入保持一致；源码 ZIP 从最终 `v1.3.3` 标签重新生成，与标签文件逐字节一致。
 - **1.0.14**：从当前完整工程构建，继续使用原签名；每模式 3 个独立存档，旧进度迁入普通模式存档 1。
 - **1.0.13**：从当前完整工程构建，继续使用原签名密钥；新增主页面与模式选择，Roguelike 尚未开放。
@@ -51,7 +53,7 @@
 
 ## 校验与签名
 
-所有 22 版已经逐个核对包名、versionName / versionCode、APK ZIP / DEX、v1 / v2 签名和无 INTERNET 权限。证书一致，适用于本项目签名版本之间覆盖升级。首次自建会生成新密钥，不能覆盖本仓库发布的签名版本。
+所有 23 版已经逐个核对包名、versionName / versionCode、APK ZIP / DEX、v1 / v2 签名和无 INTERNET 权限。证书一致，适用于本项目签名版本之间覆盖升级。首次自建会生成新密钥，不能覆盖本仓库发布的签名版本。
 
 签名证书 SHA-256：
 
@@ -61,6 +63,7 @@
 
 | APK 版本 | 大小（字节） | SHA-256 |
 | --- | ---: | --- |
+| 1.3.7 | 5,789,349 | `ef490e86cbd13f195aeb0429d2173ee0875b4f9c3de267103ad18d56f1a8a21a` |
 | 1.3.3 | 5,785,253 | `05c79c516aaa7db9b356de13deb86a9f2105c7c107a201efc8436873c5c190c1` |
 | 1.3.2 | 5,781,157 | `71d7b40403a6471e4ae4404375820cd9e13851f9ef8f89bec1bf1c27f4aff076` |
 | 1.3.1 | 5,781,157 | `f521bf8a02b9e87fdeb58e61f521de2f70e8a3f8335ecdf1e4d2fc44c8c11b2c` |
