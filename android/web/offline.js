@@ -184,6 +184,7 @@
   Engine.loadGame = function () {
     originalLoadGame.apply(Engine, arguments);
     if (!State.config || typeof State.config !== 'object') { State.config = {}; }
+    State.config.lightsOff = OfflineTheme.isDark();
     var saved = Number(State.config.offlineSpeed);
     gameSpeed = [1, 2, 3, 4].indexOf(saved) >= 0 ? saved : (State.config.hyperMode ? 2 : 1);
     Engine.options.doubleTime = gameSpeed > 1;
@@ -1294,11 +1295,22 @@
   }
 
   var originalLights = Engine.turnLightsOff;
-  Engine.turnLightsOff = function () {
-    originalLights();
-    $('#offline-lights').text($SM.get('config.lightsOff') ? '日间模式' : '夜间模式');
+  /** Applies the shared theme to the active ordinary game without touching other slots. */
+  function syncTheme() {
+    if (!window.State || initializing) { return; }
+    var dark = OfflineTheme.isDark();
+    if (!!$SM.get('config.lightsOff') !== dark) { originalLights(); }
+    document.body.classList.toggle('offline-dark', dark);
+    $('#offline-lights').text(dark ? '日间模式' : '夜间模式');
     scheduleLayout();
+  }
+  Engine.turnLightsOff = function () {
+    if (initializing) { originalLights(); return; }
+    if (!OfflineTheme.setDark(!$SM.get('config.lightsOff'))) {
+      $('#saveNotify').stop(true).text(Rogue.t('err.themeSave')).css('opacity', 1);
+    }
   };
+  window.addEventListener('adrthemechange', syncTheme);
   window.addEventListener('resize', scheduleLayout);
   window.addEventListener('blur', OfflineGame.releaseControls);
   window.addEventListener('pagehide', OfflineGame.save);

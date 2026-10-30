@@ -111,11 +111,14 @@ async function packItem(token) {
 /** Dispatches game actions exclusively by clicking their public on-screen controls. */
 async function input(action) {
     const type = action.type;
-    if (['move', 'wait', 'gather', 'occupy', 'clear', 'enter', 'extract', 'descend', 'restock', 'launch'].includes(type)) {
-        await tab('map');
-        const emergency = type === 'extract' && await page.locator('#rogue-panel-map [data-focus="confirmExtract:"]').count() > 0;
+    if (type === 'restock') {
+        await camp('supplies'); await click(page.locator('#rogue-panel-camp [data-focus="restock:"]'));
+    } else if (['move', 'wait', 'gather', 'occupy', 'clear', 'enter', 'extract', 'descend', 'launch'].includes(type)) {
+        const panel = ['move', 'wait'].includes(type) ? 'map' : 'camp';
+        await tab(panel);
+        const emergency = type === 'extract' && await page.locator('#rogue-panel-camp [data-focus="confirmExtract:"]').count() > 0;
         const token = type === 'launch' ? 'confirmLaunch:' : emergency ? 'confirmExtract:' : type + ':' + (action.dir || action.site || '');
-        await click(page.locator('#rogue-panel-map [data-focus="' + token + '"]'));
+        await click(page.locator('#rogue-panel-' + panel + ' [data-focus="' + token + '"]'));
         if (type === 'launch' || emergency) await click(page.getByRole('button', { name: '确认', exact: true }));
         if (type === 'enter') { dungeons++; await capture('dungeon-' + dungeons + '-entrance'); }
     } else if (type === 'forage') {
@@ -145,7 +148,7 @@ async function input(action) {
         await click(page.getByRole('button', { name: G.CONTENT.items[action.item].kind === 'weapon' ? '更换或卸下武器' : '更换或卸下护甲', exact: true }));
         await click(await packItem('equip:' + action.item)); await closeInventory();
     } else if (type === 'outpost') {
-        if (action.op === 'enter') { await tab('map'); await click(page.locator('[data-focus="outpost:"]')); }
+        if (action.op === 'enter') { await tab('camp'); await click(page.locator('[data-focus="outpost:"]')); }
         else if (action.op === 'explore') await click(page.locator('.rogue-dialog-content [data-focus="outpost:"]'));
         else if (action.op === 'leave') await click(page.locator('.rogue-dialog-footer [data-focus="outpost:"]'));
     } else if (type === 'event') {
@@ -163,12 +166,8 @@ async function input(action) {
         await click(page.locator('[data-focus="' + token + '"]'));
         if (type === 'drop') { await click(page.getByRole('button', { name: '确认', exact: true })); await click(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); await click(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); }
     } else if (type === 'worker') {
-        const owner = G.map.site(expedition, action.site).ownerCamp;
-        const index = expedition.camps.findIndex(c => c.id === owner);
-        if (expedition.activeCamp !== index) {
-            await camp('overview'); await click(page.locator('#rogue-panel-camp .rogue-segment .rogue-button').nth(index)); await sync();
-        }
-        await camp('workers'); await click(await paged('worker:' + (action.delta > 0 ? 'plus:' : 'minus:') + action.site));
+        await camp(G.atCamp(expedition) ? 'workers' : 'overview');
+        await click(await paged('worker:' + (action.delta > 0 ? 'plus:' : 'minus:') + action.site));
     } else if (type === 'newCamp' || type === 'dismantle') {
         await camp('expansion'); await click(page.locator('[data-focus="' + (type === 'dismantle' ? 'confirmDismantle:' : 'newCamp:') + '"]'));
         if (type === 'dismantle') await click(page.getByRole('button', { name: '确认', exact: true }));
@@ -250,7 +249,7 @@ try {
         for (let i = 0; i < 8 && expedition.party.companions.length < 2; i++) {
             if (here.pop <= 1) { await act({ type: 'night' }); continue; }
             if (G.settle.employed(expedition, here) >= here.pop) {
-                const site = Object.values(expedition.regions).flatMap(region => region.sites).find(site => site.ownerCamp === here.id && site.workers > 0);
+                const site = expedition.regions[expedition.party.region].sites.find(site => site.ownerCamp === here.id && site.workers > 0);
                 if (!site) break;
                 await act({ type: 'worker', site: site.id, delta: -1 }); continue;
             }
@@ -397,10 +396,11 @@ try {
         if (currentTier === 2) { await gatherResource('iron', 8); await craft('sword'); await craft('mail'); }
         if (currentTier === 3) { await gatherResource('coal', 8); }
         if (currentTier >= 3 && !expedition.party.bag.blade) { for (let i = 0; i < 3; i++) await craft('steel'); await craft('blade'); }
-        for (const region of Object.values(expedition.regions)) {
+        for (const region of [expedition.regions[expedition.party.region]]) {
             for (const site of region.sites) {
                 if (site.state !== 'occupied' || !['iron', 'coal', 'sulphur'].includes(site.type)) continue;
                 const owner = expedition.camps.find(camp => camp.id === site.ownerCamp);
+                if (site.workers < 3 && owner && G.settle.employed(expedition, owner) < owner.pop) await walkTo(site.x, site.y);
                 while (site.workers < 3 && owner && G.settle.employed(expedition, owner) < owner.pop) await act({ type: 'worker', site: site.id, delta: 1 });
             }
         }

@@ -20,9 +20,21 @@
   try {
     var size = Math.max(16, Math.min(22, Number(localStorage.offlineFontSize) || 16));
     document.documentElement.style.fontSize = size + 'px';
-    var state = JSON.parse(localStorage.getItem('gameState') || 'null');
-    document.documentElement.classList.toggle('home-dark', !!(state && state.config && state.config.lightsOff));
   } catch (error) { /* The picker preserves invalid data and reports it per slot. */ }
+
+  /** Keeps the launcher toggle aligned with the theme selected in either mode. */
+  function themeChanged() {
+    var control = document.getElementById('offline-home-theme');
+    var dark = OfflineTheme.isDark();
+    control.textContent = Rogue.t(dark ? 'ui.switchLight' : 'ui.switchDark');
+    control.setAttribute('aria-label', Rogue.t(dark ? 'ui.switchLight' : 'ui.switchDark'));
+    control.title = Rogue.t('ui.themeShared');
+  }
+  document.getElementById('offline-home-theme').addEventListener('click', function () {
+    if (!OfflineTheme.setDark(!OfflineTheme.isDark())) { fail({ message: Rogue.t('err.savefull') }); }
+  });
+  window.addEventListener('adrthemechange', themeChanged);
+  themeChanged();
 
   function fail(error) {
     feedback.textContent = error.message || '操作未完成，原始存档已保留。';

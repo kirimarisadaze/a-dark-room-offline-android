@@ -60,7 +60,7 @@ async function storage(page) {
 async function dormant(page, requests) {
   assert.equal(await page.evaluate(() => typeof window.Engine), 'undefined');
   assert.equal(await page.evaluate(() => typeof window.OfflineGame), 'undefined');
-  assert.equal(requests.some(name => /^(script\/|audio\/|offline\.js)/.test(name) && name !== 'script/rogue/lang/zh.js'), false, 'The launcher loads only Rogue translations, never the game engine or audio');
+  assert.equal(requests.some(name => /^(script\/|audio\/|offline\.js)/.test(name) && !['script/rogue/lang/zh.js', 'script/rogue/rogue.theme.js'].includes(name)), false, 'The launcher loads only translations and shared appearance, never the game engine or audio');
 }
 async function inspect(page, scene, tag) {
   const result = await page.evaluate(() => {

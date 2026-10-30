@@ -30,6 +30,8 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-root [hidden] { display: none !important; }
 .rogue-root {
     font: var(--rogue-font-size, 16px)/1.65 Georgia, 'Noto Serif CJK SC', 'Songti SC', serif;
+    min-height: 100vh;
+    touch-action: pan-y pinch-zoom;
     padding-top: calc(56px + env(safe-area-inset-top));
     padding-bottom: calc(var(--rogue-bottom-height, 108px) + 12px);
     scroll-padding-top: calc(64px + env(safe-area-inset-top));
@@ -353,409 +355,301 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 }
 @media (prefers-reduced-motion: reduce) { .rogue-root * { scroll-behavior: auto !important; } }
 
-/* A Dark Room terminal presentation layer. This block changes presentation only. */
 body.rogue-mode {
-    --adr-bg: #eeeeee;
-    --adr-surface: #eeeeee;
-    --adr-surface-strong: #ffffff;
+    --adr-bg: #fff;
+    --adr-surface: #fff;
+    --adr-surface-strong: #f4f4f0;
     --adr-text: #272823;
-    --adr-text-muted: #777870;
-    --adr-text-dim: #55564f;
+    --adr-text-muted: #64655e;
     --adr-border: #272823;
     --adr-border-muted: #b8b9b1;
-    --adr-button-border: #b1b2aa;
+    --adr-button-border: #77786f;
     --adr-button-selected: #e2e3dc;
-    --adr-button-hover: #d8dad2;
-    --adr-button-active: #d0d3c8;
-    --adr-button-focus: #6d7164;
-    --adr-disabled: #999a92;
-    --adr-overlay: rgba(39, 40, 35, .16);
-    font-family: "Times New Roman", Times, serif;
-    background: var(--adr-bg);
-    color: var(--adr-text);
+    --adr-button-hover: #e9eae4;
+    --adr-disabled: #686961;
+    --adr-overlay: rgba(39, 40, 35, .28);
 }
-
 html.rogue-dark body.rogue-mode {
     --adr-bg: #272823;
     --adr-surface: #272823;
-    --adr-surface-strong: #111111;
-    --adr-text: #eeeeee;
-    --adr-text-muted: #999999;
-    --adr-text-dim: #666760;
-    --adr-border: #eeeeee;
-    --adr-border-muted: #444444;
-    --adr-button-border: #5e6057;
-    --adr-button-selected: #33352e;
-    --adr-button-hover: #3d4036;
-    --adr-button-active: #474b3f;
-    --adr-button-focus: #a5aa98;
-    --adr-disabled: #555555;
+    --adr-surface-strong: #30312b;
+    --adr-text: #eee;
+    --adr-text-muted: #b4b5ab;
+    --adr-border: #eee;
+    --adr-border-muted: #65665d;
+    --adr-button-border: #9a9c91;
+    --adr-button-selected: #44463c;
+    --adr-button-hover: #393b33;
+    --adr-disabled: #aaaca0;
     --adr-overlay: rgba(17, 17, 17, .68);
 }
-
-.rogue-terminal,
-.rogue-terminal button,
-.rogue-terminal input,
-.rogue-terminal textarea,
-.rogue-terminal select {
-    font-family: "Times New Roman", Times, serif;
-    letter-spacing: normal;
-}
-
+html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); }
 .rogue-terminal {
+    --rogue-caption-size: max(14px, calc(var(--rogue-font-size, 16px) * .875));
     background: var(--adr-bg);
     color: var(--adr-text);
+    font-family: "Times New Roman", Times, serif;
+    padding-top: calc(104px + env(safe-area-inset-top));
+    scroll-padding-top: calc(112px + env(safe-area-inset-top));
 }
-
-.rogue-terminal .rogue-header,
-.rogue-terminal .rogue-bottom,
-.rogue-terminal .rogue-dialog,
-.rogue-terminal .rogue-overlay {
-    background: var(--adr-surface);
-    color: var(--adr-text);
-}
-
-.rogue-terminal .rogue-header {
-    border-bottom: 1px solid var(--adr-border-muted);
-}
-
-.rogue-terminal .rogue-brand > span:first-child,
-.rogue-terminal #rogue-page-title {
-    letter-spacing: .08em;
-}
-
-.rogue-terminal .rogue-layout {
-    max-width: 720px;
-    padding: 18px 16px 32px;
-}
-
-.rogue-terminal .rogue-panel,
-.rogue-terminal .rogue-section,
-.rogue-terminal .rogue-companion,
-.rogue-terminal .rogue-priced,
-.rogue-terminal .rogue-worker-card,
-.rogue-terminal .rogue-camp-local,
-.rogue-terminal .rogue-mission,
-.rogue-terminal .rogue-resource-grid {
-    border: 1px solid var(--adr-border-muted);
-    background: transparent;
-}
-
-.rogue-terminal .rogue-panel {
-    padding: 14px;
-}
-
-.rogue-terminal .rogue-section,
-.rogue-terminal .rogue-companion,
-.rogue-terminal .rogue-priced,
-.rogue-terminal .rogue-worker-card,
-.rogue-terminal .rogue-camp-local,
-.rogue-terminal .rogue-mission,
-.rogue-terminal .rogue-resource-grid {
-    padding: 12px;
-}
-
-.rogue-terminal .rogue-section-title {
-    display: inline-block;
-    margin: -26px 0 12px -5px !important;
-    padding: 0 5px;
-    background: var(--adr-surface);
-    color: var(--adr-text);
-    font-size: .9em;
-    letter-spacing: .04em;
-}
-
-.rogue-terminal .rogue-section + .rogue-section {
-    margin-top: 22px;
-}
-
-.rogue-terminal .rogue-button {
-    border-color: var(--adr-button-border);
+.rogue-terminal button, .rogue-terminal input { font-family: inherit; letter-spacing: normal; }
+.rogue-terminal.rogue-root .rogue-button {
+    min-height: 48px;
+    font-size: var(--rogue-font-size, 16px);
+    padding: 10px 12px;
+    border: 1px solid var(--adr-button-border);
     background: transparent;
     color: var(--adr-text);
-    border-radius: 0;
-    box-shadow: none;
 }
-
-.rogue-terminal .rogue-button[aria-pressed='true'] {
+.rogue-terminal.rogue-root .rogue-button[aria-pressed='true'] {
     background: var(--adr-button-selected);
-    color: var(--adr-text);
     text-decoration: underline;
-    text-underline-offset: 4px;
+    text-underline-offset: 5px;
 }
-
-.rogue-terminal .rogue-button:focus-visible {
-    background: var(--adr-button-hover);
-    color: var(--adr-text);
-    outline-color: var(--adr-button-focus);
+.rogue-terminal.rogue-root .rogue-button-primary {
+    background: var(--adr-text);
+    border-color: var(--adr-text);
+    color: var(--adr-bg);
+    font-weight: 700;
 }
-
-.rogue-terminal .rogue-button:active:not(:disabled) {
-    background: var(--adr-button-active);
-    color: var(--adr-text);
+.rogue-terminal.rogue-root .rogue-button-entry {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+    border-color: var(--adr-border-muted);
 }
-
-@media (hover: hover) and (pointer: fine) {
-    .rogue-terminal .rogue-button:hover:not(:disabled) {
-        background: var(--adr-button-hover);
-        color: var(--adr-text);
-    }
-}
-
-.rogue-terminal .rogue-button:disabled {
-    border-color: var(--adr-disabled);
-    color: var(--adr-disabled);
+.rogue-terminal.rogue-root .rogue-button-entry::after { content: '›'; flex: none; font-size: 1.2em; }
+.rogue-terminal.rogue-root .rogue-button:disabled {
     opacity: 1;
-}
-
-.rogue-terminal .rogue-return,
-.rogue-terminal .rogue-tabs > .rogue-button[aria-current='page'],
-.rogue-terminal .rogue-explore-tabs > .rogue-button[aria-pressed='true'],
-.rogue-terminal .rogue-filter-tabs > .rogue-button[aria-pressed='true'],
-.rogue-terminal .rogue-storage-controls > .rogue-button[aria-pressed='true'] {
-    background: var(--adr-button-selected);
-    color: var(--adr-text);
-    border-color: var(--adr-button-border);
-}
-
-.rogue-terminal .rogue-tabs > .rogue-button[aria-current='page'] {
-    color: var(--adr-text) !important;
-}
-
-.rogue-terminal .rogue-stat,
-.rogue-terminal .rogue-inventory-row,
-.rogue-terminal .rogue-worker-row,
-.rogue-terminal .rogue-road-row {
-    border-bottom: 1px solid var(--adr-border-muted);
-}
-
-.rogue-terminal .rogue-stat:last-child,
-.rogue-terminal .rogue-inventory-row:last-child,
-.rogue-terminal .rogue-worker-row:last-child {
-    border-bottom: 0;
-}
-
-.rogue-terminal .rogue-muted,
-.rogue-terminal .rogue-note,
-.rogue-terminal .rogue-cost,
-.rogue-terminal .rogue-eyebrow,
-.rogue-terminal .rogue-journal-preview,
-.rogue-terminal .rogue-tabs > .rogue-button {
-    color: var(--adr-text-muted) !important;
-}
-
-.rogue-terminal .rogue-map-viewport {
-    border: 1px solid var(--adr-border);
+    border-style: dashed;
+    border-color: var(--adr-border-muted);
+    color: var(--adr-disabled);
     background: var(--adr-surface-strong);
+    font-weight: 400;
 }
-
-.rogue-terminal .rogue-grid .t-wall,
-.rogue-terminal .rogue-grid .t-floor {
+.rogue-terminal.rogue-root .rogue-button:active:not(:disabled) { box-shadow: inset 0 0 0 2px currentColor; }
+.rogue-terminal.rogue-root .rogue-button:focus-visible { outline: 2px solid var(--adr-text); outline-offset: 3px; }
+@media (hover: hover) and (pointer: fine) {
+    .rogue-terminal.rogue-root .rogue-button:hover:not(:disabled) { box-shadow: inset 0 0 0 1px currentColor; }
+}
+.rogue-terminal.rogue-root .rogue-note,
+.rogue-terminal.rogue-root .rogue-cost,
+.rogue-terminal.rogue-root .rogue-eyebrow,
+.rogue-terminal .rogue-return-water {
     color: var(--adr-text-muted);
+    font-size: var(--rogue-caption-size);
+    line-height: 1.65;
 }
-
-.rogue-terminal .rogue-grid .t-site,
-.rogue-terminal .rogue-grid .t-camp,
-.rogue-terminal .rogue-grid .t-exit,
-.rogue-terminal .rogue-grid .t-objective {
+.rogue-terminal .rogue-muted { color: var(--adr-text-muted); }
+.rogue-terminal.rogue-root .rogue-shortfall,
+.rogue-terminal.rogue-root .rogue-blocked-reason,
+.rogue-terminal .rogue-supply-warning,
+.rogue-terminal .rogue-supply-warning > .rogue-muted {
     color: var(--adr-text);
+    font-weight: 700;
 }
-
-.rogue-terminal .rogue-grid .t-player {
-    background: var(--adr-text);
-    color: var(--adr-surface-strong);
-    outline-color: var(--adr-text);
-}
-
-.rogue-terminal .rogue-health {
-    background: var(--adr-border-muted);
-}
-
-.rogue-terminal .rogue-health-fill,
-.rogue-terminal .rogue-day-progress > span {
-    background: var(--adr-text);
-}
-
-.rogue-terminal .rogue-bottom {
-    border-top: 1px solid var(--adr-border);
-}
-
-.rogue-terminal .rogue-live-log {
-    border-bottom: 1px solid var(--adr-border-muted);
-    background: transparent;
-}
-
-.rogue-terminal .rogue-overlay {
-    align-items: center;
-    padding: calc(64px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom));
-    background: var(--adr-overlay);
-}
-
-.rogue-terminal .rogue-dialog {
-    border: 1px solid var(--adr-border);
-    max-height: min(720px, 100%);
-}
-
-.rogue-terminal .rogue-dialog-heading,
-.rogue-terminal .rogue-dialog-footer {
-    border-color: var(--adr-border-muted);
-}
-
-.rogue-terminal .rogue-dialog-content {
-    background: var(--adr-surface);
-}
-
-.rogue-terminal .rogue-modal-notice {
-    border-color: var(--adr-border-muted);
-}
-
-@media (min-width: 1100px) {
-    .rogue-terminal .rogue-layout {
-        max-width: 1400px;
-    }
-}
-
-@media (max-width: 359px) {
-    .rogue-terminal .rogue-layout {
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-
-    .rogue-terminal .rogue-status-grid,
-    .rogue-terminal .rogue-resource-grid,
-    .rogue-terminal .rogue-party-reserves {
-        gap: 8px;
-    }
-
-    .rogue-terminal .rogue-control-row {
-        grid-template-columns: 132px minmax(0, 1fr);
-        gap: 10px;
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .rogue-terminal *,
-    .rogue-terminal *::before,
-    .rogue-terminal *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
-    }
-}
-
-/* Location pages follow the reference APK: text tabs, work on the left, stores on the right. */
-html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); }
-.rogue-terminal { padding-top: calc(104px + env(safe-area-inset-top)); scroll-padding-top: calc(112px + env(safe-area-inset-top)); }
-.rogue-terminal .rogue-header { height: calc(100px + env(safe-area-inset-top)); grid-template-rows: 36px 44px; gap: 0 12px; padding: calc(8px + env(safe-area-inset-top)) 20px 8px; border: 0; }
-.rogue-terminal .rogue-tabs { grid-column: 1 / -1; grid-row: 2; display: flex; justify-content: flex-start; width: 100%; max-width: 960px; margin: 0 auto; padding: 0; }
-.rogue-terminal .rogue-tabs > .rogue-button { min-height: 44px; min-width: 60px; padding: 8px 16px; font-size: .9375em; background: transparent; }
+.rogue-terminal .rogue-supply-level { font-size: var(--rogue-caption-size); text-decoration: underline; }
+.rogue-terminal .rogue-stat-value { font-weight: 700; }
+.rogue-terminal h2 { font-weight: 700; font-size: 1.125em; }
+.rogue-terminal .rogue-section-title { display: block; margin: 0 0 12px !important; font-size: 1em; font-weight: 700; letter-spacing: normal; }
+.rogue-terminal .rogue-header { height: calc(100px + env(safe-area-inset-top)); grid-template-rows: 36px 44px; gap: 0 12px; padding: calc(8px + env(safe-area-inset-top)) 16px 8px; background: var(--adr-bg); }
+.rogue-terminal .rogue-tabs { grid-column: 1 / -1; grid-row: 2; display: flex; width: 100%; max-width: 960px; margin: 0 auto; }
+.rogue-terminal.rogue-root .rogue-tabs > .rogue-button { min-height: 44px; padding: 8px 16px; border: 0; background: transparent; }
 .rogue-terminal .rogue-tabs > .rogue-button:first-child { padding-left: 0; }
-.rogue-terminal .rogue-tabs > .rogue-button + .rogue-button::before { content: ''; position: absolute; left: 0; height: 14px; border-left: 1px solid var(--adr-border-muted); }
-.rogue-terminal .rogue-tabs > .rogue-button[aria-current='page'] { background: transparent; text-decoration: underline; text-underline-offset: 5px; }
+.rogue-terminal .rogue-tabs > .rogue-button + .rogue-button::before { content: ''; position: absolute; left: 0; height: 16px; border-left: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-tabs > .rogue-button[aria-current='page'] { font-weight: 700; text-decoration: underline; text-underline-offset: 6px; }
 .rogue-terminal .rogue-tabs > .rogue-button[aria-current='page']::after { display: none; }
 .rogue-terminal:not([data-view='run']) .rogue-tabs { display: none; }
 .rogue-terminal:not([data-view='run']) { padding-top: calc(56px + env(safe-area-inset-top)); }
 .rogue-terminal:not([data-view='run']) .rogue-header { height: calc(56px + env(safe-area-inset-top)); }
-.rogue-terminal .rogue-layout { display: block; max-width: 1000px; padding: 20px 20px 28px; }
-.rogue-terminal .rogue-layout > .rogue-panel { display: none !important; padding: 0; border: 0; background: transparent; }
+.rogue-terminal .rogue-layout { display: block; max-width: 1000px; padding: 16px 16px 28px; overflow: hidden; touch-action: pan-y pinch-zoom; }
+.rogue-terminal .rogue-region-hint { margin-bottom: 16px; }
+.rogue-terminal .rogue-region-context { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
+.rogue-terminal .rogue-region-context > .rogue-button { width: 100%; }
+.rogue-terminal .rogue-map-route { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.rogue-terminal .rogue-layout > .rogue-panel { display: none !important; padding: 0; border: 0; }
 .rogue-terminal[data-tab='map'] #rogue-panel-map,
 .rogue-terminal[data-tab='camp'] #rogue-panel-camp,
 .rogue-terminal[data-tab='party'] #rogue-panel-party { display: block !important; }
-.rogue-terminal .rogue-panel-heading { margin-bottom: 12px; }
-.rogue-terminal .rogue-section,
-.rogue-terminal .rogue-priced,
-.rogue-terminal .rogue-worker-card,
-.rogue-terminal .rogue-mission { border: 0; padding: 0; background: transparent; }
-.rogue-terminal .rogue-priced { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; margin: 0 0 22px; }
-.rogue-terminal .rogue-priced > .rogue-button { max-width: 100%; width: 124px; }
-.rogue-terminal .rogue-priced-copy { width: 100%; }
-.rogue-terminal .rogue-section-title { margin: 0 0 10px !important; padding: 0; }
-.rogue-terminal .rogue-stat { border: 0; }
-.rogue-terminal .rogue-scene-tabs { display: flex; align-items: center; gap: 8px; min-height: 44px; margin-bottom: 12px; }
-.rogue-terminal .rogue-scene-tabs > div { flex: 1; min-width: 0; }
-.rogue-terminal .rogue-scene-tabs > .rogue-button { flex: none; border: 0; padding: 6px 4px; font-size: .75em; }
-.rogue-terminal .rogue-travel-stores { position: relative; border: 1px solid var(--adr-border-muted); margin: 8px 0 14px; padding: 12px 10px 6px; }
-.rogue-terminal .rogue-travel-heading { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin: -24px 0 4px; }
-.rogue-terminal .rogue-travel-heading > * { background: var(--adr-bg); padding: 0 4px; margin: 0 !important; font-size: .8125em; }
-.rogue-terminal .rogue-status-grid { gap: 10px; margin: 0; padding: 0; }
+.rogue-terminal .rogue-panel-heading { margin-bottom: 16px; flex-wrap: wrap; }
+.rogue-terminal .rogue-section { margin-top: 24px; padding: 0; background: transparent; }
+.rogue-terminal .rogue-scene-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.rogue-terminal .rogue-scene-tabs > div { flex: 1; min-width: 110px; }
+.rogue-terminal.rogue-root .rogue-scene-tabs > .rogue-button { padding: 8px; }
+.rogue-terminal .rogue-travel-stores { border: 1px solid var(--adr-border-muted); padding: 8px 12px; margin-bottom: 12px; }
+.rogue-terminal .rogue-travel-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; flex-wrap: wrap; }
+.rogue-terminal .rogue-travel-heading .rogue-section-title { margin-bottom: 4px !important; }
+.rogue-terminal .rogue-status-grid { gap: 8px; padding: 0; }
+.rogue-terminal .rogue-status-grid .rogue-stat { flex-direction: row; align-items: baseline; font-size: 1em; }
+.rogue-terminal .rogue-status-grid .rogue-stat > span:first-child { font-size: var(--rogue-caption-size); }
 .rogue-terminal .rogue-exploration-scene { display: block; min-width: 0; }
-.rogue-terminal .rogue-map-viewport { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 8px; align-items: start; padding: 16px 10px 28px; min-height: 228px; background: var(--adr-bg); }
-.rogue-terminal .rogue-grid { font-family: 'Courier New', Courier, monospace; letter-spacing: .2em; justify-self: center; }
-.rogue-terminal .rogue-dpad { align-self: end; margin-top: 38px; gap: 0; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); }
-.rogue-terminal .rogue-dpad .rogue-button { border: 0; font-size: 21px; color: var(--adr-text-muted); }
-.rogue-terminal .rogue-map-coordinate { left: 12px; right: auto; bottom: 12px; }
-.rogue-terminal .rogue-control-row { display: block; padding: 8px 0 0; }
-.rogue-terminal .rogue-context { display: flex; flex-wrap: wrap; align-items: center; gap: 0 12px; }
-.rogue-terminal .rogue-context > .rogue-button { width: auto; min-width: 100px; max-width: 100%; margin: 4px 0; font-size: .8125em; }
-.rogue-terminal .rogue-context > .rogue-next-goal { flex-basis: 100%; margin: 0; padding: 0 !important; min-height: 44px; font-weight: 400; }
-.rogue-terminal .rogue-context > .rogue-context-title,
-.rogue-terminal .rogue-context > .rogue-note { flex-basis: 100%; }
-.rogue-terminal .rogue-explore-shortcuts { display: flex; gap: 18px; margin-top: 6px; }
-.rogue-terminal .rogue-explore-shortcuts > .rogue-button { background: transparent; padding: 6px 0; font-size: .8125em; }
-.rogue-terminal .rogue-explore-preview { margin-top: 2px; border: 0; }
-.rogue-terminal .rogue-camp-scene { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 24px; align-items: start; }
-.rogue-terminal .rogue-camp-workbench,
-.rogue-terminal .rogue-camp-ledger { min-width: 0; }
-.rogue-terminal .rogue-camp-ledger { padding-top: 8px; }
-.rogue-terminal .rogue-camp-stocks,
-.rogue-terminal .rogue-camp-village { position: relative; display: block; margin: 0 0 28px; border: 1px solid var(--adr-border-muted); padding: 12px 10px 4px; }
-.rogue-terminal .rogue-camp-stocks > .rogue-section-title,
-.rogue-terminal .rogue-camp-village > .rogue-section-title { position: relative; display: table; margin: -25px 0 9px -4px !important; padding: 0 4px; font-size: .875em; }
-.rogue-terminal .rogue-camp-stocks > .rogue-resource-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0; border: 0; padding: 0; font-size: .8125em; }
-.rogue-terminal .rogue-camp-stocks .rogue-stat { padding: 6px 0; font-size: 1em; gap: 4px; }
-.rogue-terminal .rogue-camp-stocks > .rogue-button { border: 0; min-width: 44px; padding: 4px 0; font-size: .75em; text-align: left; }
-.rogue-terminal .rogue-camp-status { display: block; padding: 0; margin: 0; font-size: .8125em; }
-.rogue-terminal .rogue-camp-status > .rogue-stat { flex-wrap: wrap; font-size: 1em; }
-.rogue-terminal .rogue-camp-status .rogue-stat-value { font-size: 1em; }
-.rogue-terminal .rogue-camp-village > .rogue-button { border: 0; display: flex; padding: 4px 0; font-size: .8125em; }
-.rogue-terminal .rogue-camp-actions { display: flex; flex-direction: column; gap: 10px; margin: 0 0 10px; align-items: flex-start; }
-.rogue-terminal .rogue-camp-actions > .rogue-button { min-height: 44px; width: 124px; max-width: 100%; padding: 6px 8px; font-size: .8125em; }
-.rogue-terminal .rogue-camp-workbench > .rogue-next-goal { font-size: .75em; font-weight: 400; line-height: 1.5; }
-.rogue-terminal .rogue-camp-menu { display: block; margin-top: 8px; }
-.rogue-terminal .rogue-camp-work-group { margin-bottom: 8px; }
-.rogue-terminal .rogue-camp-link { border: 0; min-height: 44px; padding: 4px 0; font-size: .875em; justify-content: flex-start; text-align: left; text-decoration: underline; text-underline-offset: 4px; }
-.rogue-terminal .rogue-camp-work-group > .rogue-camp-link { display: flex; font-size: .8125em; }
-.rogue-terminal .rogue-work-choice > .rogue-button { width: 124px; max-width: 100%; font-size: .8125em; padding: 6px; }
-.rogue-terminal .rogue-work-choice > .rogue-cost { font-size: .6875em; margin-top: 4px; }
-.rogue-terminal .rogue-camp-other-work { display: flex; flex-wrap: wrap; gap: 0 14px; }
-.rogue-terminal .rogue-camp-other-work > .rogue-camp-link { font-size: .8125em; }
-.rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-scene { grid-template-columns: minmax(0, 1fr); }
+.rogue-terminal .rogue-map-viewport { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-height: 0; padding: 12px 12px 32px; border: 1px solid var(--adr-border-muted); background: var(--adr-bg); }
+.rogue-terminal .rogue-grid { font-family: 'Courier New', Courier, monospace; letter-spacing: .2em; font-size: 12px; line-height: 1.1; justify-self: center; }
+.rogue-terminal .rogue-map-row { height: 1.1em; }
+.rogue-terminal .rogue-dpad { justify-self: center; gap: 4px; margin: 0; grid-template-columns: repeat(3, 48px); grid-template-rows: repeat(3, 48px); }
+.rogue-terminal.rogue-root .rogue-dpad .rogue-button { padding: 0; font-size: 22px; }
+.rogue-terminal .rogue-map-coordinate { left: 12px; right: auto; bottom: 6px; }
+.rogue-terminal .rogue-control-row { display: block; padding: 24px 0 0; }
+.rogue-terminal .rogue-context { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.rogue-terminal.rogue-root .rogue-context > .rogue-button { width: 100%; margin: 0; }
+.rogue-terminal .rogue-context > p, .rogue-terminal .rogue-context > .rogue-next-goal { grid-column: 1 / -1; }
+.rogue-terminal .rogue-context-title { font-size: 1em; font-weight: 700; }
+.rogue-terminal.rogue-root .rogue-next-goal { padding: 12px !important; border: 1px solid var(--adr-border-muted) !important; text-align: left; font-weight: 400; }
+.rogue-terminal .rogue-explore-shortcuts { gap: 8px; margin-top: 24px; }
+.rogue-terminal.rogue-root .rogue-explore-shortcuts > .rogue-button { padding: 8px; }
+.rogue-terminal .rogue-explore-preview { margin-top: 12px; }
+.rogue-terminal .rogue-camp-scene { display: grid; grid-template-columns: minmax(0, 1fr); gap: 24px; align-items: start; }
+.rogue-terminal .rogue-camp-workbench, .rogue-terminal .rogue-camp-ledger { min-width: 0; }
+.rogue-terminal .rogue-camp-stocks, .rogue-terminal .rogue-camp-village { margin: 0; padding: 16px; border: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-camp-stocks .rogue-resource-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 12px; padding: 0; background: transparent; font-size: 1em; }
+.rogue-terminal .rogue-camp-stocks .rogue-stat { flex-wrap: wrap; gap: 0 8px; }
+.rogue-terminal .rogue-stock-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+.rogue-terminal .rogue-stock-heading .rogue-section-title { margin: 0 !important; }
+.rogue-terminal.rogue-root .rogue-stock-heading > .rogue-button { width: auto; padding: 8px 0 8px 8px; border: 0; }
+.rogue-terminal .rogue-camp-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; font-size: 1em; }
+.rogue-terminal .rogue-camp-status > .rogue-stat { flex-direction: column; align-items: flex-start; gap: 0; font-size: 1em; }
+.rogue-terminal .rogue-camp-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 10px; margin: 0 0 12px; }
+.rogue-terminal .rogue-camp-actions > .rogue-button-entry { grid-column: 1 / -1; }
+.rogue-terminal .rogue-camp-daily { margin-top: 0; }
+.rogue-terminal .rogue-camp-menu { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 24px; }
+.rogue-terminal .rogue-camp-menu > .rogue-section-title { grid-column: 1 / -1; margin-bottom: 2px !important; }
+.rogue-terminal .rogue-camp-village > .rogue-button { margin-top: 12px; }
+.rogue-terminal .rogue-camp-workbench > .rogue-next-goal { margin-top: 24px; width: 100%; }
+.rogue-terminal.rogue-root .rogue-camp-inline-back { display: none; }
+.rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-village { display: none; }
 .rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-ledger { display: none; }
-.rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-crafting { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
 .rogue-terminal #rogue-panel-camp .rogue-camp-crafting .rogue-camp-ledger { display: block; }
-.rogue-terminal .rogue-camp-crafting .rogue-filter-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.rogue-terminal .rogue-camp-crafting .rogue-pagination { flex-wrap: wrap; gap: 4px; }
-.rogue-terminal .rogue-camp-crafting .rogue-pagination > span { order: -1; width: 100%; text-align: center; }
-.rogue-terminal .rogue-camp-inline-back { display: none; }
-.rogue-terminal .rogue-bottom { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-top: 0; padding: 0 max(16px, calc((100vw - 960px) / 2)) env(safe-area-inset-bottom); }
-.rogue-terminal .rogue-live-log { grid-column: 1 / -1; position: relative; min-height: 44px; border: 0; padding: 4px 80px 2px 0; margin: 0; }
+.rogue-terminal .rogue-priced { display: flex; flex-direction: column; align-items: stretch; gap: 12px; padding: 0 0 24px; margin: 0 0 24px; background: transparent; border-bottom: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-priced-copy { display: flex; flex-direction: column; gap: 8px; width: 100%; }
+.rogue-terminal .rogue-priced .rogue-row-title { font-size: 1em; font-weight: 700; margin: 0; }
+.rogue-terminal .rogue-priced .rogue-disclosure { order: 1; margin: 0; }
+.rogue-terminal.rogue-root .rogue-priced > .rogue-button { max-width: 100%; width: 100%; }
+.rogue-terminal .rogue-disclosure > summary { min-height: 48px; padding: 12px 0; font-size: var(--rogue-caption-size); color: var(--adr-text); text-decoration: underline; text-underline-offset: 4px; }
+.rogue-terminal .rogue-party-wellbeing { margin-top: 0; }
+.rogue-terminal .rogue-party-reserves { font-size: 1em; }
+.rogue-terminal .rogue-quick-supplies { margin: 16px 0 12px; gap: 8px; }
+.rogue-terminal.rogue-root .rogue-quick-supplies > .rogue-button { padding: 8px 4px; }
+.rogue-terminal .rogue-companion { margin: 16px 0; padding: 16px; border: 1px solid var(--adr-border-muted); background: transparent; }
+.rogue-terminal .rogue-worker-card { margin: 24px 0; padding: 0 0 16px; border-bottom: 1px solid var(--adr-border-muted); background: transparent; }
+.rogue-terminal .rogue-worker-row { grid-template-columns: minmax(0, 1fr) 48px 32px 48px; gap: 8px; }
+.rogue-terminal.rogue-root .rogue-worker-row > .rogue-button { padding: 4px; font-size: 22px; }
+.rogue-terminal .rogue-storage-summary { margin-bottom: 16px; }
+.rogue-terminal .rogue-storage-controls { margin: 16px 0 12px; gap: 8px; }
+.rogue-terminal .rogue-storage-filters { gap: 8px; margin-bottom: 24px; }
+.rogue-terminal .rogue-storage-row { padding: 16px 0; gap: 12px; border-bottom: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-storage-row-actions { gap: 8px; }
+.rogue-terminal .rogue-storage-copy h3 { font-size: 1em; font-weight: 700; }
+.rogue-terminal .rogue-bottom { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-top: 1px solid var(--adr-border-muted); padding: 0 max(16px, calc((100vw - 960px) / 2)) env(safe-area-inset-bottom); background: var(--adr-bg); }
+.rogue-terminal .rogue-live-log { grid-column: 1 / -1; position: relative; min-height: 44px; border: 0; padding: 4px 100px 4px 0; margin: 0; }
 .rogue-terminal .rogue-log-heading { position: absolute; right: 0; top: 0; }
-.rogue-terminal .rogue-log-heading h3,
-.rogue-terminal .rogue-log-turn { display: none; }
-.rogue-terminal .rogue-live-entries { max-height: 40px; font-size: .6875em; }
-.rogue-terminal .rogue-live-entries li { display: block; text-align: center; }
+.rogue-terminal .rogue-log-heading h3, .rogue-terminal .rogue-log-turn { display: none; }
+.rogue-terminal .rogue-live-entries { max-height: 44px; font-size: var(--rogue-caption-size); }
+.rogue-terminal .rogue-live-entries li { display: block; }
 .rogue-terminal .rogue-live-entries li:not(:first-child) { display: none; }
 .rogue-terminal .rogue-timebar { grid-column: 1; margin: 0; padding: 0; width: 100%; }
-.rogue-terminal .rogue-time-info { padding-right: 12px; font-size: .75em !important; }
-.rogue-terminal .rogue-footer-actions { grid-column: 2; display: flex; align-items: center; gap: 14px; }
-.rogue-terminal .rogue-footer-actions > .rogue-button { border: 0; padding: 4px 0; font-size: .8125em; color: var(--adr-text-muted); }
-.rogue-terminal .rogue-subpage-return,
-.rogue-terminal #rogue-notice { grid-column: 1 / -1; }
+.rogue-terminal.rogue-root .rogue-time-info { padding: 4px 8px 4px 0; font-size: var(--rogue-caption-size) !important; border: 0; flex-direction: column; justify-content: center; gap: 0; }
+.rogue-terminal .rogue-footer-actions { grid-column: 2; display: flex; align-items: center; gap: 8px; }
+.rogue-terminal.rogue-root .rogue-footer-actions > .rogue-button { padding: 8px; }
+.rogue-terminal.rogue-root .rogue-log-heading > .rogue-button { font-size: var(--rogue-caption-size); min-height: 44px; padding: 6px; border: 0; }
+.rogue-terminal .rogue-subpage-return, .rogue-terminal #rogue-notice { grid-column: 1 / -1; }
 .rogue-terminal .rogue-subpage-return { width: 100%; max-width: none; padding: 4px 0; }
-.rogue-terminal .rogue-overlay { padding-top: calc(108px + env(safe-area-inset-top)); }
-@media (min-width: 680px) {
-    .rogue-terminal .rogue-camp-scene { grid-template-columns: minmax(0, 1fr) minmax(200px, .65fr); gap: 60px; }
-    .rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-scene { grid-template-columns: minmax(0, 1fr) minmax(200px, .65fr); }
-    .rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-ledger { display: block; }
-    .rogue-terminal #rogue-panel-map { max-width: 680px; }
-    .rogue-terminal .rogue-map-viewport { display: grid; grid-template-columns: minmax(0, 1fr) 132px; gap: 20px; padding: 20px; }
-    .rogue-terminal .rogue-map-viewport .rogue-dpad { margin: 0; align-self: end; }
-    .rogue-terminal .rogue-grid { font-size: 18px; line-height: 1.1; }
-    .rogue-terminal .rogue-map-row { height: 1.1em; }
+.rogue-terminal .rogue-overlay { align-items: center; padding: calc(108px + env(safe-area-inset-top)) 12px calc(12px + env(safe-area-inset-bottom)); background: var(--adr-overlay); }
+.rogue-terminal .rogue-dialog { border: 1px solid var(--adr-border); max-height: min(760px, 100%); background: var(--adr-bg); }
+.rogue-terminal .rogue-dialog-content { padding: 16px; }
+.rogue-terminal .rogue-dialog-heading { padding: 12px 16px; border-bottom: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-dialog-footer { border-top: 1px solid var(--adr-border-muted); background: var(--adr-bg); padding: 10px 16px; }
+.rogue-terminal .rogue-menu-group > .rogue-button { margin: 10px 0; }
+.rogue-terminal .rogue-menu-group + .rogue-menu-group { padding-top: 24px; border-top: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-menu-group .rogue-segment { margin-bottom: 12px; }
+.rogue-terminal .rogue-menu-actions { margin: 12px 0; }
+.rogue-terminal .rogue-combat-actions { gap: 8px; padding: 12px 16px; background: var(--adr-bg); }
+.rogue-terminal .rogue-dialog > .rogue-combat-party { flex: none; margin: 0; padding: 8px 16px; border-bottom: 1px solid var(--adr-border-muted); }
+.rogue-terminal .rogue-dialog > .rogue-combat-party .rogue-stat { padding: 0; }
+.rogue-terminal .rogue-dialog > .rogue-combat-party .rogue-health { margin: 4px 0 0; }
+.rogue-terminal .rogue-combat-actions .rogue-flee { grid-column: 1 / -1; }
+.rogue-terminal .rogue-combat-log { overflow-y: auto; max-height: 160px; }
+.rogue-terminal .rogue-road-row { flex-wrap: wrap; }
+.rogue-terminal .rogue-inventory-row { gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--adr-border-muted); }
+.rogue-terminal #rogue-panel-map .rogue-map-viewport { grid-template-columns: minmax(0, 1fr); padding: 12px 10px 28px; gap: 12px; }
+.rogue-map-lower { display: grid; grid-template-columns: minmax(0, 1fr) 136px; gap: 12px; align-items: end; width: 100%; min-width: 0; }
+.rogue-map-details { min-width: 0; align-self: start; }
+.rogue-terrain { font-size: var(--rogue-caption-size); overflow-wrap: anywhere; margin-bottom: 8px !important; }
+.rogue-local-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; font-size: var(--rogue-caption-size); color: var(--adr-text-muted); }
+.rogue-local-symbol { display: inline-flex; align-items: baseline; gap: 4px; min-width: 0; }
+.rogue-local-symbol > span:last-child { min-width: 0; overflow-wrap: anywhere; }
+.rogue-local-symbol .rogue-symbol { flex: none; font: inherit; font-family: 'Courier New', monospace; min-width: 1em; text-align: center; }
+.rogue-terminal #rogue-panel-map .rogue-dpad { justify-self: end; align-self: end; grid-template-columns: repeat(3, 44px); grid-template-rows: repeat(3, 44px); gap: 2px; }
+.rogue-terminal.rogue-root #rogue-panel-map .rogue-dpad .rogue-button { min-height: 44px; height: 44px; min-width: 44px; width: 44px; font-size: 20px; }
+.rogue-terminal #rogue-panel-map .rogue-context { grid-template-columns: minmax(0, 1fr); gap: 6px; align-self: end; min-width: 0; font-size: var(--rogue-caption-size); }
+.rogue-terminal #rogue-panel-map .rogue-context > .rogue-button { padding: 6px; min-height: 44px; }
+.rogue-terminal #rogue-panel-map .rogue-context .rogue-action-grid { display: grid; gap: 6px; grid-template-columns: minmax(0, 1fr); }
+.rogue-terminal #rogue-panel-map .rogue-context .rogue-note { font-size: 1em; }
+.rogue-explore-pack { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; padding: 12px; margin-top: 12px; border: 1px solid var(--adr-border-muted); }
+.rogue-pack-item { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; min-width: 0; font-size: var(--rogue-caption-size); }
+.rogue-pack-item > span { min-width: 0; overflow-wrap: anywhere; }
+.rogue-pack-count { flex: none; font-variant-numeric: tabular-nums; font-weight: 400; }
+.rogue-pack-empty { grid-column: 1 / -1; }
+.rogue-terminal[data-view='run'][data-tab='map'] #rogue-back { display: none; }
+.rogue-terminal[data-view='run'][data-tab='map'] .rogue-live-log { padding: 0; min-width: 0; }
+.rogue-terminal[data-view='run'][data-tab='map'] .rogue-log-heading { position: static; }
+.rogue-terminal[data-view='run'][data-tab='map'] .rogue-log-heading h3 { display: block; }
+.rogue-action-journal { height: 18vh; min-height: 72px; max-height: 160px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; overflow-anchor: none; list-style: none; padding: 0 6px 4px 0; margin: 0; font-size: var(--rogue-caption-size); line-height: 1.55; }
+.rogue-action-journal li { display: block; margin: 0 0 6px; overflow-wrap: anywhere; }
+.rogue-journal-time { color: var(--adr-text-muted); font-variant-numeric: tabular-nums; margin-right: 8px; }
+.rogue-journal-duration { color: var(--adr-text-muted); }
+.rogue-terminal .rogue-overlay.rogue-journal-overlay { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: var(--adr-bg); }
+.rogue-terminal .rogue-journal-fullscreen { width: 100%; height: 100%; max-width: none; max-height: none; border: 0; }
+.rogue-journal-fullscreen .rogue-dialog-heading { justify-content: space-between; }
+.rogue-journal-fullscreen .rogue-dialog-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-height: 0; }
+.rogue-journal-fullscreen .rogue-action-journal { flex: 1; height: auto; min-height: 0; max-height: none; }
+@media (max-width: 539px) {
+    .rogue-map-lower { grid-template-columns: minmax(0, 1fr) 136px; gap: 10px; }
+    .rogue-map-details { grid-column: 1; grid-row: 1; }
+    .rogue-terminal #rogue-panel-map .rogue-dpad { grid-column: 2; grid-row: 1; }
+    .rogue-terminal #rogue-panel-map .rogue-context { grid-column: 1 / -1; grid-row: 2; }
 }
-@media (max-width: 359px) {
-    .rogue-terminal .rogue-layout { padding-left: 16px; padding-right: 16px; }
-    .rogue-terminal .rogue-camp-scene { gap: 16px; }
-    .rogue-terminal .rogue-camp-stocks,
-    .rogue-terminal .rogue-camp-village { padding-left: 8px; padding-right: 8px; }
-    .rogue-terminal .rogue-time-info { flex-direction: column; gap: 0; justify-content: center; font-size: .6875em !important; }
+.rogue-terminal.rogue-large-map .rogue-map-lower { grid-template-columns: minmax(0, 1fr) 136px; }
+.rogue-terminal.rogue-large-map .rogue-map-details { grid-column: 1; grid-row: 1; }
+.rogue-terminal.rogue-large-map #rogue-panel-map .rogue-dpad { grid-column: 2; grid-row: 1; }
+.rogue-terminal.rogue-large-map #rogue-panel-map .rogue-context { grid-column: 1 / -1; grid-row: 2; }
+@media (min-width: 680px) {
+    .rogue-terminal .rogue-layout { padding: 20px 20px 28px; }
+    .rogue-terminal .rogue-camp-scene { grid-template-columns: minmax(0, 1fr) minmax(220px, .7fr); gap: 24px 32px; }
+    .rogue-terminal .rogue-camp-workbench { grid-column: 1; grid-row: 1 / span 2; }
+    .rogue-terminal .rogue-camp-ledger { grid-column: 2; grid-row: 1; }
+    .rogue-terminal .rogue-camp-stocks .rogue-resource-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .rogue-terminal .rogue-camp-village { grid-column: 2; grid-row: 2; }
+    .rogue-terminal #rogue-panel-camp:not([data-camp-view='overview']) .rogue-camp-ledger { display: block; }
+    .rogue-terminal #rogue-panel-map { max-width: 720px; }
+    .rogue-terminal .rogue-map-viewport { grid-template-columns: minmax(0, 1fr) 152px; gap: 24px; padding: 20px 20px 32px; }
+    .rogue-terminal .rogue-dpad { align-self: end; }
+    .rogue-terminal .rogue-grid { font-size: 18px; }
+}
+@media (max-width: 679px) {
+    .rogue-terminal .rogue-storage-row { grid-template-columns: minmax(0, 1fr); }
+    .rogue-terminal .rogue-worker-row > div { grid-column: 1 / -1; }
+    .rogue-terminal .rogue-worker-row { grid-template-columns: 48px 32px 48px; }
+    .rogue-terminal .rogue-worker-row > .rogue-button:first-of-type { grid-column: 1; }
+    .rogue-terminal .rogue-storage-filters { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-height: 600px) {
+    .rogue-terminal .rogue-overlay { padding-top: 8px; padding-bottom: 8px; }
+    .rogue-terminal .rogue-dialog-heading { padding-top: 8px; padding-bottom: 8px; }
+    .rogue-terminal .rogue-combat-actions { grid-template-columns: repeat(3, minmax(0, 1fr)); padding-top: 8px; padding-bottom: 8px; }
+    .rogue-terminal .rogue-combat-actions .rogue-flee { grid-column: span 2; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .rogue-terminal *, .rogue-terminal *::before, .rogue-terminal *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
+@media (min-width: 680px) and (max-height: 400px) {
+    .rogue-terminal .rogue-combat-dialog { max-width: 680px; }
+    .rogue-terminal .rogue-combat-dialog .rogue-dialog-content { padding: 4px 16px; }
+    .rogue-terminal .rogue-enemies { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+    .rogue-terminal .rogue-enemy { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 4px 8px; }
+    .rogue-terminal .rogue-enemy-symbol { margin: 0; font-size: 22px; }
+    .rogue-terminal .rogue-enemy .rogue-health { grid-column: 1 / -1; margin: 0; }
+    .rogue-terminal .rogue-combat-actions { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .rogue-terminal .rogue-combat-actions .rogue-flee { grid-column: auto; }
 }

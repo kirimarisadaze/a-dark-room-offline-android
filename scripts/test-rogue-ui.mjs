@@ -56,6 +56,7 @@ async function create(page, slot = 0) {
 }
 /** Checks horizontal fit and the minimum touch size of currently rendered controls. */
 async function fit(page, tag) {
+    await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
     const result = await page.evaluate(() => {
         const failures = [];
         if (document.documentElement.scrollWidth > innerWidth + 1) failures.push('page-overflow');
@@ -114,19 +115,28 @@ try {
     assert.equal(await page.evaluate(() => localStorage.gameState), normalSave);
     assert.match(await page.locator('.rogue-brand').innerText(), /无光之地/);
     await fit(page, 'initial-map');
+    await page.locator('.rogue-dpad').evaluate(node => node.scrollIntoView({ block: 'center' }));
     const controls = await page.locator('.rogue-dpad').boundingBox();
     const bottom = await page.locator('.rogue-bottom').boundingBox();
     assert(controls.y + controls.height <= bottom.y, 'phone movement controls must fit above the navigation');
-    assert.equal(await page.locator('.rogue-scene-tabs').count(), 1);
+    assert.equal(await page.locator('.rogue-scene-tabs').count(), 0);
     assert.equal(await page.locator('.rogue-exploration-scene .rogue-map-viewport').count(), 1);
-    assert.equal(await page.locator('.rogue-exploration-scene .rogue-control-row').count(), 1);
+    assert.equal(await page.locator('.rogue-exploration-scene .rogue-map-lower').count(), 1);
     assert.equal(await page.locator('.rogue-header #rogue-tab-map').count(), 1);
     assert.equal(await page.locator('.rogue-bottom #rogue-tab-map').count(), 0);
     const navigationTurn = await page.evaluate(() => JSON.stringify(Rogue.state.current));
     await page.locator('#rogue-tab-camp').click();
     const workArea = await page.locator('.rogue-camp-workbench').boundingBox();
     const stockArea = await page.locator('.rogue-camp-ledger').boundingBox();
-    assert(workArea.x + workArea.width < stockArea.x, 'camp work must sit beside the resource ledger');
+    assert(stockArea.y + stockArea.height <= workArea.y, 'phone resource summary must precede full-width camp work');
+    const villageArea = await page.locator('.rogue-camp-village').boundingBox();
+    assert(villageArea.y >= workArea.y + workArea.height, 'population follows camp operations on phones');
+    assert.equal(await page.locator('.rogue-camp-daily [data-focus="camp-view:supplies"]').count(), 1);
+    assert.equal(await page.locator('.rogue-camp-daily [data-variant="primary"]').count(), 1);
+    const primaryStyle = await page.locator('.rogue-camp-daily [data-variant="primary"]').evaluate(node => {
+        const style = getComputedStyle(node); return { background: style.backgroundColor, text: style.color };
+    });
+    assert.notEqual(primaryStyle.background, primaryStyle.text);
     assert.equal(await page.locator('.rogue-menu-tile').count(), 0);
     await page.locator('#rogue-tab-map').click();
     assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), navigationTurn);
@@ -134,25 +144,23 @@ try {
     await page.locator('[data-focus="modal:time"]').filter({ hasText: '第 1 天' }).click();
     assert.match(await page.getByRole('dialog').innerText(), /50 回合/);
     await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
-    await page.getByRole('button', { name: '区域图', exact: true }).click();
-    assert.equal(await page.locator('.rogue-world-chart rect').count(), 1);
-    assert(!/危险|难度/.test(await page.getByRole('dialog').innerText()));
-    assert.match(await page.getByRole('dialog').innerText(), /还没找到出路/);
-    await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
+    assert.equal(await page.getByRole('button', { name: '区域图', exact: true }).count(), 0);
+    assert(await page.locator('.rogue-local-legend [data-symbol="@"] ').count());
     assert.equal(await page.evaluate(() => Rogue.state.current.turn), initialTurn);
-    await page.getByRole('button', { name: '附近', exact: true }).click();
-    await page.locator('.rogue-nearby').first().click();
+    const destinationCell = page.locator('.rogue-grid [data-site]').first();
+    await destinationCell.evaluate(node => node.scrollIntoView({ block: 'center' }));
+    await destinationCell.click();
     assert.equal(await page.getByRole('dialog').count(), 0);
     assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'map');
-    await page.locator('#rogue-back').click();
+    await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('dialog').count(), 0);
     assert.equal(await page.evaluate(() => Rogue.state.current.turn), initialTurn);
     await page.screenshot({ path: path.join(output, 'map-360-day.png'), fullPage: true });
     await page.locator('#rogue-tab-camp').click();
     assert.equal(await page.locator('.rogue-camp-stocks .rogue-resource-grid .rogue-stat').count(), 5);
     assert.equal(await page.locator('.rogue-camp-stocks [data-focus="camp-view:stores"]').count(), 1);
-    const sourceSceneStyle = await page.locator('.rogue-scene-tabs').evaluate(node => getComputedStyle(node).display);
-    assert.equal(sourceSceneStyle, 'flex');
+    const sourceSceneStyle = await page.locator('.rogue-map-lower').evaluate(node => getComputedStyle(node).display);
+    assert.equal(sourceSceneStyle, 'grid');
     const campStockStyle = await page.locator('.rogue-camp-stocks .rogue-resource-grid').evaluate(node => getComputedStyle(node).display);
     assert.equal(campStockStyle, 'grid');
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: '收集周围物资', exact: true }).click();
@@ -163,23 +171,29 @@ try {
     await page.getByRole('button', { name: '整备水与口粮', exact: true }).click();
     await page.locator('#rogue-tab-map').click();
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '向西', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
     await page.getByRole('button', { name: '采集', exact: true }).click();
     await page.getByRole('button', { name: '占领站点', exact: true }).click();
     await page.locator('#rogue-tab-camp').click();
-    await page.locator('[data-focus="camp-view:workers"]').click();
     await page.locator('[data-focus="worker:plus:0,0:0"]').click();
     assert.equal(await page.evaluate(() => Rogue.state.current.regions['0,0'].sites[0].workers), 1);
-    await page.locator('[data-focus="camp-return"]').click();
-    await page.screenshot({ path: path.join(output, 'camp-360-day.png'), fullPage: true });
-    const lastTile = await page.locator('[data-focus="camp-view:expansion"]').boundingBox();
-    const campBottom = await page.locator('.rogue-bottom').boundingBox();
-    assert(lastTile.y + lastTile.height <= campBottom.y, 'all camp categories should fit on a standard phone');
+    assert.equal(await page.locator('[data-focus="camp-view:buildings"]').count(), 0, 'resource sites cannot expose remote camp construction');
+    await page.screenshot({ path: path.join(output, 'region-resource-360-day.png'), fullPage: true });
     await page.locator('#rogue-tab-map').click();
     for (let i = 0; i < 3; i++) await page.getByRole('button', { name: '向东', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
     await page.getByRole('button', { name: '整备水与口粮', exact: true }).click();
+    await page.locator('[data-focus="camp-view:expansion"]').evaluate(node => node.scrollIntoView({ block: 'center' }));
+    const lastTile = await page.locator('[data-focus="camp-view:expansion"]').boundingBox();
+    const campBottom = await page.locator('.rogue-bottom').boundingBox();
+    assert(lastTile.y >= 100 && lastTile.y + lastTile.height <= campBottom.y, 'local camp categories must be reachable between fixed navigation and footer');
+    await page.locator('#rogue-tab-map').click();
     for (let i = 0; i < 5; i++) await page.getByRole('button', { name: '向北', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: '采集', exact: true }).click();
+    await page.locator('#rogue-tab-map').click();
     for (let i = 0; i < 5; i++) await page.getByRole('button', { name: '向南', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
     await page.getByRole('button', { name: '整备水与口粮', exact: true }).click();
     await page.locator('#rogue-tab-camp').click();
     await page.locator('[data-focus="camp-view:recipes"]').click();
@@ -189,10 +203,13 @@ try {
     await page.locator('[data-focus="camp-return"]').click();
     await page.locator('#rogue-tab-map').click();
     await page.getByRole('button', { name: '向东', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
     await page.getByRole('button', { name: '在此扎营', exact: true }).click();
     assert.equal(await page.evaluate(() => Rogue.state.current.camps.length), 1);
     assert.equal(await page.evaluate(() => Rogue.state.current.flags.tempCamp.expiresAt - Rogue.state.current.turn), 100);
+    await page.locator('#rogue-tab-map').click();
     await page.getByRole('button', { name: '向东', exact: true }).click();
+    await page.locator('#rogue-tab-camp').click();
     const beforeReplacement = await page.evaluate(() => JSON.stringify(Rogue.state.current));
     await page.getByRole('button', { name: '在此扎营', exact: true }).click();
     await page.getByRole('button', { name: '取消', exact: true }).click();
@@ -212,7 +229,7 @@ try {
     await page.getByRole('button', { name: '确认', exact: true }).click();
     assert.equal(await page.evaluate(() => !!Rogue.state.current.flags.tempCamp), false);
     await page.locator('[data-focus="camp-return"]').click();
-    mark('local world view hides unknown regions and threat levels; crafted temporary shelters survive refresh, rest for five turns and respect migration/removal confirmation');
+    mark('local legend matches visible map symbols; crafted temporary shelters survive refresh, rest for five turns and respect migration/removal confirmation');
     const beforePanels = await page.evaluate(() => Rogue.state.current.turn);
     await page.locator('#rogue-tab-party').click();
     await page.locator('#rogue-menu').click();
@@ -226,6 +243,9 @@ try {
     assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), beforeReload);
     assert.equal(await page.evaluate(() => localStorage.gameState), normalSave);
     mark('real UI gathering, crafting, occupation and worker assignment persist; panels and settings consume zero turns');
+    await page.locator('#rogue-tab-camp').click();
+    await page.getByRole('button', { name: '返回据点', exact: true }).click();
+    assert(await page.evaluate(() => !!Rogue.atCamp(Rogue.state.current)));
     const navigationState = await page.evaluate(() => JSON.stringify(Rogue.state.current));
     await page.locator('#rogue-tab-party').click();
     await page.locator('#rogue-root').click({ position: { x: 3, y: 80 } });
@@ -241,7 +261,7 @@ try {
     assert.equal(await page.locator('#rogue-panel-camp').getAttribute('data-camp-view'), 'overview');
     await page.locator('#rogue-back').click();
     assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'map');
-    await page.locator('#rogue-back').click();
+    await page.locator('#rogue-menu').click();
     assert.equal(await page.getByRole('dialog').getAttribute('aria-labelledby'), 'rogue-dialog-title');
     const guide = page.getByRole('button', { name: '旅途指南', exact: true });
     await guide.scrollIntoViewIfNeeded();
@@ -259,16 +279,18 @@ try {
     assert.equal(await page.locator('#rogue-dialog-title').innerText(), '行囊与设置');
     await page.keyboard.press('Escape');
     assert.equal(await page.getByRole('dialog').count(), 0);
-    await page.getByRole('button', { name: '线索', exact: true }).click();
-    assert.match(await page.getByRole('dialog').innerText(), /眼前的线索/);
-    await page.screenshot({ path: path.join(output, 'clues-360-night.png') });
-    await page.getByRole('button', { name: '目标', exact: true }).click();
+    await page.locator('[data-focus="journal-toggle"]').click();
+    assert.equal(await page.locator('.rogue-journal-fullscreen').count(), 1);
+    await page.screenshot({ path: path.join(output, 'journal-360-night.png') });
+    assert.equal(await page.evaluate(() => OfflineGame.back()), true);
+    assert.equal(await page.getByRole('dialog').count(), 0);
+    await page.locator('#rogue-menu').click();
     await page.getByRole('button', { name: '旅途指南', exact: true }).click();
     assert.equal(await page.evaluate(() => OfflineGame.back()), true);
-    assert.equal(await page.getByRole('button', { name: '目标', exact: true }).getAttribute('aria-pressed'), 'true');
+    assert.equal(await page.locator('#rogue-dialog-title').innerText(), '行囊与设置');
     await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
     assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), navigationState);
-    mark('fixed title, low back controls, camp/root back, nested guide/menu/confirm history and scroll, native Back, and separate clues/goals consume no turns');
+    mark('fixed title, camp/root back, nested guide/menu/confirm history and scroll, fullscreen journal and native Back consume no turns');
     await page.locator('#rogue-tab-camp').click();
     await page.locator('[data-focus="camp-view:research"]').click();
     await page.evaluate(() => { Rogue.combat.encounter(Rogue.state.current, { kind: 'wild' }); Rogue.save.write(Rogue.state.current); Rogue.ui.render(); });
@@ -366,6 +388,7 @@ try {
     await ending.page.screenshot({ path: path.join(output, 'abyss-360-day.png') });
     await ending.page.reload();
     await ending.page.waitForFunction(() => Rogue.state.current && Rogue.state.current.flags.abyss);
+    await ending.page.locator('#rogue-tab-camp').click();
     await ending.page.getByRole('button', { name: '撤离地牢', exact: true }).click();
     await ending.page.getByRole('heading', { name: '星光不再遥远', exact: true }).waitFor();
     assert.equal(await ending.page.evaluate(() => JSON.stringify({ party: Rogue.state.current.party, stores: Rogue.stores(Rogue.state.current) })), beforeAbyss);
@@ -374,10 +397,10 @@ try {
     await ending.context.close();
     const layouts = [[320, 512], [360, 740], [412, 915], [740, 360], [1440, 900]];
     for (const [width, height] of layouts) {
-        for (const dark of [false, true]) {
-            const layout = await setup(width, height, { gameState: normalSave, roguePreferences: JSON.stringify({ dark, font: width === 320 ? 22 : 16 }) });
+        for (const dark of [false, true]) for (const font of [16, 22]) {
+            const layout = await setup(width, height, { gameState: normalSave, roguePreferences: JSON.stringify({ dark, font }) });
             await create(layout.page);
-            const tag = width + 'x' + height + (dark ? '-night' : '-day');
+            const tag = width + 'x' + height + (dark ? '-night' : '-day') + '-font' + font;
             for (const tab of ['map', 'camp', 'party']) {
                 await layout.page.locator('#rogue-tab-' + tab).evaluate(node => node.click());
                 await fit(layout.page, tag + '-' + tab);
@@ -389,10 +412,19 @@ try {
             for (const view of ['stores', 'supplies', 'workers', 'buildings', 'recipes', 'research', 'expansion']) {
                 await layout.page.locator('[data-focus="camp-view:' + view + '"]').click();
                 await fit(layout.page, tag + '-' + view);
+                assert.equal(await layout.page.locator('.rogue-camp-inline-back:visible').count(), 0, 'return controls must not be duplicated');
                 if (['buildings', 'recipes', 'research'].includes(view)) {
                     const work = await layout.page.locator('.rogue-camp-workbench').boundingBox();
                     const ledger = await layout.page.locator('.rogue-camp-ledger').boundingBox();
-                    assert(work.x + work.width < ledger.x, tag + '-' + view + ' keeps inventory beside work');
+                    if (width < 680) { assert(ledger.y + ledger.height <= work.y, tag + '-' + view + ' puts resources above full-width work'); }
+                    else { assert(work.x + work.width < ledger.x, tag + '-' + view + ' keeps inventory beside work'); }
+                    const rows = await layout.page.locator('.rogue-priced').evaluateAll(nodes => nodes.map(node => {
+                        const title = node.querySelector('.rogue-row-title');
+                        const control = node.querySelector(':scope > button');
+                        const style = getComputedStyle(control);
+                        return { label: control.textContent, title: title.textContent, top: title.getBoundingClientRect().top, buttonTop: control.getBoundingClientRect().top, size: parseFloat(style.fontSize) };
+                    }));
+                    for (const row of rows) { assert(row.label.includes(row.title)); assert(row.buttonTop > row.top); assert(row.size >= font); }
                 }
                 if (view === 'recipes') {
                     for (const filter of ['armour', 'tools', 'consume', 'modules', 'weapons']) {
@@ -412,17 +444,28 @@ try {
             }
             assert.equal(await layout.page.evaluate(() => Rogue.state.current.turn), layoutTurn);
             await layout.page.locator('#rogue-tab-map').evaluate(node => node.click());
-            await layout.page.getByRole('button', { name: '区域图', exact: true }).click(); await fit(layout.page, tag + '-world');
-            await layout.page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
+            await layout.page.locator('[data-focus="journal-toggle"]').click(); await fit(layout.page, tag + '-journal');
+            await layout.page.locator('[data-focus="journal-collapse"]').click();
             await layout.page.locator('#rogue-menu').click(); await fit(layout.page, tag + '-menu');
             await layout.page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
             await layout.page.evaluate(() => { Rogue.combat.encounter(Rogue.state.current, { kind: 'wild' }); Rogue.ui.render(); });
             await fit(layout.page, tag + '-combat');
+            const combatBounds = await layout.page.evaluate(() => {
+                const status = document.querySelector('.rogue-combat-party').getBoundingClientRect();
+                const content = document.querySelector('.rogue-combat-dialog .rogue-dialog-content').getBoundingClientRect();
+                const actions = document.querySelector('.rogue-combat-actions').getBoundingClientRect();
+                const attack = document.querySelector('[data-focus="combat:attack"]');
+                const hit = document.elementFromPoint(status.x + status.width / 2, status.y + status.height / 2);
+                return { status: status.toJSON(), content: content.toJSON(), actions: actions.toJSON(), visible: !!hit && document.querySelector('.rogue-combat-party').contains(hit), primary: attack.getAttribute('data-variant') };
+            });
+            assert(combatBounds.visible && combatBounds.status.bottom <= combatBounds.content.top, tag + ' keeps own health above scrollable combat content');
+            assert(combatBounds.content.height >= 44 && combatBounds.content.bottom <= combatBounds.actions.top + 1, tag + ' leaves a usable scroll area above actions');
+            assert.equal(combatBounds.primary, 'primary');
             await layout.page.screenshot({ path: path.join(output, tag + '-combat.png') });
             await layout.context.close();
         }
     }
-    mark('ten phone/landscape/desktop themes cover every camp subpage, recipe category, research page, world chart and combat with 44px controls and complete translations');
+    mark('twenty phone/landscape/desktop day/night and 16/22px layouts cover every camp subpage, recipe category, research page, journal and combat with 44px controls and complete translations');
     if (process.argv.includes('--soak')) {
         const soak = await setup(360, 740, { gameState: normalSave, 'adr.saveSlots.v1': normalDatabase });
         await create(soak.page);

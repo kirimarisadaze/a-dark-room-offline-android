@@ -152,6 +152,7 @@ async function state(page) {
 }
 /** Checks actual themes, large text, touch targets and the unobstructed fixed title and footer. */
 async function fit(page, dark, font, tag) {
+    await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
     const actual = await page.evaluate(() => {
         const bad = [];
         if (document.documentElement.scrollWidth > innerWidth + 1) bad.push('overflow');
@@ -177,7 +178,8 @@ try {
     await tap(page.getByRole('button', { name: '点燃第一堆火', exact: true }));
     assert.equal((await state(page)).turn, 0);
     assert.match(await page.locator('#rogue-live-log').innerText(), /先制一支长矛/);
-    await tap(page.locator('#rogue-panel-map [data-focus="next-goal"]'));
+    await tap(page.locator('#rogue-tab-camp'));
+    await tap(page.locator('#rogue-panel-camp [data-focus="next-goal"]'));
     assert.match(await page.getByRole('dialog').innerText(), /仓库 35 \/ 需要 12/);
     await tap(page.getByRole('button', { name: '查看石刃长矛配方', exact: true }));
     assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-recipes');
@@ -200,7 +202,8 @@ try {
     mark('a fresh real-button run exposes its goal, opens exact recipes without time cost, keeps shortfalls and reloads workshop guidance without duplicates');
 
     const skinUI = await setup('skin');
-    await tap(skinUI.page.locator('#rogue-panel-map [data-focus="next-goal"]'));
+    await tap(skinUI.page.locator('#rogue-tab-camp'));
+    await tap(skinUI.page.locator('#rogue-panel-camp [data-focus="next-goal"]'));
     await tap(skinUI.page.getByRole('button', { name: '查看水袋配方', exact: true }));
     await tap(skinUI.page.locator('[data-focus="craft:waterskin"]'));
     assert.equal((await state(skinUI.page)).party.water, 10);

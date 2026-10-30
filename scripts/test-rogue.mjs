@@ -443,10 +443,11 @@ if (process.argv.includes('--playthrough')) {
         if (currentTier === 2) { gatherResource('iron', 8); craft('sword'); craft('mail'); }
         if (currentTier === 3) { gatherResource('coal', 8); }
         if (currentTier >= 3 && !expedition.party.bag.blade) { for (let i = 0; i < 3; i++) craft('steel'); craft('blade'); }
-        for (const region of Object.values(expedition.regions)) {
+        for (const region of [expedition.regions[expedition.party.region]]) {
             for (const site of region.sites) {
                 if (site.state !== 'occupied' || !['iron', 'coal', 'sulphur'].includes(site.type)) continue;
                 const owner = expedition.camps.find(camp => camp.id === site.ownerCamp);
+                if (site.workers < 3 && owner && G.settle.employed(expedition, owner) < owner.pop) walkTo(site.x, site.y);
                 while (site.workers < 3 && owner && G.settle.employed(expedition, owner) < owner.pop) act({ type: 'worker', site: site.id, delta: 1 });
             }
         }

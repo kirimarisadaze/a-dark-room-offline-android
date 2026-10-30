@@ -35,6 +35,8 @@
 | 各版改动 | [CHANGELOG.md](../CHANGELOG.md) |
 | APK / 源码下载与历史说明 | [版本归档](RELEASES.md) · [GitHub Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) |
 | 机器可读发布元数据 | [releases.json](releases.json) |
+| 1.3.9 本地包：无光之地布局与操作层级 | [QA-UI-LAYOUT.md](QA-UI-LAYOUT.md) |
+| 1.3.8 本地包：界面精简与三处主题同步 | [QA-UI-THEME.md](QA-UI-THEME.md) |
 | 功能与界面历史验证 | [VALIDATION.md](../android/VALIDATION.md) |
 | 窄屏、大字与主题历史验证 | [LAYOUT_VALIDATION.md](../android/LAYOUT_VALIDATION.md) |
 | 原生资源拦截与真机验证限制 | [NATIVE_VALIDATION.md](../android/NATIVE_VALIDATION.md) |

@@ -160,7 +160,7 @@ async function fit(page, expected, tag) {
 try {
     {
         const { page, session } = await setup('emergency'); const before = JSON.stringify(await state(page));
-        await fit(page, 'map', 'emergency'); assert(await page.locator('[data-focus="confirmExtract:"]').isEnabled());
+        await fit(page, 'map', 'emergency'); await tap(page.locator('#rogue-tab-camp')); assert(await page.locator('[data-focus="confirmExtract:"]').isEnabled());
         await tap(page.locator('[data-focus="confirmExtract:"]')); await fit(page, 'confirm', 'extraction-confirm'); assert.equal(await page.locator(':focus').innerText(), '取消');
         await tap(page.getByRole('button', { name: '取消', exact: true })); assert.equal(JSON.stringify(await state(page)), before);
         await tap(page.locator('[data-focus="confirmExtract:"]')); await tap(page.getByRole('button', { name: '确认', exact: true }));
@@ -171,7 +171,7 @@ try {
     mark('real emergency withdrawal shows injury, defaults to Cancel, cancels without a turn and resumes at HP 1 on the surface after refresh');
     {
         const { page, session } = await setup(); const before = JSON.stringify(await state(page));
-        assert(await page.locator('#rogue-panel-map [data-focus="restock:"]').isDisabled());
+        assert.equal(await page.locator('#rogue-panel-map [data-focus="restock:"]').count(), 0);
         await tap(page.locator('#rogue-tab-camp')); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled());
         await tap(page.locator('[data-focus="camp-view:supplies"]')); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled()); await fit(page, 'camp-supplies', 'ready-supplies');
         await tap(page.locator('#rogue-camp-back button')); await tap(page.locator('[data-focus="camp-view:stores"]')); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled()); await fit(page, 'camp-stores', 'ready-warehouse');
@@ -191,18 +191,19 @@ try {
         await tap(page.getByRole('button', { name: '暂离旅程', exact: true })); await tap(page.getByRole('button', { name: '确认', exact: true }));
         await page.waitForURL('**/game/home.html'); await state(page); await session.close();
     }
-    mark('all four restock entrances disable real no-ops; camp/party keyboard and hidden focus are safe; building names, automatic-save copy, native backup controls and two-step exit work');
+    mark('camp restock entrances disable real no-ops; exploration has no duplicate restock; camp/party keyboard, hidden focus, backup and two-step exit work');
     {
         const { page, session } = await setup('reserves'); const before = await state(page);
-        assert(await page.locator('#rogue-panel-map [data-focus="restock:"]').isEnabled()); await tap(page.locator('#rogue-panel-map [data-focus="restock:"]'));
+        await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:supplies"]'));
+        assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isEnabled()); await tap(page.locator('#rogue-panel-camp [data-focus="restock:"]'));
         const after = await state(page); assert.equal(after.turn, before.turn + 1); assert.equal(after.party.water, before.party.water); assert.equal(after.party.bag.water, 20); assert.equal(after.party.bag.food, 24);
-        assert(await page.locator('#rogue-panel-map [data-focus="restock:"]').isDisabled());
-        await tap(page.locator('[data-focus="modal:world"]')); await fit(page, 'world', 'region-map'); await page.keyboard.press('Escape'); await fit(page, 'map', 'map-return'); await session.close();
+        assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled());
+        await tap(page.locator('#rogue-tab-map')); await tap(page.locator('[data-focus="journal-toggle"]')); await fit(page, 'journal', 'journal-expanded'); await page.keyboard.press('Escape'); await fit(page, 'map', 'map-return'); await session.close();
     }
     mark('full active gauges with missing reserves remain useful, the next refill disables, and secondary-page metadata follows open and back');
     for (const [width, height, font] of [[320, 512, 22], [360, 740, 16], [412, 915, 20], [740, 360, 16], [1440, 900, 16]]) for (const dark of [false, true]) {
         const { page, session } = await setup('emergency', width, height, dark, font); const tag = width + 'x' + height + (dark ? '-dark' : '-light');
-        await fit(page, 'map', tag); await tap(page.locator('[data-focus="confirmExtract:"]')); await fit(page, 'confirm', tag + '-emergency');
+        await fit(page, 'map', tag); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="confirmExtract:"]')); await fit(page, 'confirm', tag + '-emergency');
         await page.screenshot({ path: path.join(output, 'emergency-' + tag + '.png') }); await tap(page.getByRole('button', { name: '取消', exact: true }));
         await tap(page.locator('#rogue-menu')); await fit(page, 'menu', tag + '-menu'); await tap(page.getByRole('button', { name: '暂离旅程', exact: true })); await fit(page, 'confirm', tag + '-exit'); await session.close();
     }

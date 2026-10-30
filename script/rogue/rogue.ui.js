@@ -24,6 +24,11 @@
     var returnFocus = null;
     var sections = {};
     var noticeKey = null;
+    var journalRead = {};
+    var regionPosition = null;
+    var swipe = null;
+    var tabAnimation = null;
+    var swipeClickUntil = 0;
     /** Creates an element using textContent for all supplied text. */
     function el(tag, className, text) {
         var node = document.createElement(tag);
@@ -32,8 +37,12 @@
         return node;
     }
     /** Creates a stable, delegated action button with a localized accessible name. */
-    function button(key, action, values, disabled, stable) {
-        var node = el('button', 'rogue-button', R.t(key, values));
+    function button(key, action, values, disabled, stable, variant) {
+        var navigation = ['campView', 'memberView', 'bagView', 'gearView', 'goalPage', 'storageView', 'slots'].indexOf(action.type) >= 0;
+        var style = variant || (navigation ? 'entry' : 'secondary');
+        var node = el('button', 'rogue-button rogue-button-' + style, R.t(key, values));
+        node.setAttribute('data-variant', style);
+        if (style === 'entry') { node.setAttribute('aria-label', R.t(key, values)); }
         node.type = 'button';
         node.setAttribute('data-rogue-action', 'true');
         node._rogueAction = action;
@@ -51,7 +60,7 @@
         var idle = plan && !plan.changed;
         var ready = idle && save.party.water >= R.waterMax(save) && save.party.food >= N.SUPPLY_FOOD && (save.party.bag.water || 0) >= (save.party.bag.pack ? N.TRAVEL_RESERVE : N.TRAVEL_RESERVE_SMALL) && (save.party.bag.food || 0) >= (save.party.bag.pack ? N.FOOD_RESERVE_PACK : N.FOOD_RESERVE);
         var key = idle ? ready ? 'ui.restockReady' : 'ui.restockEmpty' : compact ? 'ui.restockShort' : 'ui.restock';
-        var node = button(key, { type: 'restock' }, null, !plan || !plan.changed);
+        var node = button(key, { type: 'restock' }, null, !plan || !plan.changed, null, 'primary');
         node.setAttribute('aria-label', R.t(idle ? key : 'ui.restock'));
         node.title = R.t(!plan ? 'ui.awayCamp' : idle && !ready ? 'ui.restockBlockedHint' : 'ui.restockHint');
         return node;
@@ -125,16 +134,25 @@
         var save = R.state.current;
         var row = el('div', 'rogue-priced');
         var copy = el('div', 'rogue-priced-copy');
-        if (descriptionKey) { copy.appendChild(el('p', 'rogue-note', R.t(descriptionKey))); }
+        copy.appendChild(el('h3', 'rogue-row-title', R.t(key, values)));
+        var purposeKey = action.building ? 'ui.building.' + action.building + '.summary' : action.research ? 'ui.research.' + action.research + '.summary' : action.item ? 'ui.itemPurpose.' + C.items[action.item].kind : 'ui.firePurpose';
+        copy.appendChild(el('p', 'rogue-note', R.t(purposeKey)));
+        if (descriptionKey) {
+            var explanation = /\.desc$/.test(descriptionKey) ? disclosure(copy, 'recipe:' + (action.building || action.research), 'ui.purpose') : copy;
+            explanation.appendChild(el('p', 'rogue-note', R.t(descriptionKey)));
+        }
         var shortfall = {};
         var id;
         for (id in cost) { var lacking = Math.ceil(cost[id] - (R.stores(save)[id] || 0)); if (lacking > 0) { shortfall[id] = lacking; } }
         var available = Object.keys(shortfall).length === 0;
         copy.appendChild(el('p', 'rogue-cost' + (available ? '' : ' rogue-shortfall'), R.t(available ? 'ui.cost' : 'ui.need', { cost: costText(available ? cost : shortfall) })));
         var actionKey = action.type === 'craft' ? 'ui.craftOne' : action.type === 'research' ? 'ui.researchAction' : action.type === 'fire' ? 'ui.fireUpgrade' : 'ui.build';
-        var control = button(key, action, values, disabled || !available);
-        control.setAttribute('aria-label', R.t('ui.namedAction', { action: R.t(actionKey), name: R.t(key, values) })); row.appendChild(control);
+        if (disabled && !R.atCamp(save)) { copy.appendChild(el('p', 'rogue-note rogue-blocked-reason', R.t('ui.awayCamp'))); }
+        var label = { action: R.t(actionKey), name: R.t(key, values) };
+        var control = button('ui.namedAction', action, label, disabled || !available, null, 'primary');
+        control.setAttribute('aria-label', R.t('ui.namedAction', label));
         row.appendChild(copy);
+        row.appendChild(control);
         parent.appendChild(row);
     }
     /** Returns the next concrete goal for the current run. */
@@ -184,18 +202,8 @@
     function renderMap(save) {
         var panel = panels.map;
         panel.textContent = '';
+        if (selected && selected.region !== save.party.region) { selected = null; }
         var view = R.map.current(save);
-        var title = el('nav', 'rogue-panel-heading rogue-scene-tabs');
-        title.setAttribute('aria-label', R.t('ui.exploreNotes'));
-        var titleText = save.flags.insideDungeon ? R.t('dungeon.' + save.dungeons[save.flags.insideDungeon].kind) : R.t('room.' + view.map.theme);
-        var heading = el('div');
-        heading.appendChild(el('h2', '', titleText));
-        if (save.flags.insideDungeon) { heading.appendChild(el('p', 'rogue-eyebrow', R.t('ui.depth') + ' ' + view.map.depth)); }
-        else { heading.appendChild(el('p', 'rogue-eyebrow', R.t('ui.biomeWater', { name: R.t('biome.' + R.wild.biome(save, view.map)), n: R.wild.waterCost(save) }))); }
-        title.appendChild(heading);
-        title.appendChild(button('ui.regionMap', { type: 'modal', kind: 'world' }));
-        if (!save.flags.insideDungeon) { title.appendChild(button('ui.legend', { type: 'modal', kind: 'guide' })); }
-        panel.appendChild(title);
         var travel = el('section', 'rogue-travel-stores');
         var travelTitle = el('div', 'rogue-travel-heading');
         travelTitle.appendChild(el('h3', 'rogue-section-title', R.t('ui.myPack')));
@@ -228,13 +236,16 @@
         }
         viewport.appendChild(grid);
         var coordinates = el('div', 'rogue-map-coordinate', view.position.x + ' / ' + view.position.y);
-        viewport.appendChild(coordinates); travel.appendChild(status); panel.appendChild(travel);
+        viewport.appendChild(coordinates); travel.appendChild(status); returnWater(travel, save); panel.appendChild(travel);
         exploration.appendChild(viewport);
         panel.appendChild(exploration);
-        returnWater(panel, save);
-        var tools = el('div', 'rogue-map-tools');
-        tools.appendChild(el('span', 'rogue-note', R.t(save.flags.insideDungeon ? view.map.cleared ? 'ui.dungeonCleared' : 'ui.objective' : 'ui.legendFog')));
-        var controlRow = el('div', 'rogue-control-row');
+        var controlRow = el('div', 'rogue-map-lower');
+        var details = el('div', 'rogue-map-details');
+        var terrain = save.flags.insideDungeon ? '' : R.t('biome.' + R.wild.biome(save, view.map));
+        if (save.flags.insideDungeon) { terrain = R.t('dungeon.' + save.dungeons[save.flags.insideDungeon].kind) + ' · ' + R.t('ui.depth') + ' ' + view.map.depth; }
+        details.appendChild(el('p', 'rogue-terrain', R.t('ui.biomeWater', { name: terrain, n: save.flags.abyss ? 0 : save.flags.insideDungeon ? N.DUNGEON_SUPPLY : R.wild.waterCost(save) })));
+        renderMapLegend(details, rows);
+        controlRow.appendChild(details);
         var dpad = el('div', 'rogue-dpad');
         var directionIds = ['north', 'west', 'east', 'south'];
         var symbols = ['↑', '←', '→', '↓'];
@@ -245,25 +256,43 @@
             direction.className += ' rogue-direction rogue-' + directionIds[i]; dpad.appendChild(direction);
         }
         var rest = button('ui.wait', { type: 'wait' }); rest.className += ' rogue-dpad-center'; rest.textContent = '·'; rest.setAttribute('aria-label', R.t('ui.wait')); dpad.appendChild(rest);
-        viewport.appendChild(dpad);
-        var context = el('div', 'rogue-context'); renderContext(save, context); controlRow.appendChild(context);
-        exploration.appendChild(controlRow); if (save.flags.insideDungeon) { exploration.appendChild(tools); }
-        if (save.flags.insideDungeon) {
-            var dungeonActions = el('div', 'rogue-action-grid');
-            var dungeon = save.dungeons[save.flags.insideDungeon];
-            var returnCost = R.dungeon.returnCost(save);
-            dungeonActions.appendChild(button('ui.extract', { type: returnCost.shortfall ? 'confirmExtract' : 'extract' }, null, !!save.flags.combat));
-            if (dungeon.afterClear === 'infinite') { dungeonActions.appendChild(button('ui.descend', { type: 'descend' }, null, !dungeon.floor.cleared)); }
-            panel.appendChild(dungeonActions);
-            panel.appendChild(el('p', 'rogue-note', R.t(save.flags.abyss ? 'ui.abyssHint' : 'ui.extractCost', returnCost)));
-            if (returnCost.shortfall) { panel.appendChild(el('p', 'rogue-note rogue-shortfall', R.t('ui.extractEmergency', { n: returnCost.damage }))); }
-        } else {
-            var shortcuts = el('nav', 'rogue-explore-shortcuts');
-            shortcuts.setAttribute('aria-label', R.t('ui.exploreNotes'));
-            var views = ['nearby', 'clues', 'goals']; var labels = ['ui.around', 'ui.clues', 'ui.goals'];
-            for (i = 0; i < views.length; i++) { var shortcut = button(labels[i], { type: 'peek', view: views[i] }); shortcut.setAttribute('aria-pressed', views[i] === peekView ? 'true' : 'false'); shortcuts.appendChild(shortcut); }
-            exploration.appendChild(shortcuts); renderPeek(exploration, save);
+        controlRow.appendChild(dpad); viewport.appendChild(controlRow);
+        if (selected && selected.region === save.party.region && !save.flags.insideDungeon && (selected.x !== save.party.x || selected.y !== save.party.y)) {
+            var destination = selected.site ? R.map.site(save, selected.site) : null;
+            var path = R.map.path(save, selected.x, selected.y);
+            var route = el('div', 'rogue-map-route');
+            route.appendChild(el('p', 'rogue-note', destination ? siteName(destination) : R.t('ui.selected')));
+            route.appendChild(el('p', 'rogue-note', path ? R.t('ui.distance', { n: path.length }) : R.t('err.route')));
+            route.appendChild(button('ui.route', { type: 'route', x: selected.x, y: selected.y }, null, !path));
+            panel.appendChild(route);
         }
+        renderExplorePack(panel, save);
+    }
+    /** Explains only symbols actually rendered in the current discovered map window. */
+    function renderMapLegend(parent, rows) {
+        var seen = {}; var row; var column; var id;
+        for (row = 0; row < rows.length; row++) { for (column = 0; column < rows[row].length; column++) { if (rows[row][column]) { seen[rows[row][column].symbol] = true; } } }
+        var symbols = [['@', 'ui.legendPlayer'], ['.', 'ui.legendFloor'], ['#', 'ui.legendWall'], ['~', 'ui.legendWater'], ['+', 'ui.legendExit'], ['>', 'ui.legendObjective'], ['B', 'ui.legendCamp'], ['^', 'ui.tempCamp'], ['*', 'ui.cache']];
+        for (id in C.sites) { symbols.push([C.sites[id].symbol, 'site.' + id]); }
+        var legend = el('div', 'rogue-local-legend'); legend.setAttribute('aria-label', R.t('ui.legend'));
+        for (row = 0; row < symbols.length; row++) {
+            var symbol = symbols[row]; if (!seen[symbol[0]]) { continue; } delete seen[symbol[0]];
+            var entry = el('span', 'rogue-local-symbol'); entry.setAttribute('data-symbol', symbol[0]);
+            entry.appendChild(el('span', 'rogue-symbol', symbol[0])); entry.appendChild(el('span', '', R.t(symbol[1]))); legend.appendChild(entry);
+        }
+        parent.appendChild(legend);
+    }
+    /** Lists the player's carried non-provision items in stable catalog order. */
+    function renderExplorePack(parent, save) {
+        var pack = el('section', 'rogue-explore-pack'); pack.setAttribute('aria-label', R.t('ui.packMaterials'));
+        var id; var count = 0;
+        for (id in C.items) {
+            if (id === 'food' || id === 'water' || !(save.party.bag[id] > 0)) { continue; }
+            var item = el('div', 'rogue-pack-item'); item.setAttribute('data-item', id);
+            item.appendChild(el('span', '', R.t('item.' + id))); item.appendChild(el('strong', 'rogue-pack-count', format(save.party.bag[id]))); pack.appendChild(item); count += 1;
+        }
+        if (!count) { pack.appendChild(el('p', 'rogue-note rogue-pack-empty', R.t('ui.packEmpty'))); }
+        parent.appendChild(pack);
     }
     /** Uses spare height for one short exploration preview while preserving full secondary pages. */
     function renderPeek(panel, save) {
@@ -295,7 +324,7 @@
             for (i = 0; i < shortcuts.length; i++) { shortcuts[i].setAttribute('aria-pressed', 'false'); }
         }
         var viewport = panel.querySelector('.rogue-map-viewport');
-        var width = viewport.clientWidth - panel.querySelector('.rogue-dpad').offsetWidth - 28;
+        var width = viewport.clientWidth - 24;
         grid.style.fontSize = Math.max(12, Math.min(22, width / (N.MAP_WINDOW * .8), 12 + spare / (N.MAP_WINDOW * 1.1))) + 'px';
     }
     /** Lists discovered local destinations without extending the exploration screen. */
@@ -317,23 +346,12 @@
     /** Renders the contextual action next to the direction pad. */
     function renderContext(save, box) {
         if (save.flags.insideDungeon) {
-            box.appendChild(el('p', 'rogue-context-title', R.t('ui.depth') + ' ' + save.dungeons[save.flags.insideDungeon].depth));
             box.appendChild(el('p', 'rogue-note', R.t('ui.objective'))); return;
         }
         var camp = R.atCamp(save);
         var here = R.map.here(save);
-        if (selected && selected.region !== save.party.region) { selected = null; }
-        if (selected && (selected.x !== save.party.x || selected.y !== save.party.y)) {
-            var destination = selected.site ? R.map.site(save, selected.site) : null;
-            box.appendChild(el('p', 'rogue-context-title', destination ? siteName(destination) : R.t('ui.selected')));
-            var path = R.map.path(save, selected.x, selected.y);
-            box.appendChild(el('p', 'rogue-note', path ? R.t('ui.distance', { n: path.length }) : R.t('err.route')));
-            box.appendChild(button('ui.route', { type: 'route', x: selected.x, y: selected.y }, null, !path)); return;
-        }
         if (camp) {
-            if (!nextGoal(box, save)) { box.appendChild(el('p', 'rogue-context-title', R.t('ui.campName', { n: camp.id + 1 }))); }
-            box.appendChild(restockButton(save, false));
-            box.appendChild(button('ui.storageOpen', { type: 'campView', view: 'stores' })); return;
+            return;
         }
         if (R.atTemp(save)) {
             box.appendChild(el('p', 'rogue-context-title', R.t('ui.tempCamp')));
@@ -372,8 +390,8 @@
             box.appendChild(button('ui.crossExit', { type: 'move', dir: dir }, null, false, 'cross:' + dir)); return;
         }
         var home = save.camps[save.activeCamp];
-        box.appendChild(el('p', 'rogue-context-title', R.t('ui.around')));
-        box.appendChild(el('p', 'rogue-note', R.t('ui.awayCamp')));
+        box.appendChild(el('p', 'rogue-context-title', R.t('ui.regionGround')));
+        box.appendChild(el('p', 'rogue-note', R.t('ui.regionEmpty')));
         if (home.region === save.party.region) { box.appendChild(button('ui.returnCamp', { type: 'route', x: home.x, y: home.y }, null, !R.map.path(save, home.x, home.y))); }
         if (save.party.bag.campKit) { box.appendChild(button('ui.deployTemp', { type: 'confirmTemp' }, null, !R.settle.canPitch(save))); }
     }
@@ -419,34 +437,69 @@
     /** Creates a text entry to a camp work area without a dashboard tile. */
     function campTile(parent, id, key, summary) {
         var link = button(key, { type: 'campView', view: id }, null, false, 'camp-view:' + id);
-        link.className += ' rogue-camp-link'; link.title = summary; parent.appendChild(link); return link;
+        link.className += ' rogue-camp-link'; link.title = summary;
+        parent.appendChild(link); return link;
     }
-    /** Shows one direct construction or crafting control using the existing action checks. */
-    function campChoice(parent, save, key, action, cost, disabled, values) {
-        var row = el('div', 'rogue-work-choice');
-        var control = button(key, action, values, disabled || !R.affords(save, cost));
-        control.title = R.t('ui.cost', { cost: costText(cost) }); row.appendChild(control);
-        row.appendChild(el('p', 'rogue-cost', costText(cost))); parent.appendChild(row);
+    /** Shows only the party's current location and its locally available interactions. */
+    function renderRegion(save) {
+        var panel = panels.camp;
+        var camp = R.atCamp(save);
+        if (camp) { renderCamp(save); return; }
+        panel.textContent = ''; panel.setAttribute('data-camp-view', campView);
+        var dungeon = save.flags.insideDungeon && save.dungeons[save.flags.insideDungeon];
+        var heading = el('div', 'rogue-panel-heading');
+        heading.appendChild(el('h2', '', dungeon ? R.t('dungeon.' + dungeon.kind) + ' · ' + R.t('ui.depth') + ' ' + dungeon.depth : R.t('room.' + save.regions[save.party.region].theme)));
+        panel.appendChild(heading);
+        panel.appendChild(el('p', 'rogue-note rogue-region-hint', R.t('ui.regionLocal')));
+        if (campView === 'expansion') { renderCampDetail(panel, save, save.camps[save.activeCamp], null); return; }
+        var context = el('section', 'rogue-context rogue-region-context'); context.id = 'rogue-region-actions';
+        renderContext(save, context); panel.appendChild(context);
+        if (dungeon) {
+            var actions = el('div', 'rogue-action-grid');
+            var cost = R.dungeon.returnCost(save);
+            actions.appendChild(button('ui.extract', { type: cost.shortfall ? 'confirmExtract' : 'extract' }, null, !!save.flags.combat));
+            if (dungeon.afterClear === 'infinite') { actions.appendChild(button('ui.descend', { type: 'descend' }, null, !dungeon.floor.cleared)); }
+            context.appendChild(actions);
+            context.appendChild(el('p', 'rogue-note', R.t(save.flags.abyss ? 'ui.abyssHint' : 'ui.extractCost', cost)));
+            if (cost.shortfall) { context.appendChild(el('p', 'rogue-note rogue-shortfall', R.t('ui.extractEmergency', { n: cost.damage }))); }
+        } else {
+            var site = R.map.here(save);
+            if (site && site.state === 'occupied' && C.sites[site.type].kind === 'resource') {
+                var owner = save.camps.filter(/** Finds the existing owner of this local production site. */ function (entry) { return entry.id === site.ownerCamp; })[0];
+                if (owner) { renderWorkers(section(panel, 'ui.workers'), save, owner, site); }
+            }
+            if (R.settle.canPitch(save)) { campTile(panel, 'expansion', 'ui.campExpansion', R.t('ui.campPlace')); }
+        }
+        var primary = context.querySelector('button:not(:disabled)');
+        if (primary) { primary.className = 'rogue-button rogue-button-primary'; primary.setAttribute('data-variant', 'primary'); }
+    }
+    /** Resets location-specific subpages when travelling while leaving saved game data untouched. */
+    function syncRegion(save) {
+        var position = save ? [save.slot, save.seed, save.party.region, save.party.x, save.party.y, save.flags.insideDungeon || ''].join(':') : null;
+        if (position !== regionPosition) { regionPosition = position; campView = 'overview'; menuPage = 0; tabScroll.camp = 0; }
+        if (save && !R.atCamp(save) && (campView !== 'expansion' || !R.settle.canPitch(save))) { campView = 'overview'; }
     }
     /** Places camp work on the left and a persistent resource ledger on the right. */
     function renderCamp(save) {
         var panel = panels.camp; panel.textContent = ''; panel.setAttribute('data-camp-view', campView);
-        var camp = save.camps[save.activeCamp];
-        var here = R.atCamp(save); if (here && here.id !== camp.id) { here = null; }
+        var camp = R.atCamp(save);
+        var here = camp;
         var titles = { supplies: 'ui.supplies', stores: 'ui.shared', tempStores: 'ui.tempStorage', workers: 'ui.workers', buildings: 'ui.buildings', recipes: 'ui.recipes', research: 'ui.research', expansion: 'ui.campExpansion' };
         var heading = el('div', 'rogue-panel-heading');
         heading.appendChild(el('h2', '', R.t(campView === 'overview' ? 'ui.campName' : titles[campView], { n: camp.id + 1 })));
         if (campView !== 'overview') { var back = button('ui.backTo', { type: 'campView', view: 'overview' }, { page: R.t('ui.campHome') }, false, 'camp-inline-return'); back.className += ' rogue-camp-inline-back'; heading.appendChild(back); }
         else { heading.appendChild(el('span', 'rogue-eyebrow', R.t('ui.campCapacity', { n: save.camps.length }))); }
         panel.appendChild(heading);
+        panel.appendChild(el('p', 'rogue-note rogue-region-hint', R.t('room.' + save.regions[save.party.region].theme) + ' · ' + R.t('ui.inCamp')));
         var scene = el('div', 'rogue-camp-scene');
         if (['buildings', 'recipes', 'research'].indexOf(campView) >= 0) { scene.className += ' rogue-camp-crafting'; }
         var work = el('div', 'rogue-camp-workbench');
         var ledger = el('aside', 'rogue-camp-ledger'); ledger.setAttribute('aria-label', R.t('ui.shared'));
-        scene.appendChild(work); scene.appendChild(ledger); panel.appendChild(scene);
+        scene.appendChild(ledger); scene.appendChild(work); panel.appendChild(scene);
         var store = R.stores(save);
         var stocks = el('section', 'rogue-camp-stocks');
-        stocks.appendChild(el('h3', 'rogue-section-title', R.t('ui.shared')));
+        var stockHeading = el('div', 'rogue-stock-heading');
+        stockHeading.appendChild(el('h3', 'rogue-section-title', R.t('ui.shared'))); stocks.appendChild(stockHeading);
         var stockGrid = el('div', 'rogue-resource-grid');
         var stockIds = ['wood', 'fur', 'food', 'water', 'medicine']; var si;
         for (si = 0; si < stockIds.length; si++) {
@@ -455,8 +508,8 @@
         }
         stocks.appendChild(stockGrid);
         var stockAction = button('ui.storageOpen', { type: 'campView', view: 'stores' }, null, false, 'camp-view:stores'); stockAction.className += ' rogue-camp-link';
-        stocks.appendChild(stockAction); ledger.appendChild(stocks);
-        var village = section(ledger, 'ui.campHome'); village.className += ' rogue-camp-village';
+        stockHeading.appendChild(stockAction); ledger.appendChild(stocks);
+        var village = section(scene, 'ui.populationManagement'); village.className += ' rogue-camp-village';
         var status = el('div', 'rogue-camp-status');
         stat(status, 'ui.fire', R.t('ui.fireLevel', { n: camp.fire }));
         stat(status, 'ui.population', R.t('ui.populationValue', { n: camp.pop, max: N.FIRE[camp.fire].pop }));
@@ -464,38 +517,26 @@
         village.appendChild(el('p', 'rogue-note', R.t('ui.idle', { n: Math.max(0, camp.pop - R.settle.employed(save, camp)) })));
         if (campView !== 'overview') { renderCampDetail(work, save, camp, here); return; }
         if (R.atTemp(save)) { var local = el('div', 'rogue-camp-local'); local.appendChild(el('p', 'rogue-note', R.t('ui.tempRemaining', { n: save.flags.tempCamp.expiresAt - save.turn }))); local.appendChild(button('ui.tempStoreAction', { type: 'campView', view: 'tempStores' })); work.appendChild(local); }
-        if (save.camps.length > 1) {
-            var selector = el('div', 'rogue-segment'); var s;
-            for (s = 0; s < save.camps.length; s++) {
-                var choose = button('ui.campName', { type: 'selectCamp', camp: s }, { n: save.camps[s].id + 1 });
-                choose.setAttribute('aria-pressed', s === save.activeCamp ? 'true' : 'false'); selector.appendChild(choose);
-            }
-            work.appendChild(selector);
-        }
         if (!here) { work.appendChild(el('p', 'rogue-note', R.t('ui.awayCamp'))); }
+        var daily = section(work, 'ui.dailyActions'); daily.className += ' rogue-camp-daily';
         var actions = el('div', 'rogue-action-grid rogue-camp-actions');
         var forage = button('ui.forageShort', { type: 'forage' }, null, !here); forage.setAttribute('aria-label', R.t('ui.forage')); actions.appendChild(forage);
         actions.appendChild(restockButton(save, true, here));
-        var rest = button('ui.restShort', { type: 'campView', view: 'supplies' }, null, false, 'camp-view:supplies'); rest.setAttribute('aria-label', R.t('ui.supplies')); village.appendChild(rest); work.appendChild(actions);
+        var rest = button('ui.restShort', { type: 'campView', view: 'supplies' }, null, false, 'camp-view:supplies'); rest.setAttribute('aria-label', R.t('ui.supplies')); actions.appendChild(rest); daily.appendChild(actions);
+        if (here && !R.settle.restockPlan(save).changed) { daily.appendChild(el('p', 'rogue-note', R.t('ui.restockUnavailable'))); }
         var resources = 0; var sites = 0; var built = 0; var researched = 0; var key; var i;
         for (key in store) { if (store[key] > 0) { resources += 1; } }
         for (key in camp.buildings) { built += camp.buildings[key]; }
-        for (key in save.regions) { for (i = 0; i < save.regions[key].sites.length; i++) { if (save.regions[key].sites[i].ownerCamp === camp.id) { sites += 1; } } }
+        for (i = 0; i < save.regions[save.party.region].sites.length; i++) { if (save.regions[save.party.region].sites[i].ownerCamp === camp.id) { sites += 1; } }
         for (i = 0; i < C.research.length; i++) { if (save.flags['tech.' + C.research[i].id]) { researched += 1; } }
-        nextGoal(work, save);
         var menu = el('nav', 'rogue-camp-menu');
-        var buildGroup = el('div', 'rogue-camp-work-group');
-        campTile(buildGroup, 'buildings', 'ui.buildings', R.t('ui.buildSummary', { n: camp.fire, built: built }));
-        if (camp.fire < N.FIRE.length - 1) { campChoice(buildGroup, save, 'ui.fireLevel', { type: 'fire' }, { wood: N.FIRE[camp.fire + 1].wood }, !here, { n: camp.fire + 1 }); }
-        menu.appendChild(buildGroup);
-        var craftGroup = el('div', 'rogue-camp-work-group');
-        campTile(craftGroup, 'recipes', 'ui.recipes', R.t('ui.recipesSummary'));
-        var make = quest(save) === 'waterskin' ? 'waterskin' : quest(save) === 'start' ? 'spear' : 'pack';
-        campChoice(craftGroup, save, 'item.' + make, { type: 'craft', item: make }, C.items[make].cost, !here || !R.settle.recipeAllowed(save, make));
-        menu.appendChild(craftGroup);
-        var otherWork = el('div', 'rogue-camp-other-work');
-        campTile(otherWork, 'research', 'ui.research', R.t('ui.researchSummary', { n: researched, max: C.research.length }));
-        campTile(otherWork, 'expansion', 'ui.campExpansion', R.t('ui.expansionSummary', { n: save.camps.length })); menu.appendChild(otherWork); work.appendChild(menu);
+        menu.setAttribute('aria-label', R.t('ui.campManagement'));
+        menu.appendChild(el('h3', 'rogue-section-title', R.t('ui.campManagement')));
+        campTile(menu, 'buildings', 'ui.buildings', R.t('ui.buildSummary', { n: camp.fire, built: built }));
+        campTile(menu, 'recipes', 'ui.recipes', R.t('ui.recipesSummary'));
+        campTile(menu, 'research', 'ui.research', R.t('ui.researchSummary', { n: researched, max: C.research.length }));
+        campTile(menu, 'expansion', 'ui.campExpansion', R.t('ui.expansionSummary', { n: save.camps.length })); work.appendChild(menu);
+        nextGoal(work, save);
         campTile(village, 'workers', 'ui.workers', R.t('ui.workersSummary', { n: Math.max(0, camp.pop - R.settle.employed(save, camp)), sites: sites }));
     }
     /** Renders one selected camp management page, keeping unrelated lists out of view. */
@@ -560,14 +601,17 @@
         }
     }
     /** Renders the selected camp's guards and a page of occupied production sites. */
-    function renderWorkers(parent, save, camp) {
+    function renderWorkers(parent, save, camp, localSite) {
         var idle = Math.max(0, camp.pop - R.settle.employed(save, camp)); parent.appendChild(el('p', 'rogue-note', R.t('ui.idle', { n: idle })));
-        var guard = el('div', 'rogue-worker-row'); guard.appendChild(el('div', '', R.t('ui.guards')));
-        var minus = button('ui.removeWorker', { type: 'guard', delta: -1 }, null, !(camp.jobs.guard > 0), 'guard:minus'); minus.textContent = '−'; guard.appendChild(minus);
-        guard.appendChild(el('span', 'rogue-worker-count', camp.jobs.guard || 0));
-        var plus = button('ui.addWorker', { type: 'guard', delta: 1 }, null, !idle, 'guard:plus'); plus.textContent = '+'; guard.appendChild(plus); parent.appendChild(guard);
+        if (!localSite) {
+            var guard = el('div', 'rogue-worker-row'); guard.appendChild(el('div', '', R.t('ui.guards')));
+            var minus = button('ui.removeWorker', { type: 'guard', delta: -1 }, null, !(camp.jobs.guard > 0), 'guard:minus'); minus.textContent = '−'; guard.appendChild(minus);
+            guard.appendChild(el('span', 'rogue-worker-count', camp.jobs.guard || 0));
+            var plus = button('ui.addWorker', { type: 'guard', delta: 1 }, null, !idle, 'guard:plus'); plus.textContent = '+'; guard.appendChild(plus); parent.appendChild(guard);
+        }
         var sites = []; var key; var i;
-        for (key in save.regions) { for (i = 0; i < save.regions[key].sites.length; i++) { var site = save.regions[key].sites[i]; if (site.state === 'occupied' && site.ownerCamp === camp.id) { sites.push({ site: site, region: key }); } } }
+        key = save.party.region;
+        for (i = 0; i < save.regions[key].sites.length; i++) { var site = save.regions[key].sites[i]; if (site.state === 'occupied' && site.ownerCamp === camp.id && (!localSite || localSite.id === site.id)) { sites.push({ site: site, region: key }); } }
         var visible = pageSlice(sites);
         for (i = 0; i < visible.length; i++) {
             var entry = visible[i]; var place = entry.site; var row = el('div', 'rogue-worker-card'); var assignment = el('div', 'rogue-worker-row'); var copy = el('div');
@@ -585,6 +629,11 @@
         var node = document.getElementById('rogue-live-log'); node.textContent = '';
         node.hidden = !save || (save.over && !save.flags.abyss);
         if (node.hidden) { return; }
+        if (activeTab === 'map') {
+            var heading = el('div', 'rogue-log-heading'); heading.appendChild(el('h3', '', R.t('ui.liveLog')));
+            var expand = button('ui.logAll', { type: 'expandJournal' }, null, false, 'journal-toggle'); expand.setAttribute('aria-expanded', 'false'); heading.appendChild(expand); node.appendChild(heading);
+            renderJournal(node, save, 'compact'); return;
+        }
         var heading = el('div', 'rogue-log-heading'); heading.appendChild(el('h3', '', R.t('ui.liveLog')));
         heading.appendChild(button('ui.logAll', { type: 'modal', kind: 'journal' })); node.appendChild(heading);
         var list = el('ol', 'rogue-live-entries'); list.setAttribute('role', 'log'); list.setAttribute('aria-live', 'polite');
@@ -596,21 +645,68 @@
         }
         node.appendChild(list);
     }
+    /** Builds a dated journal line without rewriting historical save entries. */
+    function journalLine(entry) {
+        var line = el('li', /Warning|waterUnknown/.test(entry.key) ? 'rogue-log-warning' : '');
+        var turn = typeof entry.turn === 'number' && isFinite(entry.turn) ? Math.max(0, entry.turn) : null;
+        line.appendChild(el('span', 'rogue-journal-time', turn === null ? R.t('ui.logUnknownTime') : R.t('ui.logTime', { day: Math.floor(turn / N.TURNS_PER_DAY) + 1, turn: turn % N.TURNS_PER_DAY })));
+        line.appendChild(el('span', 'rogue-journal-action', R.t(entry.key, entry.values)));
+        if (entry.duration > 1) { line.appendChild(el('span', 'rogue-journal-duration', R.t('ui.logDuration', { n: entry.duration }))); }
+        return line;
+    }
+    /** Adds older entries only on demand while preserving the visible reading anchor. */
+    function loadJournalEarlier(list, read, save) {
+        if (!read.start) { return; }
+        var height = list.scrollHeight; var top = list.scrollTop; var end = read.start;
+        read.start = Math.max(0, end - N.JOURNAL_BATCH);
+        var fragment = document.createDocumentFragment(); var index;
+        for (index = read.start; index < end; index++) { fragment.appendChild(journalLine(save.flags.log[index])); }
+        list.insertBefore(fragment, list.firstChild); list.scrollTop = top + list.scrollHeight - height;
+        read.top = list.scrollTop; read.follow = false;
+    }
+    /** Renders a scrollable chronological slice with independent compact and fullscreen positions. */
+    function renderJournal(parent, save, mode) {
+        var read = journalRead[mode];
+        if (!read || read.save !== save) { read = { save: save, start: Math.max(0, save.flags.log.length - N.JOURNAL_BATCH), top: 0, follow: true }; journalRead[mode] = read; }
+        if (read.follow) { read.start = Math.max(0, save.flags.log.length - N.JOURNAL_BATCH); }
+        var list = el('ol', 'rogue-action-journal'); list.tabIndex = 0; list.setAttribute('aria-label', R.t('ui.journal')); list._journalRead = read;
+        var index;
+        for (index = read.start; index < save.flags.log.length; index++) { list.appendChild(journalLine(save.flags.log[index])); }
+        if (!save.flags.log.length) { list.appendChild(el('li', 'rogue-note', R.t('ui.journalEmpty'))); }
+        parent.appendChild(list);
+        list.addEventListener('scroll', function () {
+            if (!root || !root.contains(list)) { return; }
+            read.top = list.scrollTop; read.follow = list.scrollHeight - list.clientHeight - list.scrollTop <= 4;
+            if (list.scrollTop <= 4 && read.start) { loadJournalEarlier(list, read, save); }
+        });
+    }
+    /** Restores journal offsets after modal visibility and responsive sizing have settled. */
+    function restoreJournals() {
+        var lists = root.querySelectorAll('.rogue-action-journal'); var index;
+        for (index = 0; index < lists.length; index++) {
+            var list = lists[index]; var read = list._journalRead;
+            if (list.getClientRects().length) {
+                list.scrollTop = read.follow ? list.scrollHeight : read.top;
+                if (!read.follow && list.scrollTop <= 4 && read.start) { loadJournalEarlier(list, read, read.save); }
+            }
+        }
+    }
     /** Renders the party overview with direct entry into personal gear and packs. */
     function renderParty(save) {
         var panel = panels.party; panel.textContent = '';
         var heading = el('div', 'rogue-panel-heading'); heading.appendChild(el('h2', '', R.t('ui.party'))); heading.appendChild(el('span', 'rogue-eyebrow', save.party.hp + '/' + save.party.maxHp)); panel.appendChild(heading);
-        health(panel, save.party.hp, save.party.maxHp);
-        var reserves = el('div', 'rogue-party-reserves'); supplyStat(reserves, save, 'water'); supplyStat(reserves, save, 'food'); panel.appendChild(reserves);
-        returnWater(panel, save);
+        var wellbeing = section(panel, 'ui.healthSupplies'); wellbeing.className += ' rogue-party-wellbeing';
+        health(wellbeing, save.party.hp, save.party.maxHp);
+        var reserves = el('div', 'rogue-party-reserves'); supplyStat(reserves, save, 'water'); supplyStat(reserves, save, 'food'); wellbeing.appendChild(reserves);
+        returnWater(wellbeing, save);
         var supplies = el('div', 'rogue-quick-supplies'); var supplyIds = ['water', 'food', 'medicine']; var s;
         for (s = 0; s < supplyIds.length; s++) {
             var supply = supplyIds[s];
             supplies.appendChild(button(supply === 'water' ? 'ui.reserveWater' : supply === 'food' ? 'ui.reserveFood' : 'ui.reserveMedicine', { type: 'use', item: supply }, { n: format(save.party.bag[supply] || 0) }, !save.party.bag[supply] || (supply === 'medicine' ? save.party.hp === save.party.maxHp : supply === 'water' ? save.party.water >= R.waterMax(save) : save.party.food >= N.SUPPLY_FOOD), 'quick:' + supply));
         }
-        panel.appendChild(supplies);
-        panel.appendChild(el('p', 'rogue-note', R.t('ui.reserveExplanation')));
-        var equipment = section(panel, 'ui.equipment');
+        wellbeing.appendChild(supplies);
+        wellbeing.appendChild(el('p', 'rogue-note', R.t('ui.reserveExplanation')));
+        var equipment = section(panel, 'ui.equipmentPack');
         stat(equipment, 'ui.weapon', R.t('item.' + save.party.weapon)); stat(equipment, 'ui.armour', save.party.armour ? R.t('item.' + save.party.armour) : R.t('ui.none'));
         equipment.appendChild(el('p', 'rogue-note', R.t('ui.damage', { n: C.items[save.party.weapon].dmg + R.bonus(save, 'attack') })));
         var controls = el('div', 'rogue-action-grid');
@@ -877,9 +973,14 @@
         content.appendChild(log);
         var actions = el('div', 'rogue-combat-actions');
         var types = ['attack', 'guard', 'dodge'];
-        for (i = 0; i < types.length; i++) { actions.appendChild(button('ui.' + types[i], { type: 'combat', action: { type: types[i], target: session.target } })); }
+        for (i = 0; i < types.length; i++) {
+            var combatButton = button('ui.' + types[i], { type: 'combat', action: { type: types[i], target: session.target } }, null, false, null, types[i] === 'attack' ? 'primary' : 'secondary');
+            combatButton.setAttribute('aria-label', R.t('ui.' + types[i]));
+            combatButton.textContent = R.t('ui.combatShort.' + types[i]); actions.appendChild(combatButton);
+        }
         actions.appendChild(button('ui.medicine', { type: 'combat', action: { type: 'item', item: 'medicine' } }, null, !save.party.bag.medicine || save.party.hp === save.party.maxHp));
-        var flee = button('ui.fleeChance', { type: 'combat', action: { type: 'flee' } }, { n: Math.round(R.combat.escapeChance(session) * 100) }); flee.className += ' rogue-flee'; actions.appendChild(flee);
+        var escape = { n: Math.round(R.combat.escapeChance(session) * 100) };
+        var flee = button('ui.fleeShort', { type: 'combat', action: { type: 'flee' } }, escape); flee.setAttribute('aria-label', R.t('ui.fleeChance', escape)); flee.className += ' rogue-flee'; actions.appendChild(flee);
         content.appendChild(el('p', 'rogue-note', R.t('ui.combatHint'))); return actions;
     }
     /** Creates a native SVG map element without external resources. */
@@ -937,34 +1038,38 @@
     }
     /** Renders appearance, pacing, automatic-save information and session navigation. */
     function renderMenu(content, save) {
-        var appearance = section(content, 'ui.theme');
+        var journey = section(content, 'ui.journeyMenu'); journey.className += ' rogue-menu-group';
+        if (save) { journey.appendChild(button('ui.journal', { type: 'modal', kind: 'journal' }, null, false, null, 'entry')); }
+        journey.appendChild(button('ui.help', { type: 'modal', kind: 'guide' }, null, false, null, 'entry'));
+        var appearance = section(content, 'ui.displayMenu'); appearance.className += ' rogue-menu-group';
         var theme = el('div', 'rogue-segment');
         var light = button('ui.light', { type: 'theme', dark: false }); light.setAttribute('aria-pressed', R.ui.preferences.dark ? 'false' : 'true'); theme.appendChild(light);
         var dark = button('ui.dark', { type: 'theme', dark: true }); dark.setAttribute('aria-pressed', R.ui.preferences.dark ? 'true' : 'false'); theme.appendChild(dark); appearance.appendChild(theme);
+        appearance.appendChild(el('p', 'rogue-note', R.t('ui.themeShared')));
         var fonts = el('div', 'rogue-font-controls'); fonts.appendChild(el('span', '', R.t('ui.font')));
         var smaller = button('ui.smaller', { type: 'font', delta: -2 }); smaller.textContent = 'A−'; smaller.setAttribute('aria-label', R.t('ui.smaller')); fonts.appendChild(smaller);
         fonts.appendChild(el('span', 'rogue-note', R.ui.preferences.font));
         var larger = button('ui.larger', { type: 'font', delta: 2 }); larger.textContent = 'A+'; larger.setAttribute('aria-label', R.t('ui.larger')); fonts.appendChild(larger); appearance.appendChild(fonts);
-        var warnings = section(content, 'ui.supplyWarnings');
+        var warnings = section(appearance, 'ui.supplyWarnings');
         var toggle = button('ui.waterWarningToggle', { type: 'waterWarning' }, { state: R.t(R.ui.preferences.waterWarning ? 'ui.enabled' : 'ui.disabled') }); toggle.setAttribute('aria-pressed', R.ui.preferences.waterWarning ? 'true' : 'false'); warnings.appendChild(toggle);
-        warnings.appendChild(el('p', 'rogue-note', R.t('ui.waterWarningHint')));
+        disclosure(warnings, 'water-warning-help', 'ui.details').appendChild(el('p', 'rogue-note', R.t('ui.waterWarningHint')));
         if (save) {
-            var speed = section(content, 'ui.speed'); var speeds = el('div', 'rogue-segment');
+            var speed = section(journey, 'ui.speed'); var speeds = el('div', 'rogue-segment');
             var labels = ['ui.slow', 'ui.normal', 'ui.fast'];
             var i;
             for (i = 0; i < labels.length; i++) { var choose = button(labels[i], { type: 'speed', speed: i + 1 }); choose.setAttribute('aria-pressed', save.speed === i + 1 ? 'true' : 'false'); speeds.appendChild(choose); }
             speed.appendChild(speeds); speed.appendChild(el('p', 'rogue-note', R.t('ui.speedHint')));
+            var saves = section(content, 'ui.saveMenu'); saves.className += ' rogue-menu-group';
             var controls = el('div', 'rogue-menu-actions');
-            content.appendChild(el('p', 'rogue-note', R.t('ui.autoSaveHint')));
+            saves.appendChild(el('p', 'rogue-note', R.t('ui.autoSaveHint')));
             controls.appendChild(button('ui.chooseSlot', { type: 'slots' }));
-            controls.appendChild(button('ui.journal', { type: 'modal', kind: 'journal' })); content.appendChild(controls);
+            saves.appendChild(controls);
             if (window.ADRNativeLocalApp) {
                 controls.appendChild(button('ui.backup', { type: 'native', target: 'backup' }));
                 controls.appendChild(button('ui.restore', { type: 'native', target: 'restore' }));
             }
             var help = disclosure(content, 'assistance', 'ui.cheat'); help.appendChild(el('p', 'rogue-note', R.t('ui.cheatHint'))); help.appendChild(button('ui.cheat', { type: 'confirmCheat' }, null, save.over));
         }
-        content.appendChild(button('ui.help', { type: 'modal', kind: 'guide' }));
         content.appendChild(button(save ? 'ui.exitRun' : 'ui.back', { type: 'home' }));
         if (save) { content.appendChild(el('p', 'rogue-note', R.t('ui.seedValue', { n: save.seed }))); }
     }
@@ -983,10 +1088,14 @@
         if (!modal) { overlay.hidden = true; frame.removeAttribute('aria-hidden'); frame.inert = false; document.body.classList.remove('rogue-modal-open'); return; }
         overlay.hidden = false; frame.setAttribute('aria-hidden', 'true'); frame.inert = true; document.body.classList.add('rogue-modal-open');
         var dialog = el('section', 'rogue-dialog' + (modal === 'combat' ? ' rogue-combat-dialog' : '') + (modal === 'storage' ? ' rogue-storage-dialog' : ''));
+        var expandedJournal = modal === 'journal' && modalOptions && modalOptions.exploreJournal;
+        overlay.classList.toggle('rogue-journal-overlay', !!expandedJournal);
+        if (expandedJournal) { dialog.className += ' rogue-journal-fullscreen'; }
         dialog.setAttribute('role', 'dialog'); dialog.setAttribute('aria-modal', 'true'); dialog.setAttribute('aria-labelledby', 'rogue-dialog-title');
         var heading = el('div', 'rogue-dialog-heading');
         var titles = { storage: modalOptions && modalOptions.scope === 'temp' ? 'ui.tempStorage' : modalOptions && modalOptions.scope === 'cache' ? 'ui.cache' : 'ui.storage', member: 'ui.page.member', bag: 'ui.page.bag', gear: 'ui.page.gear', item: 'ui.page.item', event: 'ui.page.event', outpost: 'site.outpost', combat: 'ui.combat', world: 'ui.exploreNotes', nearby: 'ui.exploreNotes', clues: 'ui.exploreNotes', goals: 'ui.exploreNotes', menu: 'ui.settings', guide: 'ui.help', time: 'ui.timeTitle', journal: 'ui.journal', new: 'ui.newrun', confirm: modalOptions ? modalOptions.title : 'ui.confirm' };
         var title = el('h2', '', R.t(titles[modal])); title.id = 'rogue-dialog-title'; heading.appendChild(title);
+        if (expandedJournal) { var collapse = button('ui.logCollapse', { type: 'closeModal' }, null, false, 'journal-collapse'); collapse.setAttribute('aria-expanded', 'true'); heading.appendChild(collapse); }
         dialog.appendChild(heading);
         var content = el('div', 'rogue-dialog-content'); var save = R.state.current;
         content.setAttribute('data-modal', modal);
@@ -1030,10 +1139,13 @@
             for (i = 0; i < symbols.length; i++) { var entry = el('div', 'rogue-legend-entry'); entry.appendChild(el('span', 'rogue-symbol', symbols[i][0])); entry.appendChild(el('span', '', R.t(symbols[i][1]))); legend.appendChild(entry); }
             content.appendChild(legend);
         } else if (modal === 'journal' && save) {
+            if (expandedJournal) { renderJournal(content, save, 'fullscreen'); }
+            else {
             var logs = el('ol', 'rogue-journal');
             var j;
             for (j = save.flags.log.length - 1; j >= 0; j--) { var log = save.flags.log[j]; var line = el('li'); line.appendChild(el('span', 'rogue-eyebrow', R.t('ui.turn', { n: log.turn }))); line.appendChild(el('p', '', R.t(log.key, log.values))); logs.appendChild(line); }
             content.appendChild(logs);
+            }
         } else if (modal === 'new') {
             content.appendChild(el('p', 'rogue-note', R.t('ui.seedHelp')));
             var form = el('form', 'rogue-new-form'); form.id = 'rogue-new-form';
@@ -1043,6 +1155,7 @@
         } else if (modal === 'confirm') {
             content.appendChild(el('p', 'rogue-confirm-copy', R.t(modalOptions.body, modalOptions.values)));
         }
+        if (combatActions) { dialog.appendChild(content.querySelector('.rogue-combat-party')); }
         dialog.appendChild(content);
         if (combatActions) { dialog.appendChild(combatActions); }
         var footer = el('footer', 'rogue-dialog-footer');
@@ -1050,7 +1163,7 @@
         else if (modal === 'event' || modal === 'outpost') { footer.appendChild(button('ui.pause', { type: 'modal', kind: 'menu' })); var leave = button(modal === 'event' ? 'ui.leaveEvent' : 'ui.leaveOutpost', { type: modal === 'event' ? 'event' : 'outpost', op: 'leave' }); leave.className += ' rogue-return'; footer.appendChild(leave); }
         else if (modal === 'combat') { footer.appendChild(button('ui.pause', { type: 'modal', kind: 'menu' })); }
         else { var back = button('ui.backTo', { type: 'closeModal' }, { page: R.t(returnPage(save)) }); back.className += ' rogue-return'; footer.appendChild(back); }
-        dialog.appendChild(footer); overlay.appendChild(dialog);
+        if (!expandedJournal) { dialog.appendChild(footer); } overlay.appendChild(dialog);
         if (modalScroll !== null) { content.scrollTop = modalScroll; }
         var combatLog = overlay.querySelector('.rogue-combat-log');
         if (combatLog) { combatLog.scrollTop = combatLog.scrollHeight; }
@@ -1071,10 +1184,17 @@
     function preferences() {
         document.documentElement.classList.toggle('rogue-dark', !!R.ui.preferences.dark);
         root.style.setProperty('--rogue-font-size', R.ui.preferences.font + 'px');
-        try { localStorage.setItem('roguePreferences', JSON.stringify(R.ui.preferences)); } catch (error) { R.ui.notice('err.savefull'); }
+        if (!OfflineTheme.update({ font: R.ui.preferences.font, waterWarning: R.ui.preferences.waterWarning })) { R.ui.notice('err.savefull'); }
+    }
+    /** Reflects theme changes from other pages without saving or advancing a run. */
+    function themeChanged() {
+        if (!root) { return; }
+        var dark = OfflineTheme.isDark();
+        if (R.ui.preferences.dark !== dark) { R.ui.preferences.dark = dark; R.ui.render(); }
     }
     /** Opens a specified run and records its slot in the URL for refresh continuity. */
     function start(save) {
+        journalRead = {};
         R.state.current = save; selected = null; clearModals(); R.map.reset(); activeTab = 'map'; campView = 'overview'; menuPage = 0; tabScroll = { map: 0, camp: 0, party: 0 };
         storageOptions = { member: 'player', quantity: 10, filter: 'all', page: 0 }; peekView = 'nearby';
         try { history.replaceState(null, '', '?mode=rogue&slot=' + save.slot); } catch (error) { /* File-origin WebViews may restrict history replacement. */ }
@@ -1094,15 +1214,78 @@
     }
     /** Clears suspended interface layers when changing the active run or destination. */
     function clearModals() { modal = null; modalOptions = null; modalStack = []; modalScroll = null; returnFocus = null; }
+    /** Cancels visual motion before a render, resize or interrupted gesture. */
+    function stopTabMotion() {
+        if (tabAnimation) { tabAnimation.cancel(); tabAnimation = null; }
+        if (swipe && panels[swipe.tab]) { panels[swipe.tab].style.transform = ''; }
+        swipe = null;
+    }
+    /** Animates the incoming panel without adding a game timer or changing layout height. */
+    function animateTab(offset) {
+        var panel = panels[activeTab];
+        if (!panel.animate || window.matchMedia('(prefers-reduced-motion: reduce)').matches) { return; }
+        tabAnimation = panel.animate([{ transform: 'translateX(' + offset + 'px)' }, { transform: 'translateX(0)' }], { duration: N.TAB_SLIDE_MS, easing: 'cubic-bezier(.22,.61,.36,1)' });
+    }
     /** Switches primary panels while remembering each panel's reading position. */
-    function switchTab(tab) {
+    function switchTab(tab, dragged) {
+        if (tab === activeTab || modal || !panels[tab]) { return; }
+        var names = ['map', 'camp', 'party'];
+        var offset = (names.indexOf(tab) > names.indexOf(activeTab) ? 1 : -1) * panels[activeTab].offsetWidth + (dragged || 0);
+        var oldPanel = panels[activeTab]; var focused = oldPanel.contains(document.activeElement);
         tabScroll[activeTab] = window.pageYOffset; activeTab = tab; R.ui.render(); window.scrollTo(0, tabScroll[tab] || 0);
+        if (focused) { document.getElementById('rogue-tab-' + tab).focus({ preventScroll: true }); }
+        animateTab(offset);
+    }
+    /** Starts a single-finger page gesture across the screen except editing controls and dialogs. */
+    function swipeStart(event) {
+        stopTabMotion(); swipeClickUntil = 0;
+        var save = R.state.current;
+        if (event.touches.length !== 1 || !save || modal || (save.over && !save.flags.abyss) || save.flags.combat || save.flags.wildEvent || save.flags.outpost) { return; }
+        if (event.target.closest('input,textarea,select,[contenteditable]:not([contenteditable="false"]),.rogue-overlay')) { return; }
+        var touch = event.touches[0];
+        swipe = { id: touch.identifier, x: touch.clientX, y: touch.clientY, delta: 0, horizontal: false, tab: activeTab };
+    }
+    /** Locks only clearly horizontal drags so normal vertical reading remains native. */
+    function swipeMove(event) {
+        if (!swipe) { return; }
+        if (event.touches.length !== 1 || event.touches[0].identifier !== swipe.id || modal) { stopTabMotion(); return; }
+        var touch = event.touches[0]; var delta = touch.clientX - swipe.x; var vertical = touch.clientY - swipe.y;
+        if (!swipe.horizontal) {
+            if (Math.max(Math.abs(delta), Math.abs(vertical)) < N.TAB_SWIPE_START) { return; }
+            if (Math.abs(delta) <= Math.abs(vertical) * N.TAB_SWIPE_AXIS) { stopTabMotion(); return; }
+            swipe.horizontal = true;
+        }
+        if (!event.cancelable) { stopTabMotion(); return; }
+        event.preventDefault();
+        var edge = activeTab === 'map' && delta > 0 || activeTab === 'party' && delta < 0;
+        swipe.delta = delta;
+        var width = panels[activeTab].offsetWidth;
+        panels[activeTab].style.transform = 'translateX(' + R.clamp(delta * (edge ? N.TAB_SWIPE_EDGE : 1), -width, width) + 'px)';
+    }
+    /** Commits one adjacent tab or restores the current panel after a short drag. */
+    function swipeEnd(event) {
+        if (!swipe) { return; }
+        var gesture = swipe; var offset = parseFloat(panels[activeTab].style.transform.slice(11)) || 0;
+        stopTabMotion();
+        if (!gesture.horizontal) { return; }
+        if (event.cancelable) { event.preventDefault(); }
+        swipeClickUntil = Date.now() + N.TAB_SWIPE_CLICK_MS;
+        var names = ['map', 'camp', 'party'];
+        var next = names.indexOf(activeTab) + (gesture.delta < 0 ? 1 : -1);
+        if (Math.abs(gesture.delta) >= N.TAB_SWIPE_DISTANCE && next >= 0 && next < names.length) { switchTab(names[next], offset); }
+        else { animateTab(offset); }
+    }
+    /** Restores a cancelled touch without switching tabs or accepting its synthetic click. */
+    function swipeCancel() {
+        if (swipe && swipe.horizontal) { swipeClickUntil = Date.now() + N.TAB_SWIPE_CLICK_MS; }
+        stopTabMotion();
     }
     /** Handles a delegated button action without introducing a simulation clock. */
     function dispatch(action) {
         var save = R.state.current;
         noticeKey = null;
         if (action.type === 'tab') { switchTab(action.tab); }
+        else if (action.type === 'expandJournal') { R.ui.open('journal', { exploreJournal: true }); }
         else if (action.type === 'back') { R.ui.back(); }
         else if (action.type === 'campView') { activeTab = 'camp'; campView = action.view; menuPage = 0; R.ui.render(); window.scrollTo(0, 0); }
         else if (action.type === 'goalPage') { clearModals(); activeTab = 'camp'; campView = action.view; campFilter = action.filter; menuPage = 0; R.ui.render(); window.scrollTo(0, 0); }
@@ -1152,10 +1335,9 @@
             R.state.current = null; clearModals(); selected = null;
             try { history.replaceState(null, '', '?mode=rogue'); } catch (error) { /* Navigation still works without history access. */ }
             R.ui.render(); window.scrollTo(0, 0);
-        } else if (action.type === 'selectCamp') { save.activeCamp = action.camp; R.save.write(save); R.ui.render(); }
-        else if (action.type === 'selectSite') {
+        } else if (action.type === 'selectSite') {
             var site = R.map.site(save, action.site); selected = { site: site.id, x: site.x, y: site.y, region: save.party.region }; clearModals(); activeTab = 'map'; R.ui.render();
-            root.querySelector('.rogue-context').scrollIntoView({ block: 'nearest' });
+            var route = root.querySelector('.rogue-map-route'); if (route) { route.scrollIntoView({ block: 'nearest' }); }
         } else if (action.type === 'route') { walk(action.x, action.y); }
         else if (action.type === 'gate') {
             if (save.flags.insideDungeon) { return; }
@@ -1165,7 +1347,7 @@
             selected = { x: x, y: y, region: save.party.region }; clearModals(); activeTab = 'map';
             if (save.party.x === x && save.party.y === y) { R.state.act({ type: 'move', dir: action.dir }); }
             else { walk(x, y); }
-        } else if (action.type === 'theme') { R.ui.preferences.dark = action.dark; preferences(); R.ui.render(); }
+        } else if (action.type === 'theme') { if (!OfflineTheme.setDark(action.dark)) { R.ui.notice('err.savefull'); } }
         else if (action.type === 'font') { R.ui.preferences.font = R.clamp(R.ui.preferences.font + action.delta, 16, 22); preferences(); R.ui.render(); }
         else if (action.type === 'speed') { save.speed = action.speed; R.save.write(save); R.ui.render(); }
         else if (action.type === 'native') { window.location.href = 'adr-offline://' + action.target; }
@@ -1179,6 +1361,7 @@
     }
     /** Delegates controls and selectable explored map tiles. */
     function clicked(event) {
+        if (event.detail && Date.now() < swipeClickUntil) { event.preventDefault(); event.stopPropagation(); return; }
         var target = event.target.closest && event.target.closest('[data-rogue-action]');
         if (target && root.contains(target) && !target.disabled) { event.preventDefault(); dispatch(target._rogueAction); return; }
         var cell = event.target.closest && event.target.closest('.rogue-grid [data-x]');
@@ -1198,7 +1381,7 @@
     function keyed(event) {
         if (event.key === 'Escape') { event.preventDefault(); R.ui.back(); return; }
         if (modal && event.key === 'Tab') {
-            var controls = overlay.querySelectorAll('button:not(:disabled), input, a[href]');
+            var controls = overlay.querySelectorAll('button:not(:disabled), input, a[href], [tabindex="0"]');
             var visible = [];
             var i;
             for (i = 0; i < controls.length; i++) { if (controls[i].getClientRects().length) { visible.push(controls[i]); } }
@@ -1222,12 +1405,10 @@
         mount: function () {
             root = el('div', 'rogue-root rogue-terminal'); root.id = 'rogue-root';
             try {
-                var prefs = JSON.parse(localStorage.getItem('roguePreferences') || 'null');
-                var normal = null;
-                if (!prefs) { try { normal = JSON.parse(localStorage.getItem('gameState') || 'null'); } catch (invalidNormal) { /* Independent preferences remain usable with a damaged ordinary save. */ } }
-                this.preferences.waterWarning = !prefs || prefs.waterWarning !== false;
-                this.preferences.dark = prefs ? !!prefs.dark : !!(normal && normal.config && normal.config.lightsOff);
-                this.preferences.font = R.clamp(Number(prefs ? prefs.font : localStorage.getItem('offlineFontSize')) || 16, 16, 22);
+                var prefs = OfflineTheme.read();
+                this.preferences.waterWarning = prefs.waterWarning !== false;
+                this.preferences.dark = OfflineTheme.isDark();
+                this.preferences.font = R.clamp(Number(prefs.font || localStorage.getItem('offlineFontSize')) || 16, 16, 22);
             } catch (error) { /* Invalid normal saves must never prevent an independent Rogue run. */ }
             document.documentElement.classList.toggle('rogue-dark', this.preferences.dark); root.style.setProperty('--rogue-font-size', this.preferences.font + 'px');
             frame = el('div', 'rogue-frame');
@@ -1259,21 +1440,37 @@
             footer.appendChild(footerActions); frame.appendChild(footer); root.appendChild(frame);
             overlay = el('div', 'rogue-overlay'); overlay.hidden = true; root.appendChild(overlay); document.body.appendChild(root);
             root.addEventListener('click', clicked); root.addEventListener('toggle', toggled, true); root.addEventListener('submit', submitted); document.addEventListener('keydown', keyed); window.addEventListener('resize', resized);
+            root.addEventListener('touchstart', swipeStart, { passive: true });
+            root.addEventListener('touchmove', swipeMove, { passive: false });
+            root.addEventListener('touchend', swipeEnd, { passive: false });
+            root.addEventListener('touchcancel', swipeCancel);
+            window.addEventListener('adrthemechange', themeChanged);
             this.render();
         },
         /** Repaints current values while preserving scroll, focus and open management sections. */
         render: function () {
             if (!root) { return; }
+            stopTabMotion();
             var token = document.activeElement && document.activeElement.getAttribute('data-focus');
             var scrollY = window.pageYOffset;
             var oldContent = overlay.querySelector('.rogue-dialog-content');
             if (modalScroll === null && oldContent && oldContent.getAttribute('data-modal') === modal) { modalScroll = oldContent.scrollTop; }
             var save = R.state.current;
+            syncRegion(save);
+            var oldJournals = root.querySelectorAll('.rogue-action-journal'); var journalIndex;
+            for (journalIndex = 0; journalIndex < oldJournals.length; journalIndex++) {
+                var oldJournal = oldJournals[journalIndex];
+                if (oldJournal.getClientRects().length) {
+                    oldJournal._journalRead.top = oldJournal.scrollTop;
+                    oldJournal._journalRead.follow = oldJournal.scrollHeight - oldJournal.clientHeight - oldJournal.scrollTop <= 4;
+                }
+            }
             renderTime(save); renderLiveLog(save);
             var running = !!save && (!save.over || save.flags.abyss);
             var nextView = !save ? 'slots' : running ? 'run' : 'ending';
             if (root.getAttribute('data-view') !== nextView) { scrollY = 0; }
             root.setAttribute('data-tab', activeTab);
+            root.classList.toggle('rogue-large-map', this.preferences.font > 18 && window.innerWidth < 800);
             root.setAttribute('data-camp-view', campView);
             root.setAttribute('data-view', nextView);
             var campTitles = { supplies: 'ui.supplies', stores: 'ui.shared', tempStores: 'ui.tempStorage', workers: 'ui.workers', buildings: 'ui.buildings', recipes: 'ui.recipes', research: 'ui.research', expansion: 'ui.campExpansion' };
@@ -1283,7 +1480,7 @@
             document.getElementById('rogue-ending').hidden = !save || running;
             document.getElementById('rogue-camp-back').hidden = !running || activeTab !== 'camp' || campView === 'overview';
             if (!save) { renderSlots(); }
-            else if (running) { renderMap(save); renderCamp(save); renderParty(save); }
+            else if (running) { renderMap(save); renderRegion(save); renderParty(save); }
             else { renderEnding(save); }
             var names = ['map', 'camp', 'party'];
             var i;
@@ -1297,6 +1494,7 @@
             root.setAttribute('data-page', modal || (nextView === 'run' ? activeTab === 'camp' ? 'camp-' + campView : activeTab : nextView));
             var previouslyOpen = !overlay.hidden;
             renderModal(); this.renderNotice(); fitMap(); restoreFocus(token);
+            restoreJournals();
             modalScroll = null;
             if (modal && (!previouslyOpen || !overlay.contains(document.activeElement))) { focusDialog(); }
             if (Math.abs(window.pageYOffset - scrollY) > 1) { window.scrollTo(0, scrollY); }
@@ -1351,9 +1549,11 @@
         resume: start,
         /** Removes all Rogue interface nodes and event handlers on shutdown. */
         unmount: function () {
+            stopTabMotion(); regionPosition = null; swipeClickUntil = 0;
             document.removeEventListener('keydown', keyed);
             window.removeEventListener('resize', resized);
-            if (root) { root.removeEventListener('click', clicked); root.removeEventListener('toggle', toggled, true); root.removeEventListener('submit', submitted); root.parentNode.removeChild(root); }
+            window.removeEventListener('adrthemechange', themeChanged);
+            if (root) { root.removeEventListener('click', clicked); root.removeEventListener('toggle', toggled, true); root.removeEventListener('submit', submitted); root.removeEventListener('touchstart', swipeStart); root.removeEventListener('touchmove', swipeMove); root.removeEventListener('touchend', swipeEnd); root.removeEventListener('touchcancel', swipeCancel); root.parentNode.removeChild(root); }
             root = null; panels = {}; clearModals(); selected = null; noticeKey = null; activeTab = 'map';
             document.body.classList.remove('rogue-modal-open'); document.documentElement.classList.remove('rogue-dark');
         }

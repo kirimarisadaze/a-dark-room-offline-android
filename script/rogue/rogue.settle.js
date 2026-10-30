@@ -91,6 +91,12 @@
         for (id in stores) { changed = changed || (R.stores(save)[id] || 0) !== (stores[id] || 0); }
         return { bag: bag, stores: stores, water: water, food: food, changed: changed };
     }
+    /** Allows production management only at this site or its owner's camp in the same region. */
+    function localManagement(save, site) {
+        if (!site || save.flags.insideDungeon || save.regions[save.party.region].sites.indexOf(site) < 0) { return false; }
+        var camp = R.atCamp(save);
+        return R.map.here(save) === site || !!camp && camp.id === site.ownerCamp;
+    }
     R.settle = {
         employed: employed,
         restockPlan: restockPlan,
@@ -243,6 +249,7 @@
                 R.combat.encounter(save, { kind: 'site', site: site.id });
             } else if (action.type === 'worker') {
                 site = R.map.site(save, action.site);
+                if (!localManagement(save, site)) { return R.fail('err.regionLocal'); }
                 if (!site || site.state !== 'occupied') { return false; }
                 var owner = null;
                 for (i = 0; i < save.camps.length; i++) { if (save.camps[i].id === site.ownerCamp) { owner = save.camps[i]; } }
@@ -251,12 +258,13 @@
                 if (action.delta < 0 && site.workers <= 0) { return false; }
                 site.workers = Math.max(0, site.workers + (action.delta > 0 ? 1 : -1)); rebalance(save, owner);
             } else if (action.type === 'guard') {
-                camp = save.camps[save.activeCamp];
+                if (!camp) { return R.fail('err.regionLocal'); }
                 if (action.delta > 0 && employed(save, camp) >= camp.pop) { return R.fail('err.workers'); }
                 if (action.delta < 0 && !(camp.jobs.guard > 0)) { return false; }
                 camp.jobs.guard = Math.max(0, (camp.jobs.guard || 0) + (action.delta > 0 ? 1 : -1));
             } else if (action.type === 'road') {
                 site = R.map.site(save, action.site);
+                if (!localManagement(save, site)) { return R.fail('err.regionLocal'); }
                 if (!site || site.state !== 'occupied' || site.road) { return false; }
                 if (!R.affords(save, N.ROAD_COST)) { return R.fail('err.resources'); }
                 var roadRegion;
