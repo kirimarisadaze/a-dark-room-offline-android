@@ -70,7 +70,7 @@ try {
         await page.screenshot({ path: path.join(output, 'explored-world-' + width + '.png') });
         await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
         await page.locator('#rogue-tab-camp').evaluate(node => node.click());
-        assert.equal(await page.locator('.rogue-menu-tile').count(), 6);
+        assert.equal(await page.locator('#rogue-panel-camp .rogue-camp-link').count(), 6);
         const turn = await page.evaluate(() => Rogue.state.current.turn);
         for (const view of ['stores', 'workers', 'buildings', 'recipes', 'research', 'expansion']) {
             await page.locator('[data-focus="camp-view:' + view + '"]').click(); await fit(page);

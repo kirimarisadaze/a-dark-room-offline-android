@@ -5,9 +5,11 @@
 
 **[下载 APK · v1.3.3](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk)** · [最新 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
+正在准备 **1.3.7 / 26**：顶部文字导航、探索地图与建设左右分栏。正式发布采用仓库原签名；上方下载链接会在发布校验完成后更新。
+
 ## 开始游玩
 
-- **要求**：Android **6.0+**，Android System WebView **80+**；当前版本 **1.3.3 / 22**，APK 约 **5.5 MiB**。
+- **要求**：Android **6.0+**，Android System WebView **80+**；APK 约 **5.5 MiB**。
 - **普通模式**：原作故事与移动端操作，支持日夜主题、字号、探索方向键和地标图鉴。
 - **生存模式「无光之地」**：随机九区、据点经营、同行者、回合战斗与地牢，制造飞船通关后解锁深渊。
 - **存档**：每种模式各 3 个独立栏位，自动保存，支持文件备份与恢复；同签名发布包可覆盖升级。

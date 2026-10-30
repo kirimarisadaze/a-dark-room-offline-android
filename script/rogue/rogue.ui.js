@@ -125,17 +125,16 @@
         var save = R.state.current;
         var row = el('div', 'rogue-priced');
         var copy = el('div', 'rogue-priced-copy');
-        copy.appendChild(el('div', 'rogue-row-title', R.t(key, values)));
         if (descriptionKey) { copy.appendChild(el('p', 'rogue-note', R.t(descriptionKey))); }
         var shortfall = {};
         var id;
         for (id in cost) { var lacking = Math.ceil(cost[id] - (R.stores(save)[id] || 0)); if (lacking > 0) { shortfall[id] = lacking; } }
         var available = Object.keys(shortfall).length === 0;
         copy.appendChild(el('p', 'rogue-cost' + (available ? '' : ' rogue-shortfall'), R.t(available ? 'ui.cost' : 'ui.need', { cost: costText(available ? cost : shortfall) })));
-        row.appendChild(copy);
         var actionKey = action.type === 'craft' ? 'ui.craftOne' : action.type === 'research' ? 'ui.researchAction' : action.type === 'fire' ? 'ui.fireUpgrade' : 'ui.build';
-        var control = button(actionKey, action, null, disabled || !available);
+        var control = button(key, action, values, disabled || !available);
         control.setAttribute('aria-label', R.t('ui.namedAction', { action: R.t(actionKey), name: R.t(key, values) })); row.appendChild(control);
+        row.appendChild(copy);
         parent.appendChild(row);
     }
     /** Returns the next concrete goal for the current run. */
@@ -181,26 +180,35 @@
         }
         content.appendChild(button('ui.help', { type: 'modal', kind: 'guide' }));
     }
-    /** Renders the local character window and the controls directly beneath it. */
+    /** Renders travelling supplies and a character map with controls in its reserved lower edge. */
     function renderMap(save) {
         var panel = panels.map;
         panel.textContent = '';
         var view = R.map.current(save);
-        var title = el('div', 'rogue-panel-heading');
+        var title = el('nav', 'rogue-panel-heading rogue-scene-tabs');
+        title.setAttribute('aria-label', R.t('ui.exploreNotes'));
         var titleText = save.flags.insideDungeon ? R.t('dungeon.' + save.dungeons[save.flags.insideDungeon].kind) : R.t('room.' + view.map.theme);
         var heading = el('div');
         heading.appendChild(el('h2', '', titleText));
         if (save.flags.insideDungeon) { heading.appendChild(el('p', 'rogue-eyebrow', R.t('ui.depth') + ' ' + view.map.depth)); }
         else { heading.appendChild(el('p', 'rogue-eyebrow', R.t('ui.biomeWater', { name: R.t('biome.' + R.wild.biome(save, view.map)), n: R.wild.waterCost(save) }))); }
         title.appendChild(heading);
-        title.appendChild(button('ui.regionMap', { type: 'modal', kind: 'world' })); panel.appendChild(title);
+        title.appendChild(button('ui.regionMap', { type: 'modal', kind: 'world' }));
+        if (!save.flags.insideDungeon) { title.appendChild(button('ui.legend', { type: 'modal', kind: 'guide' })); }
+        panel.appendChild(title);
+        var travel = el('section', 'rogue-travel-stores');
+        var travelTitle = el('div', 'rogue-travel-heading');
+        travelTitle.appendChild(el('h3', 'rogue-section-title', R.t('ui.myPack')));
+        travelTitle.appendChild(el('span', 'rogue-note', R.t('ui.bagCapacity', { n: format(R.bagWeight(save)), max: R.party.capacity(save, save.party) })));
+        travel.appendChild(travelTitle);
         var status = el('div', 'rogue-status-grid');
         stat(status, 'ui.hp', save.party.hp + '/' + save.party.maxHp);
         supplyStat(status, save, 'water');
         supplyStat(status, save, 'food');
 
+        var exploration = el('div', 'rogue-exploration-scene');
         var viewport = el('div', 'rogue-map-viewport');
-        viewport.setAttribute('role', 'img'); viewport.setAttribute('aria-label', R.t('ui.mapLabel'));
+        viewport.setAttribute('role', 'group'); viewport.setAttribute('aria-label', R.t('ui.mapLabel'));
         var grid = el('div', 'rogue-grid'); grid.setAttribute('aria-hidden', 'true');
         var rows = R.map.window(save);
         var y;
@@ -220,11 +228,12 @@
         }
         viewport.appendChild(grid);
         var coordinates = el('div', 'rogue-map-coordinate', view.position.x + ' / ' + view.position.y);
-        viewport.appendChild(coordinates); panel.appendChild(viewport); panel.appendChild(status);
+        viewport.appendChild(coordinates); travel.appendChild(status); panel.appendChild(travel);
+        exploration.appendChild(viewport);
+        panel.appendChild(exploration);
         returnWater(panel, save);
         var tools = el('div', 'rogue-map-tools');
         tools.appendChild(el('span', 'rogue-note', R.t(save.flags.insideDungeon ? view.map.cleared ? 'ui.dungeonCleared' : 'ui.objective' : 'ui.legendFog')));
-        tools.appendChild(button('ui.legend', { type: 'modal', kind: 'guide' }));
         var controlRow = el('div', 'rogue-control-row');
         var dpad = el('div', 'rogue-dpad');
         var directionIds = ['north', 'west', 'east', 'south'];
@@ -236,9 +245,9 @@
             direction.className += ' rogue-direction rogue-' + directionIds[i]; dpad.appendChild(direction);
         }
         var rest = button('ui.wait', { type: 'wait' }); rest.className += ' rogue-dpad-center'; rest.textContent = '·'; rest.setAttribute('aria-label', R.t('ui.wait')); dpad.appendChild(rest);
-        controlRow.appendChild(dpad);
+        viewport.appendChild(dpad);
         var context = el('div', 'rogue-context'); renderContext(save, context); controlRow.appendChild(context);
-        panel.appendChild(controlRow); if (save.flags.insideDungeon) { panel.appendChild(tools); }
+        exploration.appendChild(controlRow); if (save.flags.insideDungeon) { exploration.appendChild(tools); }
         if (save.flags.insideDungeon) {
             var dungeonActions = el('div', 'rogue-action-grid');
             var dungeon = save.dungeons[save.flags.insideDungeon];
@@ -253,7 +262,7 @@
             shortcuts.setAttribute('aria-label', R.t('ui.exploreNotes'));
             var views = ['nearby', 'clues', 'goals']; var labels = ['ui.around', 'ui.clues', 'ui.goals'];
             for (i = 0; i < views.length; i++) { var shortcut = button(labels[i], { type: 'peek', view: views[i] }); shortcut.setAttribute('aria-pressed', views[i] === peekView ? 'true' : 'false'); shortcuts.appendChild(shortcut); }
-            panel.appendChild(shortcuts); renderPeek(panel, save);
+            exploration.appendChild(shortcuts); renderPeek(exploration, save);
         }
     }
     /** Uses spare height for one short exploration preview while preserving full secondary pages. */
@@ -285,8 +294,9 @@
             var shortcuts = panel.querySelectorAll('.rogue-explore-shortcuts button'); var i;
             for (i = 0; i < shortcuts.length; i++) { shortcuts[i].setAttribute('aria-pressed', 'false'); }
         }
-        var width = panel.querySelector('.rogue-map-viewport').clientWidth - 16;
-        grid.style.fontSize = Math.max(12, Math.min(22, width / (N.MAP_WINDOW * 1.16), 12 + spare / (N.MAP_WINDOW * 1.1))) + 'px';
+        var viewport = panel.querySelector('.rogue-map-viewport');
+        var width = viewport.clientWidth - panel.querySelector('.rogue-dpad').offsetWidth - 28;
+        grid.style.fontSize = Math.max(12, Math.min(22, width / (N.MAP_WINDOW * .8), 12 + spare / (N.MAP_WINDOW * 1.1))) + 'px';
     }
     /** Lists discovered local destinations without extending the exploration screen. */
     function renderNearby(content, save, limit) {
@@ -406,13 +416,19 @@
         nav.appendChild(el('span', 'rogue-note', R.t('ui.page', { n: menuPage + 1, max: pages })));
         nav.appendChild(button('ui.next', { type: 'campPage', delta: 1 }, null, menuPage >= pages - 1)); parent.appendChild(nav);
     }
-    /** Creates one compact entry point to a camp subpage. */
+    /** Creates a text entry to a camp work area without a dashboard tile. */
     function campTile(parent, id, key, summary) {
-        var tile = button(key, { type: 'campView', view: id }, null, false, 'camp-view:' + id); tile.className += ' rogue-menu-tile'; tile.textContent = '';
-        tile.appendChild(el('span', 'rogue-tile-title', R.t(key))); tile.appendChild(el('span', 'rogue-note', summary));
-        var arrow = el('span', 'rogue-tile-arrow', '›'); arrow.setAttribute('aria-hidden', 'true'); tile.appendChild(arrow); parent.appendChild(tile);
+        var link = button(key, { type: 'campView', view: id }, null, false, 'camp-view:' + id);
+        link.className += ' rogue-camp-link'; link.title = summary; parent.appendChild(link); return link;
     }
-    /** Renders a short camp dashboard with direct entry points instead of a long list. */
+    /** Shows one direct construction or crafting control using the existing action checks. */
+    function campChoice(parent, save, key, action, cost, disabled, values) {
+        var row = el('div', 'rogue-work-choice');
+        var control = button(key, action, values, disabled || !R.affords(save, cost));
+        control.title = R.t('ui.cost', { cost: costText(cost) }); row.appendChild(control);
+        row.appendChild(el('p', 'rogue-cost', costText(cost))); parent.appendChild(row);
+    }
+    /** Places camp work on the left and a persistent resource ledger on the right. */
     function renderCamp(save) {
         var panel = panels.camp; panel.textContent = ''; panel.setAttribute('data-camp-view', campView);
         var camp = save.camps[save.activeCamp];
@@ -423,37 +439,64 @@
         if (campView !== 'overview') { var back = button('ui.backTo', { type: 'campView', view: 'overview' }, { page: R.t('ui.campHome') }, false, 'camp-inline-return'); back.className += ' rogue-camp-inline-back'; heading.appendChild(back); }
         else { heading.appendChild(el('span', 'rogue-eyebrow', R.t('ui.campCapacity', { n: save.camps.length }))); }
         panel.appendChild(heading);
-        if (campView !== 'overview') { renderCampDetail(panel, save, camp, here); return; }
-        if (R.atTemp(save)) { var local = el('div', 'rogue-camp-local'); local.appendChild(el('p', 'rogue-note', R.t('ui.tempRemaining', { n: save.flags.tempCamp.expiresAt - save.turn }))); local.appendChild(button('ui.tempStoreAction', { type: 'campView', view: 'tempStores' })); panel.appendChild(local); }
+        var scene = el('div', 'rogue-camp-scene');
+        if (['buildings', 'recipes', 'research'].indexOf(campView) >= 0) { scene.className += ' rogue-camp-crafting'; }
+        var work = el('div', 'rogue-camp-workbench');
+        var ledger = el('aside', 'rogue-camp-ledger'); ledger.setAttribute('aria-label', R.t('ui.shared'));
+        scene.appendChild(work); scene.appendChild(ledger); panel.appendChild(scene);
+        var store = R.stores(save);
+        var stocks = el('section', 'rogue-camp-stocks');
+        stocks.appendChild(el('h3', 'rogue-section-title', R.t('ui.shared')));
+        var stockGrid = el('div', 'rogue-resource-grid');
+        var stockIds = ['wood', 'fur', 'food', 'water', 'medicine']; var si;
+        for (si = 0; si < stockIds.length; si++) {
+            var stockId = stockIds[si];
+            stat(stockGrid, 'item.' + stockId, format(store[stockId] || 0));
+        }
+        stocks.appendChild(stockGrid);
+        var stockAction = button('ui.storageOpen', { type: 'campView', view: 'stores' }, null, false, 'camp-view:stores'); stockAction.className += ' rogue-camp-link';
+        stocks.appendChild(stockAction); ledger.appendChild(stocks);
+        var village = section(ledger, 'ui.campHome'); village.className += ' rogue-camp-village';
+        var status = el('div', 'rogue-camp-status');
+        stat(status, 'ui.fire', R.t('ui.fireLevel', { n: camp.fire }));
+        stat(status, 'ui.population', R.t('ui.populationValue', { n: camp.pop, max: N.FIRE[camp.fire].pop }));
+        village.appendChild(status);
+        village.appendChild(el('p', 'rogue-note', R.t('ui.idle', { n: Math.max(0, camp.pop - R.settle.employed(save, camp)) })));
+        if (campView !== 'overview') { renderCampDetail(work, save, camp, here); return; }
+        if (R.atTemp(save)) { var local = el('div', 'rogue-camp-local'); local.appendChild(el('p', 'rogue-note', R.t('ui.tempRemaining', { n: save.flags.tempCamp.expiresAt - save.turn }))); local.appendChild(button('ui.tempStoreAction', { type: 'campView', view: 'tempStores' })); work.appendChild(local); }
         if (save.camps.length > 1) {
             var selector = el('div', 'rogue-segment'); var s;
             for (s = 0; s < save.camps.length; s++) {
                 var choose = button('ui.campName', { type: 'selectCamp', camp: s }, { n: save.camps[s].id + 1 });
                 choose.setAttribute('aria-pressed', s === save.activeCamp ? 'true' : 'false'); selector.appendChild(choose);
             }
-            panel.appendChild(selector);
+            work.appendChild(selector);
         }
-        var status = el('div', 'rogue-camp-status');
-        stat(status, 'ui.fire', R.t('ui.fireLevel', { n: camp.fire }));
-        stat(status, 'ui.population', R.t('ui.populationValue', { n: camp.pop, max: N.FIRE[camp.fire].pop })); panel.appendChild(status);
-        if (!here) { panel.appendChild(el('p', 'rogue-note', R.t('ui.awayCamp'))); }
+        if (!here) { work.appendChild(el('p', 'rogue-note', R.t('ui.awayCamp'))); }
         var actions = el('div', 'rogue-action-grid rogue-camp-actions');
         var forage = button('ui.forageShort', { type: 'forage' }, null, !here); forage.setAttribute('aria-label', R.t('ui.forage')); actions.appendChild(forage);
         actions.appendChild(restockButton(save, true, here));
-        var rest = button('ui.restShort', { type: 'campView', view: 'supplies' }, null, false, 'camp-view:supplies'); rest.setAttribute('aria-label', R.t('ui.supplies')); actions.appendChild(rest); panel.appendChild(actions);
-        var store = R.stores(save); var resources = 0; var sites = 0; var built = 0; var researched = 0; var key; var i;
+        var rest = button('ui.restShort', { type: 'campView', view: 'supplies' }, null, false, 'camp-view:supplies'); rest.setAttribute('aria-label', R.t('ui.supplies')); village.appendChild(rest); work.appendChild(actions);
+        var resources = 0; var sites = 0; var built = 0; var researched = 0; var key; var i;
         for (key in store) { if (store[key] > 0) { resources += 1; } }
         for (key in camp.buildings) { built += camp.buildings[key]; }
         for (key in save.regions) { for (i = 0; i < save.regions[key].sites.length; i++) { if (save.regions[key].sites[i].ownerCamp === camp.id) { sites += 1; } } }
         for (i = 0; i < C.research.length; i++) { if (save.flags['tech.' + C.research[i].id]) { researched += 1; } }
-        nextGoal(panel, save);
+        nextGoal(work, save);
         var menu = el('nav', 'rogue-camp-menu');
-        campTile(menu, 'stores', 'ui.shared', R.t('ui.storesSummary', { n: resources }));
-        campTile(menu, 'workers', 'ui.workers', R.t('ui.workersSummary', { n: Math.max(0, camp.pop - R.settle.employed(save, camp)), sites: sites }));
-        campTile(menu, 'buildings', 'ui.buildings', R.t('ui.buildSummary', { n: camp.fire, built: built }));
-        campTile(menu, 'recipes', 'ui.recipes', R.t('ui.recipesSummary'));
-        campTile(menu, 'research', 'ui.research', R.t('ui.researchSummary', { n: researched, max: C.research.length }));
-        campTile(menu, 'expansion', 'ui.campExpansion', R.t('ui.expansionSummary', { n: save.camps.length })); panel.appendChild(menu);
+        var buildGroup = el('div', 'rogue-camp-work-group');
+        campTile(buildGroup, 'buildings', 'ui.buildings', R.t('ui.buildSummary', { n: camp.fire, built: built }));
+        if (camp.fire < N.FIRE.length - 1) { campChoice(buildGroup, save, 'ui.fireLevel', { type: 'fire' }, { wood: N.FIRE[camp.fire + 1].wood }, !here, { n: camp.fire + 1 }); }
+        menu.appendChild(buildGroup);
+        var craftGroup = el('div', 'rogue-camp-work-group');
+        campTile(craftGroup, 'recipes', 'ui.recipes', R.t('ui.recipesSummary'));
+        var make = quest(save) === 'waterskin' ? 'waterskin' : quest(save) === 'start' ? 'spear' : 'pack';
+        campChoice(craftGroup, save, 'item.' + make, { type: 'craft', item: make }, C.items[make].cost, !here || !R.settle.recipeAllowed(save, make));
+        menu.appendChild(craftGroup);
+        var otherWork = el('div', 'rogue-camp-other-work');
+        campTile(otherWork, 'research', 'ui.research', R.t('ui.researchSummary', { n: researched, max: C.research.length }));
+        campTile(otherWork, 'expansion', 'ui.campExpansion', R.t('ui.expansionSummary', { n: save.camps.length })); menu.appendChild(otherWork); work.appendChild(menu);
+        campTile(village, 'workers', 'ui.workers', R.t('ui.workersSummary', { n: Math.max(0, camp.pop - R.settle.employed(save, camp)), sites: sites }));
     }
     /** Renders one selected camp management page, keeping unrelated lists out of view. */
     function renderCampDetail(panel, save, camp, here) {
@@ -1177,7 +1220,7 @@
         preferences: { dark: false, font: 16, waterWarning: true },
         /** Mounts the three panels, responsive navigation and one reusable modal layer. */
         mount: function () {
-            root = el('div', 'rogue-root'); root.id = 'rogue-root';
+            root = el('div', 'rogue-root rogue-terminal'); root.id = 'rogue-root';
             try {
                 var prefs = JSON.parse(localStorage.getItem('roguePreferences') || 'null');
                 var normal = null;
@@ -1188,7 +1231,7 @@
             } catch (error) { /* Invalid normal saves must never prevent an independent Rogue run. */ }
             document.documentElement.classList.toggle('rogue-dark', this.preferences.dark); root.style.setProperty('--rogue-font-size', this.preferences.font + 'px');
             frame = el('div', 'rogue-frame');
-            var header = el('header', 'rogue-header');
+            var header = el('header', 'rogue-header rogue-terminal-header');
             header.appendChild(el('span', 'rogue-wordmark', R.t('ui.originalTitle')));
             var brand = el('div', 'rogue-brand'); brand.appendChild(el('span', '', R.t('ui.title'))); header.appendChild(brand);
             var pageTitle = el('span', 'rogue-eyebrow'); pageTitle.id = 'rogue-page-title'; header.appendChild(pageTitle); frame.appendChild(header);
@@ -1201,17 +1244,19 @@
                 var panel = el('section', 'rogue-panel'); panel.id = 'rogue-panel-' + names[i]; panel.setAttribute('aria-label', R.t('ui.' + names[i])); panels[names[i]] = panel; layout.appendChild(panel);
             }
             frame.appendChild(layout);
-            var footer = el('footer', 'rogue-bottom'); footer.id = 'rogue-bottom';
+            var footer = el('footer', 'rogue-bottom rogue-terminal-footer'); footer.id = 'rogue-bottom';
             var liveLog = el('aside', 'rogue-live-log'); liveLog.id = 'rogue-live-log'; liveLog.setAttribute('aria-label', R.t('ui.liveLog')); footer.appendChild(liveLog);
             var campBack = el('div', 'rogue-subpage-return'); campBack.id = 'rogue-camp-back';
             var campReturn = button('ui.backTo', { type: 'campView', view: 'overview' }, { page: R.t('ui.campHome') }, false, 'camp-return'); campReturn.className += ' rogue-return'; campBack.appendChild(campReturn); footer.appendChild(campBack);
             var notice = el('p', 'rogue-notice'); notice.id = 'rogue-notice'; notice.setAttribute('role', 'status'); notice.setAttribute('aria-live', 'polite'); notice.hidden = true; footer.appendChild(notice);
             var time = el('div', 'rogue-timebar'); time.id = 'rogue-timebar'; footer.appendChild(time);
-            var nav = el('nav', 'rogue-tabs'); nav.setAttribute('aria-label', R.t('ui.mode'));
-            var back = button('ui.close', { type: 'back' }); back.id = 'rogue-back'; nav.appendChild(back);
+            var nav = el('nav', 'rogue-tabs rogue-location-tabs'); nav.setAttribute('aria-label', R.t('ui.mode'));
             for (i = 0; i < names.length; i++) { var tab = button('ui.' + names[i], { type: 'tab', tab: names[i] }); tab.id = 'rogue-tab-' + names[i]; tab.setAttribute('aria-controls', 'rogue-panel-' + names[i]); nav.appendChild(tab); }
-            var menu = button('ui.menu', { type: 'modal', kind: 'menu' }); menu.id = 'rogue-menu'; nav.appendChild(menu);
-            footer.appendChild(nav); frame.appendChild(footer); root.appendChild(frame);
+            header.appendChild(nav);
+            var footerActions = el('nav', 'rogue-footer-actions'); footerActions.setAttribute('aria-label', R.t('ui.menu'));
+            var back = button('ui.close', { type: 'back' }); back.id = 'rogue-back'; footerActions.appendChild(back);
+            var menu = button('ui.menu', { type: 'modal', kind: 'menu' }); menu.id = 'rogue-menu'; footerActions.appendChild(menu);
+            footer.appendChild(footerActions); frame.appendChild(footer); root.appendChild(frame);
             overlay = el('div', 'rogue-overlay'); overlay.hidden = true; root.appendChild(overlay); document.body.appendChild(root);
             root.addEventListener('click', clicked); root.addEventListener('toggle', toggled, true); root.addEventListener('submit', submitted); document.addEventListener('keydown', keyed); window.addEventListener('resize', resized);
             this.render();
