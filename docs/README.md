@@ -39,6 +39,7 @@
 | 窄屏、大字与主题历史验证 | [LAYOUT_VALIDATION.md](../android/LAYOUT_VALIDATION.md) |
 | 原生资源拦截与真机验证限制 | [NATIVE_VALIDATION.md](../android/NATIVE_VALIDATION.md) |
 | 1.3.2 撤离、整备与返回专项 | [QA-1.3.2.md](QA-1.3.2.md) |
+| 1.3.7 构建、发布与集成验证 | [QA-1.3.7.md](QA-1.3.7.md) |
 | 1.3.7 探索与建设结构核查 | [QA-REFERENCE-LAYOUT.md](QA-REFERENCE-LAYOUT.md) |
 | 1.3.3 构建、发布与集成验证 | [QA-1.3.3.md](QA-1.3.3.md) |
 | 新手目标、补给反馈与后续改进 | [需求核查](NEWCOMER_EXPERIENCE.md) · [专项验证](QA-SURVIVAL-ONBOARDING.md) |
