@@ -3,9 +3,9 @@
 
 [A Dark Room](https://github.com/doublespeakgames/adarkroom) 的非官方简体中文 Android 移植。游戏与资源随 APK 提供，安装后可断网游玩，无账号、服务器或首次资源下载。
 
-**[下载 APK · v1.3.7](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.7/a-dark-room-offline-1.3.7.apk)** · [最新 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
+**[下载 APK · v1.3.12](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.12/a-dark-room-offline-1.3.12.apk)** · [最新 Release](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/latest) · [更新记录](CHANGELOG.md) · [反馈问题](https://github.com/kirimarisadaze/a-dark-room-offline-android/issues)
 
-当前版本为 **1.3.7 / 26**：顶部文字导航、探索地图与建设左右分栏。Release 使用仓库原签名，提供 APK、完整源码 ZIP 和各自的 SHA-256。
+当前版本为 **1.3.12 / 31**：当前位置的区域互动、完整横滑覆盖、探索日志与三处主题同步。Release 使用仓库原签名，提供 APK、完整源码 ZIP 和各自的 SHA-256。
 
 ## 开始游玩
 
@@ -14,7 +14,7 @@
 - **生存模式「无光之地」**：随机九区、据点经营、同行者、回合战斗与地牢，制造飞船通关后解锁深渊。
 - **存档**：每种模式各 3 个独立栏位，自动保存，支持文件备份与恢复；同签名发布包可覆盖升级。
 
-[安装与升级](docs/PLAYING.md#安装与升级) · [存档与备份](docs/PLAYING.md#存档与备份) · [常见问题](docs/PLAYING.md#常见问题) · [APK 校验值](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.7/a-dark-room-offline-1.3.7.apk.sha256)
+[安装与升级](docs/PLAYING.md#安装与升级) · [存档与备份](docs/PLAYING.md#存档与备份) · [常见问题](docs/PLAYING.md#常见问题) · [APK 校验值](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.12/a-dark-room-offline-1.3.12.apk.sha256)
 
 ## 文档导航
 
