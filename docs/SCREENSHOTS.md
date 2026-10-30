@@ -3,7 +3,7 @@
 
 [返回首页](../README.md) · [文档目录](README.md) · [操作指南](PLAYING.md) · [生存模式](ROGUELIKE.md)
 
-以下为离线浏览器自动化测试中生成的游戏画面，使用后期测试存档；并非手机实拍，可能包含剧情与后期装备信息。各图取自对应功能完成时的版本。
+以下为离线浏览器自动化测试中生成的游戏画面，使用新局或后期测试存档；并非手机实拍，可能包含剧情与后期装备信息。各图取自对应功能完成时的版本。
 
 <table>
   <tr>
@@ -23,14 +23,14 @@
   </tr>
 </table>
 
-「无光之地」界面（浏览器自动化截图；下列高屏与储物图为 1.3.1，其余为 1.3.0）：
+「无光之地」界面（浏览器自动化截图；探索、据点、高屏地图及制造子页为 1.3.7；储物图为 1.3.1，其余为 1.3.0）：
 
 <img src="screenshots/rogue-explore-tall.png" width="260" alt="夜间高屏探索页放大地图，在快捷页签下预览当前目标"> <img src="screenshots/rogue-storage.png" width="260" alt="仓库直接显示行囊和库存数量以及存入取出按钮"> <img src="screenshots/rogue-temp-storage.png" width="260" alt="临时营地的独立储物容量和现场存取清单">
 
 <table>
   <tr>
     <td align="center">日间探索<br><img src="screenshots/rogue-map.png" width="240" alt="无光之地的字符地图、补给和方向键"></td>
-    <td align="center">分层据点总览<br><img src="screenshots/rogue-camp.png" width="240" alt="无光之地的据点分类管理和时间进度"></td>
+    <td align="center">建设左右分栏<br><img src="screenshots/rogue-camp.png" width="240" alt="建设左侧操作与右侧仓库、人口"></td>
     <td align="center">夜间回合战斗<br><img src="screenshots/rogue-combat.png" width="240" alt="夜间战斗中的目标、血量、日志和五个行动按钮"></td>
   </tr>
   <tr>
@@ -42,4 +42,4 @@
 
 二级页面的底部返回按钮：
 
-<img src="screenshots/rogue-subpage.png" width="280" alt="制造子页底部清楚标出返回据点总览的反色按钮"> <img src="screenshots/rogue-clues.png" width="280" alt="线索独立于地图主屏，底部醒目返回探索">
+<img src="screenshots/rogue-subpage.png" width="280" alt="制造子页保留右侧库存，底部返回据点总览"> <img src="screenshots/rogue-clues.png" width="280" alt="线索独立于地图主屏，底部醒目返回探索">

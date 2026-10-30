@@ -68,7 +68,7 @@ async function fit(page, tag) {
         }
         if (document.body.innerText.includes('!!')) failures.push('missing-translation');
         if (document.querySelector('.rogue-header').getBoundingClientRect().top !== 0) failures.push('title-not-fixed');
-        for (const node of document.querySelectorAll('.rogue-dialog-footer button, .rogue-subpage-return button')) {
+        for (const node of document.querySelectorAll('.rogue-dialog-footer button, .rogue-subpage-return button, .rogue-location-tabs button')) {
             if (!node.getClientRects().length || node.closest('[aria-hidden="true"]')) continue;
             const b = node.getBoundingClientRect(); const hit = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
             if (b.top < 0 || b.bottom > innerHeight + 1 || !hit || !node.contains(hit)) failures.push('blocked-return:' + node.textContent);
@@ -117,6 +117,19 @@ try {
     const controls = await page.locator('.rogue-dpad').boundingBox();
     const bottom = await page.locator('.rogue-bottom').boundingBox();
     assert(controls.y + controls.height <= bottom.y, 'phone movement controls must fit above the navigation');
+    assert.equal(await page.locator('.rogue-scene-tabs').count(), 1);
+    assert.equal(await page.locator('.rogue-exploration-scene .rogue-map-viewport').count(), 1);
+    assert.equal(await page.locator('.rogue-exploration-scene .rogue-control-row').count(), 1);
+    assert.equal(await page.locator('.rogue-header #rogue-tab-map').count(), 1);
+    assert.equal(await page.locator('.rogue-bottom #rogue-tab-map').count(), 0);
+    const navigationTurn = await page.evaluate(() => JSON.stringify(Rogue.state.current));
+    await page.locator('#rogue-tab-camp').click();
+    const workArea = await page.locator('.rogue-camp-workbench').boundingBox();
+    const stockArea = await page.locator('.rogue-camp-ledger').boundingBox();
+    assert(workArea.x + workArea.width < stockArea.x, 'camp work must sit beside the resource ledger');
+    assert.equal(await page.locator('.rogue-menu-tile').count(), 0);
+    await page.locator('#rogue-tab-map').click();
+    assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), navigationTurn);
     const initialTurn = await page.evaluate(() => Rogue.state.current.turn);
     await page.locator('[data-focus="modal:time"]').filter({ hasText: '第 1 天' }).click();
     assert.match(await page.getByRole('dialog').innerText(), /50 回合/);
@@ -136,6 +149,12 @@ try {
     assert.equal(await page.evaluate(() => Rogue.state.current.turn), initialTurn);
     await page.screenshot({ path: path.join(output, 'map-360-day.png'), fullPage: true });
     await page.locator('#rogue-tab-camp').click();
+    assert.equal(await page.locator('.rogue-camp-stocks .rogue-resource-grid .rogue-stat').count(), 5);
+    assert.equal(await page.locator('.rogue-camp-stocks [data-focus="camp-view:stores"]').count(), 1);
+    const sourceSceneStyle = await page.locator('.rogue-scene-tabs').evaluate(node => getComputedStyle(node).display);
+    assert.equal(sourceSceneStyle, 'flex');
+    const campStockStyle = await page.locator('.rogue-camp-stocks .rogue-resource-grid').evaluate(node => getComputedStyle(node).display);
+    assert.equal(campStockStyle, 'grid');
     for (let i = 0; i < 4; i++) await page.getByRole('button', { name: '收集周围物资', exact: true }).click();
     await page.locator('[data-focus="camp-view:recipes"]').click();
     await page.locator('[data-focus="craft:spear"]').click();
@@ -362,6 +381,7 @@ try {
             for (const tab of ['map', 'camp', 'party']) {
                 await layout.page.locator('#rogue-tab-' + tab).evaluate(node => node.click());
                 await fit(layout.page, tag + '-' + tab);
+                assert.equal(await layout.page.locator('.rogue-layout > .rogue-panel:visible').count(), 1, 'only the selected location should be visible');
                 await layout.page.screenshot({ path: path.join(output, tag + '-' + tab + '.png'), fullPage: true });
             }
             const layoutTurn = await layout.page.evaluate(() => Rogue.state.current.turn);
@@ -369,6 +389,11 @@ try {
             for (const view of ['stores', 'supplies', 'workers', 'buildings', 'recipes', 'research', 'expansion']) {
                 await layout.page.locator('[data-focus="camp-view:' + view + '"]').click();
                 await fit(layout.page, tag + '-' + view);
+                if (['buildings', 'recipes', 'research'].includes(view)) {
+                    const work = await layout.page.locator('.rogue-camp-workbench').boundingBox();
+                    const ledger = await layout.page.locator('.rogue-camp-ledger').boundingBox();
+                    assert(work.x + work.width < ledger.x, tag + '-' + view + ' keeps inventory beside work');
+                }
                 if (view === 'recipes') {
                     for (const filter of ['armour', 'tools', 'consume', 'modules', 'weapons']) {
                         await layout.page.locator('[data-focus="filter:' + filter + '"]').click();
