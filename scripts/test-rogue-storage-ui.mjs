@@ -71,6 +71,7 @@ async function state(page) {
 }
 /** Checks touch targets, translations, horizontal fit and fixed dialog return actions. */
 async function fit(page, tag) {
+    await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
     const bad = await page.evaluate(() => {
         const issues = []; if (document.documentElement.scrollWidth > innerWidth + 1) issues.push('overflow'); if (document.body.innerText.includes('!!')) issues.push('translation');
         for (const n of document.querySelectorAll('#rogue-root button')) {
@@ -115,30 +116,33 @@ try {
         await tap(transfer); assert.equal((await state(page)).party.companions[0].bag.wood, 2); assert(await transfer.isDisabled()); await fit(page, 'partial-companion-transfer'); await session.close();
     }
     {
-        const { page, session } = await setup('remote'); await warehouse(page);
-        assert.match(await page.locator('#rogue-panel-camp').innerText(), /回到据点后才能存取/);
-        for (const n of await page.locator('#rogue-panel-camp .rogue-storage-row-actions button').all()) assert(await n.isDisabled());
+        const { page, session } = await setup('remote'); await tap(page.locator('#rogue-tab-camp'));
+        assert.equal(await page.locator('[data-focus="camp-view:stores"]').count(), 0);
+        await tap(page.locator('#rogue-tab-party')); await tap(page.locator('#rogue-panel-party [data-focus="bagView:"]'));
+        await tap(page.getByRole('button', { name: '打开仓库', exact: true }));
+        assert.match(await page.getByRole('dialog').innerText(), /回到据点后才能存取/);
+        for (const control of await page.locator('.rogue-dialog .rogue-storage-row-actions button').all()) assert(await control.isDisabled());
         await fit(page, 'remote-read-only'); await session.close();
     }
     {
-        const { page, session } = await setup('temp'); await tap(page.locator('[data-focus="storageView:"]'));
+        const { page, session } = await setup('temp'); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="storageView:"]'));
         await page.screenshot({ path: path.join(output, 'temp-storage.png') });
         assert.match(await page.getByRole('dialog').innerText(), /80/); await tap(page.locator('[data-focus="storage-filter:materials"]'));
         const old = await state(page); await tap(page.locator('[data-focus="store-put:wood"]')); let s = await state(page);
         assert.equal(s.flags.tempCamp.stores.wood, 25); assert.equal(s.camps[0].stores.wood, old.camps[0].stores.wood);
-        await page.reload(); await page.waitForFunction(() => Rogue.state.current); await tap(page.locator('[data-focus="storageView:"]'));
+        await page.reload(); await page.waitForFunction(() => Rogue.state.current); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="storageView:"]'));
         await tap(page.locator('[data-focus="storage-filter:materials"]')); await tap(page.locator('[data-focus="storage-quantity:1"]')); await tap(page.locator('[data-focus="store-take:wood"]'));
         s = await state(page); assert.equal(s.flags.tempCamp.stores.wood, 24); assert.equal(s.party.bag.wood, 1);
         await tap(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:expansion"]'));
         await tap(page.locator('[data-focus="confirmPack:"]')); const before = JSON.stringify(await state(page)); await tap(page.getByRole('button', { name: '取消', exact: true })); assert.equal(JSON.stringify(await state(page)), before);
         await tap(page.locator('[data-focus="confirmPack:"]')); await tap(page.getByRole('button', { name: '确认', exact: true }));
         s = await state(page); assert(!s.flags.tempCamp); assert.equal(s.flags.caches[0].stores.wood, 24);
-        await tap(page.locator('[data-focus="camp-return"]')); await tap(page.locator('#rogue-tab-map')); await tap(page.locator('[data-focus="storageView:"]'));
+        await tap(page.locator('[data-focus="camp-return"]')); await tap(page.locator('[data-focus="storageView:"]'));
         assert.equal(await page.locator('[data-focus^="store-put:"]').count(), 0); await tap(page.locator('[data-focus="storage-quantity:all"]')); await tap(page.locator('[data-focus="store-take:wood"]'));
         assert.equal((await state(page)).flags.caches.length, 0); await fit(page, 'empty-cache'); await session.close();
     }
     {
-        const { page, session } = await setup('expiry'); await tap(page.locator('[data-focus="storageView:"]'));
+        const { page, session } = await setup('expiry'); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="storageView:"]'));
         await tap(page.locator('[data-focus="storage-filter:materials"]')); await tap(page.locator('[data-focus="store-put:wood"]'));
         const s = await state(page); assert(!s.flags.tempCamp); assert.equal(s.flags.caches[0].stores.wood, 25);
         assert.match(await page.getByRole('dialog').innerText(), /现场|所在位置|营地/);
@@ -149,27 +153,26 @@ try {
     {
         const { page, session } = await setup('camp', 360, 850, true, 22); const before = JSON.stringify(await state(page));
         assert.equal(await page.locator('#rogue-explore-preview').count(), 0);
-        await tap(page.locator('[data-focus="peek:nearby"]')); assert.equal(await page.getByRole('dialog').count(), 1);
+        await tap(page.locator('[data-focus="journal-toggle"]')); assert.equal(await page.getByRole('dialog').count(), 1);
         await fit(page, 'large-font-preview-fallback'); await page.keyboard.press('Escape'); assert.equal(JSON.stringify(await state(page)), before); await session.close();
     }
-    for (const [width, height, font] of [[320, 512, 22], [360, 740, 16], [360, 900, 16], [412, 1000, 16], [412, 915, 20], [740, 360, 16], [1440, 900, 16]]) {
+    let journalLayouts = 0;
+    for (const [width, height, font] of [[320, 512, 22], [360, 740, 16], [360, 900, 16], [412, 1000, 16], [412, 1200, 16], [412, 915, 20], [740, 360, 16], [1440, 900, 16]]) {
         for (const dark of [false, true]) {
             const { page, session } = await setup('camp', width, height, dark, font); const tag = width + 'x' + height + (dark ? '-dark' : '-light');
             await fit(page, tag + '-map');
             if (width < 1100 && height >= 850) {
                 const before = JSON.stringify(await state(page));
-                for (const view of ['nearby', 'clues', 'goals']) {
-                    await tap(page.locator('[data-focus="peek:' + view + '"]')); assert.equal(await page.getByRole('dialog').count(), 0);
-                    const preview = await page.locator('#rogue-explore-preview').boundingBox(), footer = await page.locator('.rogue-bottom').boundingBox();
-                    assert(preview.y + preview.height <= footer.y + 1, tag + ' preview must fit above the log');
-                    await fit(page, tag + '-' + view);
-                }
+                await tap(page.locator('[data-focus="journal-toggle"]'));
+                assert.equal(await page.locator('.rogue-journal-fullscreen').count(), 1);
+                assert.equal(await page.locator('#rogue-explore-preview').count(), 0);
+                await fit(page, tag + '-journal'); await page.keyboard.press('Escape'); journalLayouts++;
                 assert.equal(JSON.stringify(await state(page)), before);
                 await page.evaluate(() => window.scrollTo(0, 0)); await page.screenshot({ path: path.join(output, 'map-' + tag + '.png') });
-                await tap(page.locator('#rogue-explore-preview [data-focus="modal:goals"]')); await page.keyboard.press('Escape'); assert.equal(await page.getByRole('dialog').count(), 0);
                 await page.setViewportSize({ width, height: 740 }); await page.waitForFunction(() => !document.getElementById('rogue-explore-preview'));
-                await tap(page.locator('[data-focus="peek:clues"]')); assert.equal(await page.getByRole('dialog').count(), 1); await page.keyboard.press('Escape');
-                await page.setViewportSize({ width, height }); await page.waitForFunction(() => document.getElementById('rogue-explore-preview'));
+                await tap(page.locator('[data-focus="journal-toggle"]')); assert.equal(await page.getByRole('dialog').count(), 1); await page.keyboard.press('Escape');
+                await page.setViewportSize({ width, height: 1400 }); assert.equal(await page.locator('#rogue-explore-preview').count(), 0);
+                await page.setViewportSize({ width, height });
             }
             await warehouse(page); await fit(page, tag + '-warehouse'); await page.screenshot({ path: path.join(output, 'warehouse-' + tag + '.png'), fullPage: true });
             const turn = (await state(page)).turn; await tap(page.locator('[data-focus="storage-filter:gear"]')); await tap(page.locator('[data-focus="storage-quantity:1"]')); await tap(page.locator('[data-focus="store-take:spear"]'));
@@ -178,7 +181,8 @@ try {
             await session.close();
         }
     }
-    mark('fourteen day/night layouts cover direct storage, narrow-screen actions and fixed returns; tall-phone previews and larger maps fit above logs and adapt across rotation/height changes');
+    assert(journalLayouts > 0, 'exercise fullscreen journal without the removed exploration shortcuts');
+    mark('sixteen day/night layouts cover direct storage, narrow-screen actions, fixed returns and expandable journals across resizing');
     assert.deepEqual({ errors, warnings, remote, missing }, { errors: [], warnings: [], remote: [], missing: [] });
     fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({ passed: true, checks, layouts: 14, errors, warnings, remote, missing }, null, 2));
 } finally { await browser.close(); }

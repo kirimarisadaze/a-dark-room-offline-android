@@ -70,6 +70,7 @@ async function state(page) {
 }
 /** Checks horizontal fit, touch targets, translations and unobstructed bottom dialog actions. */
 async function fit(page, tag) {
+    await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
     const result = await page.evaluate(() => {
         const bad = []; if (document.documentElement.scrollWidth > innerWidth + 1) bad.push('overflow'); if (document.body.innerText.includes('!!')) bad.push('translation');
         for (const n of document.querySelectorAll('#rogue-root button')) {

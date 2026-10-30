@@ -5,7 +5,29 @@
     var R = window.Rogue = window.Rogue || {};
     R.LANG = { zh: {
         'ui.title': '无光之地', 'ui.mode': '生存模式',
+        'ui.switchLight': '切换浅色', 'ui.switchDark': '切换深色',
+        'ui.themeShared': '主菜单、普通模式与生存模式共用此设置。',
+        'err.themeSave': '设置保存失败，请检查剩余空间。',
+        'ui.dailyActions': '日常操作', 'ui.campManagement': '建设管理', 'ui.details': '查看说明',
+        'ui.purpose': '用途说明', 'ui.populationManagement': '人口与派工',
+        'ui.healthSupplies': '生命与补给', 'ui.equipmentPack': '装备与行囊',
+        'ui.journeyMenu': '旅程', 'ui.displayMenu': '显示设置', 'ui.saveMenu': '存档与备份',
+        'ui.restockUnavailable': '补给已齐或没有可补充的物资。',
+        'ui.combatShort.attack': '攻击', 'ui.combatShort.guard': '防御', 'ui.combatShort.dodge': '闪避', 'ui.fleeShort': '逃跑 {n}%',
+        'ui.firePurpose': '提升据点的人口容量。',
+        'ui.itemPurpose.weapon': '用于战斗的武器。', 'ui.itemPurpose.armour': '增加防护与生命上限。',
+        'ui.itemPurpose.tool': '用于补给、负重或营地建设。', 'ui.itemPurpose.consume': '恢复生命的消耗品。',
+        'ui.itemPurpose.resource': '供后续制造使用的材料。', 'ui.itemPurpose.module': '修复飞船所需的组件。',
+        'ui.building.workshop.summary': '解锁制造', 'ui.building.well.summary': '提供饮水',
+        'ui.building.garden.summary': '生产口粮', 'ui.building.watchtower.summary': '抵御夜袭',
+        'ui.building.infirmary.summary': '改善休整', 'ui.building.beacon.summary': '吸引幸存者',
         'ui.liveLog': '旅途见闻', 'ui.logAll': '全部记录',
+        'ui.logCollapse': '折叠', 'ui.logTime': '第 {day} 天 · {turn} 回合', 'ui.logDuration': '（耗时 {n} 回合）', 'ui.logUnknownTime': '早期记录',
+        'ui.legendWater': '水域', 'ui.legendObjective': '本层目标', 'ui.packMaterials': '随身物资', 'ui.packEmpty': '暂无其他随身物资。',
+        'log.action.wait': '停留休息。', 'log.action.attack': '发动攻击。', 'log.action.guard': '调整了据点守卫。', 'log.action.defend': '采取防守。',
+        'log.action.launch': '驾驶飞船离开。',
+        'log.action.dodge': '闪避迎击。', 'log.action.flee': '尝试撤退。', 'log.action.item': '使用了{name}。',
+        'log.action.worker': '调整了据点派工。', 'log.action.use': '使用了{name}。',
         'ui.editEquipment': '我的装备', 'ui.openBag': '打开行囊', 'ui.manageCompanion': '装备与行囊',
         'ui.you': '你', 'ui.damageLabel': '攻击', 'ui.armourLabel': '护甲减伤',
         'ui.chooseWeapon': '更换或卸下武器', 'ui.chooseArmour': '更换或卸下护甲',
@@ -32,7 +54,7 @@
         'ui.equippedMark': '正在使用', 'ui.personalToolMark': '随身工具',
         'ui.activeSupplies': '饮水 {water}/{max} · 口粮 {food}',
         'ui.reserveWater': '备用水 {n}', 'ui.reserveFood': '备用口粮 {n}', 'ui.reserveMedicine': '药品 {n}',
-        'ui.reserveExplanation': '下方是行囊中的备用物资，饮水与随身口粮显示在上方。',
+        'ui.reserveExplanation': '备用物资在行囊中，点击使用。',
         'ui.recruitAway': '邀请同行者需要回到永久据点。', 'ui.recruitFull': '已经有两位同行者。',
         'ui.recruitFood': '招募需要仓库口粮 12，目前不足。', 'ui.recruitPopulation': '据点需要留下至少一位居民。',
         'ui.peekAll': '查看全部{page}', 'ui.peekNearbyEmpty': '继续探索，记下附近的地点。',
@@ -120,7 +142,10 @@
         'ui.originalTitle': '小黑屋',
         'ui.endingArtCamp': '交叉柴堆上的余火与轻烟', 'ui.endingArtShip': '飞向星空的飞船',
         'ui.tagline': '带上一点火，去看看世界的尽头。',
-        'ui.map': '探索', 'ui.camp': '据点', 'ui.party': '队伍',
+        'ui.map': '探索', 'ui.camp': '区域', 'ui.party': '队伍',
+        'ui.regionLocal': '此处显示你当前所在地点的操作。到达其他地点后，可进行对应互动。',
+        'ui.regionGround': '荒野空地', 'ui.regionEmpty': '此处没有可采集或探索的设施。可继续赶路，或在条件允许时建立营地。',
+        'err.regionLocal': '请到对应地点，或在同一区域的所属据点内管理。',
         'ui.back': '返回主页面', 'ui.close': '返回', 'ui.cancel': '取消',
         'ui.exitTitle': '暂别这段旅程？', 'ui.exitBody': '保存当前进度并返回主页面。下次可从这段旅程继续。',
         'ui.pause': '暂停与菜单', 'ui.exploreNotes': '探索记录', 'ui.clues': '线索', 'ui.goals': '目标',
@@ -247,7 +272,7 @@
         'err.route': '目前还没有看清通往这里的路。', 'err.bag': '背包已满。先把物资带回据点。',
         'err.companions': '同行者已满，或据点没有可加入的村民。',
         'err.unavailable': '现在无法执行这项行动。', 'err.boot': '旅程未能载入，请返回后重试。',
-        'ui.campHome': '据点总览', 'ui.campReturn': '返回据点', 'ui.supplies': '休整与补给',
+        'ui.campHome': '区域总览', 'ui.campReturn': '返回区域', 'ui.supplies': '休整与补给',
         'ui.forageShort': '收集物资', 'ui.restockShort': '补充补给', 'ui.restShort': '休整',
         'ui.campCapacity': '全世界 {n} / 2 处永久据点', 'ui.campRule': '最初的据点已占一处名额。第二处由你选址建造，临时营地另计。',
         'ui.campPlace': '建在已探索的空地，先清除本区域的巢穴。',
@@ -421,6 +446,7 @@
     for (i = 0; i < researchIds.length; i++) {
         R.LANG.zh['ui.research.' + researchIds[i]] = researchNames[i];
         R.LANG.zh['ui.research.' + researchIds[i] + '.desc'] = researchDescriptions[researchEffects[i]];
+        R.LANG.zh['ui.research.' + researchIds[i] + '.summary'] = { gather: '采集增益', vision: '探索视野', food: '口粮节省', garden: '菜圃生产', income: '站点生产', build: '建造节省', loss: '运输效率', heal: '休整恢复', attack: '战斗攻击', guard: '夜袭防御', water: '随身饮水', companion: '同行者攻击', armour: '战斗防护' }[researchEffects[i]];
     }
     /** Looks up a Chinese key and substitutes named values without an English fallback. */
     R.t = function (key, values) {

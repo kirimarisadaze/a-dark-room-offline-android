@@ -92,10 +92,7 @@
     };
     /** Records translatable log entries so saved text remains localizable. */
     R.log = function (save, key, values) {
-        var last = save.flags.log[save.flags.log.length - 1];
-        if (key === 'log.move' && last && last.key === key && last.values.direction === values.direction) { last.values.n += values.n; last.turn = save.turn; return; }
         save.flags.log.push({ key: key, values: values || {}, turn: save.turn });
-        if (save.flags.log.length > N.LOG_LIMIT) { save.flags.log.shift(); }
     };
     /** Reports a recoverable action failure to the active interface. */
     R.fail = function (key) {
@@ -148,6 +145,8 @@
             if (!save.flags.combat && save.flags.wildEvent && ['event', 'equip', 'unequip', 'transfer', 'use', 'allyUse', 'drop'].indexOf(action.type) < 0) { return false; }
             if (!save.flags.combat && save.flags.outpost && ['outpost', 'equip', 'unequip', 'transfer', 'use', 'allyUse', 'drop'].indexOf(action.type) < 0) { return false; }
             var result = false;
+            var logStart = save.flags.log.length;
+            var turnStart = save.turn;
             if (action.type === 'move') { result = R.map.move(save, action.dir); }
             else if (action.type === 'event') { result = R.wild.act(save, action); }
             else if (action.type === 'outpost') { result = R.outpost.act(save, action); }
@@ -158,7 +157,19 @@
             else if (action.type === 'extract') { result = R.dungeon.extract(save); }
             else { result = R.settle.act(save, action); }
             if (!result) { return false; }
+            if (action.type === 'combat') {
+                R.log(save, 'log.action.' + (action.action.type === 'guard' ? 'defend' : action.action.type), action.action.item ? { name: R.t('item.' + action.action.item) } : {});
+            } else if (save.flags.log.length === logStart) {
+                R.log(save, 'log.action.' + action.type, { name: action.item ? R.t('item.' + action.item) : '' });
+            }
+            var actionEnd = save.flags.log.length;
             this.advance(result.turns === undefined ? 1 : result.turns, result.emergencyReturn);
+            var logIndex;
+            for (logIndex = logStart; logIndex < actionEnd; logIndex++) { save.flags.log[logIndex].turn = save.turn; }
+            if (actionEnd > logStart && save.turn - turnStart > 1) { save.flags.log[logStart].duration = save.turn - turnStart; }
+            var recent = save.flags.log.splice(logStart);
+            recent.sort(function (first, second) { return first.turn - second.turn; });
+            Array.prototype.push.apply(save.flags.log, recent);
             R.map.reveal(save);
             R.wild.warn(save);
             if (R.save) { R.save.write(save); }

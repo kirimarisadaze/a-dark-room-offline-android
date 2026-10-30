@@ -7,6 +7,7 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; object-src 'none'; frame-src 'none'; base-uri 'none'; form-action 'none'">
   <title>小黑屋</title>
   <link rel="icon" href="favicon.ico">
+  <script src="script/rogue/rogue.theme.js"></script>
   <script src="save-slots.js" defer></script>
   <script src="script/rogue/lang/zh.js" defer></script>
   <script src="home.js" defer></script>
@@ -50,7 +51,10 @@
   </main>
   <p id="offline-home-feedback" role="status" hidden></p>
   <footer class="home-footer">
-    <a href="about.html?from=home">关于与许可</a>
+    <div class="home-footer-actions">
+      <button id="offline-home-theme" type="button"></button>
+      <a href="about.html?from=home">关于与许可</a>
+    </div>
     <span>原作：doublespeak games</span>
   </footer>
   <div id="offline-home-dialog-layer" hidden>

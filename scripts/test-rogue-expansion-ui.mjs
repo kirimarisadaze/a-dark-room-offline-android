@@ -26,6 +26,7 @@ const errors = [], warnings = [], remote = [], missing = [];
 const browser = await playwright.chromium.launch({ headless: true });
 /** Checks the horizontal bounds and touch sizes of all visible controls. */
 async function fit(page) {
+    await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
     const problems = await page.evaluate(() => {
         const result = [];
         if (document.documentElement.scrollWidth > innerWidth + 1) result.push('page overflow');
@@ -63,12 +64,12 @@ try {
         page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); if (message.type() === 'warning') warnings.push(message.text()); });
         await page.goto(base + 'index.html?mode=rogue&slot=0');
         await page.waitForFunction(() => Rogue.state.current);
-        await page.getByRole('button', { name: '区域图', exact: true }).click();
-        assert.equal(await page.locator('.rogue-world-chart rect').count(), 9);
-        assert(!/危险|难度/.test(await page.getByRole('dialog').innerText()));
+        assert.equal(await page.getByRole('button', { name: '区域图', exact: true }).count(), 0);
+        assert.equal(await page.evaluate(() => Object.keys(Rogue.state.current.regions).length), 9);
+        const visibleSymbols = await page.locator('.rogue-grid span').evaluateAll(nodes => [...new Set(nodes.map(node => node.textContent))].sort());
+        assert.deepEqual(await page.locator('.rogue-local-symbol').evaluateAll(nodes => nodes.map(node => node.dataset.symbol).sort()), visibleSymbols);
         await fit(page);
         await page.screenshot({ path: path.join(output, 'explored-world-' + width + '.png') });
-        await page.locator('.rogue-dialog-footer [data-focus="closeModal:"]').click();
         await page.locator('#rogue-tab-camp').evaluate(node => node.click());
         assert.equal(await page.locator('#rogue-panel-camp .rogue-camp-link').count(), 6);
         const turn = await page.evaluate(() => Rogue.state.current.turn);
