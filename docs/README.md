@@ -35,6 +35,10 @@
 | 各版改动 | [CHANGELOG.md](../CHANGELOG.md) |
 | APK / 源码下载与历史说明 | [版本归档](RELEASES.md) · [GitHub Releases](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases) |
 | 机器可读发布元数据 | [releases.json](releases.json) |
+| 1.3.12 原签名构建与集成验证 | [QA-1.3.12.md](QA-1.3.12.md) |
+| 横滑覆盖、误点保护与完整按钮通关 | [横滑修复验收](QA-SWIPE-COVERAGE-20261031.md) |
+| 当前位置互动与主页面切换 | [区域与滑动验收](QA-REGION-SWIPE-20261031.md) |
+| 探索地图与完整日志 | [探索与日志验收](QA-EXPLORE-REDESIGN-20261030.md) |
 | 1.3.9 本地包：无光之地布局与操作层级 | [QA-UI-LAYOUT.md](QA-UI-LAYOUT.md) |
 | 1.3.8 本地包：界面精简与三处主题同步 | [QA-UI-THEME.md](QA-UI-THEME.md) |
 | 功能与界面历史验证 | [VALIDATION.md](../android/VALIDATION.md) |

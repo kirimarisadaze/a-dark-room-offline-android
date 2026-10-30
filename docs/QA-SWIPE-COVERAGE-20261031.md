@@ -77,8 +77,8 @@
 | `script/rogue/rogue.ui.js` | `a773d91f9111c8cd09b69532cf3dfa7816dc169d38f9aaf839e6907787ff7679` |
 | `css/rogue.css` | `2113189ebfced1c3dbcef6d610ff3b0e11a659de47e7243489c90c0fbaec87b6` |
 
-## 交付边界
+## 修复阶段的交付边界
 
-- 当前版本字段仍为 `1.3.11 / versionCode 30`。未递增版本、构建 APK、提交、推送或发布 Release；已有 `release/1.3.11/` APK 不包含本次修复。
+- 本文所述修复验收结束时，版本字段仍为 `1.3.11 / versionCode 30`，尚未递增版本、构建 APK、提交、推送或发布 Release；当时已有 `release/1.3.11/` APK 不包含本次修复。后续 1.3.12 原签名构建与发布记录见 [1.3.12 核验](QA-1.3.12.md)。
 - 未做 Android 真机安装、手势或 WebView 80 实机验证。浏览器原生触摸和截图不能作为真机验收。
 - 保留根目录原有 Git 删除和 `code/` 未跟踪状态。
