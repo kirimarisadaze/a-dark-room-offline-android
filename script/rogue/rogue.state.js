@@ -4,6 +4,7 @@
     'use strict';
     var R = window.Rogue;
     var N = R.NUM;
+    var newMoveEntries = new WeakSet();
     /** Clones JSON-compatible game data without sharing mutable state. */
     R.clone = function (value) { return JSON.parse(JSON.stringify(value)); };
     /** Clamps a scalar to its permitted range. */
@@ -92,8 +93,42 @@
     };
     /** Records translatable log entries so saved text remains localizable. */
     R.log = function (save, key, values) {
-        save.flags.log.push({ key: key, values: values || {}, turn: save.turn });
+        var entry = { key: key, values: values || {}, turn: save.turn };
+        save.flags.log.push(entry);
+        if (key === 'log.move') { newMoveEntries.add(entry); }
     };
+    /** Tests whether adjacent valid movement entries share a direction. */
+    R.sameMove = function (first, second) {
+        return first && second && first.key === 'log.move' && second.key === 'log.move' &&
+            first.values && second.values && typeof first.values.direction === 'string' &&
+            first.values.direction === second.values.direction &&
+            typeof first.values.n === 'number' && isFinite(first.values.n) && first.values.n > 0 &&
+            typeof second.values.n === 'number' && isFinite(second.values.n) && second.values.n > 0;
+    };
+    /** Groups movement for display while preserving every stored historical entry. */
+    R.journalEntries = function (save) {
+        var entries = []; var index;
+        for (index = 0; index < save.flags.log.length; index++) {
+            var entry = save.flags.log[index]; var previous = entries[entries.length - 1];
+            if (R.sameMove(previous, entry)) {
+                previous.values.n += entry.values.n; previous.turn = entry.turn;
+            } else {
+                entries.push(entry.key === 'log.move' ? R.clone(entry) : entry);
+            }
+        }
+        return entries;
+    };
+    /** Compacts only session-created movements after action and event settlement. */
+    function compactNewMoves(save, start) {
+        var entries = save.flags.log; var index = Math.max(1, start);
+        while (index < entries.length) {
+            var previous = entries[index - 1]; var entry = entries[index];
+            if (newMoveEntries.has(previous) && newMoveEntries.has(entry) && R.sameMove(previous, entry)) {
+                previous.values.n += entry.values.n; previous.turn = entry.turn;
+                entries.splice(index, 1);
+            } else { index++; }
+        }
+    }
     /** Reports a recoverable action failure to the active interface. */
     R.fail = function (key) {
         if (R.ui && R.ui.notice) { R.ui.notice(key); }
@@ -172,6 +207,7 @@
             Array.prototype.push.apply(save.flags.log, recent);
             R.map.reveal(save);
             R.wild.warn(save);
+            compactNewMoves(save, logStart);
             if (R.save) { R.save.write(save); }
             if (R.ui) { R.ui.render(); }
             return true;

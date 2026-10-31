@@ -124,7 +124,6 @@
         OUTPOST_STAGES: 5,
         OUTPOST_REPAIR: { wood: 20, stone: 10 },
         COMBAT_LOG_LIMIT: 5,
-        ROUTE_STEPS: 12,
         BAG_BASE: 80,
         BAG_UPGRADED: 180,
         TRAVEL_RESERVE: 80,

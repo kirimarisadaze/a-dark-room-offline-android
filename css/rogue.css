@@ -94,13 +94,12 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-map-viewport { display: flex; justify-content: center; align-items: center; position: relative; padding: 8px 8px 18px; overflow: hidden; background: var(--rogue-fill); }
 .rogue-grid { flex: none; font-family: Consolas, 'Cascadia Mono', monospace; font-size: 12px; line-height: 1.1; letter-spacing: .55em; font-variant-ligatures: none; font-weight: 400; text-align: left; user-select: none; -webkit-user-select: none; }
 .rogue-map-row { height: 1.1em; white-space: pre; }
-.rogue-grid span { cursor: crosshair; }
+.rogue-grid span { cursor: default; }
 .rogue-grid .t-wall { color: var(--rogue-line); }
 .rogue-grid .t-floor { color: var(--rogue-muted); }
 .rogue-grid .t-site, .rogue-grid .t-camp, .rogue-grid .t-exit, .rogue-grid .t-objective { color: var(--rogue-ink); font-weight: 700; }
 .rogue-grid .t-player { background: var(--rogue-ink); color: var(--rogue-surface); outline: 1px solid var(--rogue-ink); }
 .rogue-grid .dim { opacity: .4; }
-.rogue-grid .rogue-map-selected { text-decoration: underline; text-underline-offset: 3px; }
 .rogue-map-coordinate { position: absolute; right: 10px; bottom: 6px; color: var(--rogue-muted); font: 10px/1.4 Consolas, monospace; letter-spacing: .12em; }
 .rogue-map-tools { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
 .rogue-map-tools > .rogue-note { font-size: .6875em; }
@@ -262,8 +261,7 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
 .rogue-log-heading h3 { font-size: .75em; font-weight: 400; }
 .rogue-log-heading > .rogue-button { min-height: 44px; border: 0; padding: 4px; font-size: .6875em; }
 .rogue-live-entries { max-height: 54px; overflow-y: auto; overscroll-behavior: contain; list-style: none; padding: 0; margin: 0; font-size: .75em; line-height: 1.5; }
-.rogue-live-entries li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 6px; padding: 2px 0; }
-.rogue-log-turn { color: var(--rogue-muted); font-variant-numeric: tabular-nums; }
+.rogue-live-entries li { display: block; padding: 2px 0; overflow-wrap: anywhere; }
 .rogue-log-warning { color: var(--rogue-warning); font-weight: 700; }
 .rogue-pack-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 12px; padding: 8px 0; font-size: .875em; }
 .rogue-pack-row .rogue-button { font-size: .875em; }
@@ -351,7 +349,6 @@ html.rogue-active { scroll-padding-top: calc(64px + env(safe-area-inset-top)); s
     .rogue-log-heading h3 { display: none; }
     .rogue-live-entries { max-height: 40px; font-size: .6875em; }
     .rogue-live-entries li:not(:first-child) { display: none; }
-    .rogue-live-entries li { grid-template-columns: 24px minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .rogue-root * { scroll-behavior: auto !important; } }
 
@@ -468,7 +465,6 @@ html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); 
 .rogue-terminal .rogue-region-hint { margin-bottom: 16px; }
 .rogue-terminal .rogue-region-context { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; align-items: start; }
 .rogue-terminal .rogue-region-context > .rogue-button { width: 100%; }
-.rogue-terminal .rogue-map-route { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
 .rogue-terminal .rogue-layout > .rogue-panel { display: none !important; padding: 0; border: 0; }
 .rogue-terminal[data-tab='map'] #rogue-panel-map,
 .rogue-terminal[data-tab='camp'] #rogue-panel-camp,
@@ -544,7 +540,7 @@ html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); 
 .rogue-terminal .rogue-bottom { display: grid; grid-template-columns: minmax(0, 1fr) auto; border-top: 1px solid var(--adr-border-muted); padding: 0 max(16px, calc((100vw - 960px) / 2)) env(safe-area-inset-bottom); background: var(--adr-bg); }
 .rogue-terminal .rogue-live-log { grid-column: 1 / -1; position: relative; min-height: 44px; border: 0; padding: 4px 100px 4px 0; margin: 0; }
 .rogue-terminal .rogue-log-heading { position: absolute; right: 0; top: 0; }
-.rogue-terminal .rogue-log-heading h3, .rogue-terminal .rogue-log-turn { display: none; }
+.rogue-terminal .rogue-log-heading h3 { display: none; }
 .rogue-terminal .rogue-live-entries { max-height: 44px; font-size: var(--rogue-caption-size); }
 .rogue-terminal .rogue-live-entries li { display: block; }
 .rogue-terminal .rogue-live-entries li:not(:first-child) { display: none; }
@@ -573,6 +569,8 @@ html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); 
 .rogue-terminal .rogue-road-row { flex-wrap: wrap; }
 .rogue-terminal .rogue-inventory-row { gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--adr-border-muted); }
 .rogue-terminal #rogue-panel-map .rogue-map-viewport { grid-template-columns: minmax(0, 1fr); padding: 12px 10px 28px; gap: 12px; }
+.rogue-terminal #rogue-panel-map .rogue-map-viewport > .rogue-return-water { width: 100%; min-width: 0; margin: 0 !important; justify-self: start; text-align: left; overflow-wrap: anywhere; }
+.rogue-map-viewport > .rogue-return-water > span { min-width: 0; max-width: 100%; }
 .rogue-map-lower { display: grid; grid-template-columns: minmax(0, 1fr) 136px; gap: 12px; align-items: end; width: 100%; min-width: 0; }
 .rogue-map-details { min-width: 0; align-self: start; }
 .rogue-terrain { font-size: var(--rogue-caption-size); overflow-wrap: anywhere; margin-bottom: 8px !important; }
@@ -597,8 +595,6 @@ html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); 
 .rogue-terminal[data-view='run'][data-tab='map'] .rogue-log-heading h3 { display: block; }
 .rogue-action-journal { height: 18vh; min-height: 72px; max-height: 160px; overflow-y: auto; overscroll-behavior: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; overflow-anchor: none; list-style: none; padding: 0 6px 4px 0; margin: 0; font-size: var(--rogue-caption-size); line-height: 1.55; }
 .rogue-action-journal li { display: block; margin: 0 0 6px; overflow-wrap: anywhere; }
-.rogue-journal-time { color: var(--adr-text-muted); font-variant-numeric: tabular-nums; margin-right: 8px; }
-.rogue-journal-duration { color: var(--adr-text-muted); }
 .rogue-terminal .rogue-overlay.rogue-journal-overlay { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); background: var(--adr-bg); }
 .rogue-terminal .rogue-journal-fullscreen { width: 100%; height: 100%; max-width: none; max-height: none; border: 0; }
 .rogue-journal-fullscreen .rogue-dialog-heading { justify-content: space-between; }
@@ -652,4 +648,55 @@ html.rogue-active { scroll-padding-top: calc(112px + env(safe-area-inset-top)); 
     .rogue-terminal .rogue-enemy .rogue-health { grid-column: 1 / -1; margin: 0; }
     .rogue-terminal .rogue-combat-actions { grid-template-columns: repeat(5, minmax(0, 1fr)); }
     .rogue-terminal .rogue-combat-actions .rogue-flee { grid-column: auto; }
+}
+
+.rogue-terminal[data-view='run'][data-tab='camp'] { height: 100vh; min-height: 0; padding-bottom: 0; overflow: hidden; }
+.rogue-terminal[data-tab='camp'] .rogue-layout { padding: 8px 8px 0; }
+.rogue-terminal[data-tab='camp'] #rogue-panel-camp { display: flex !important; flex-direction: column; min-height: 0; overflow: hidden; }
+.rogue-terminal #rogue-panel-camp > .rogue-panel-heading { flex: none; margin: 0 0 6px; }
+.rogue-terminal #rogue-panel-camp > .rogue-panel-heading h2 { font-size: 1em; }
+.rogue-region-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; flex: 1; min-height: 0; }
+.rogue-terminal .rogue-region-columns > [data-region-scroll] { display: block; grid-column: auto; grid-row: auto; min-width: 0; min-height: 0; overflow-y: auto; overflow-x: hidden; overscroll-behavior-y: contain; touch-action: pan-y; -webkit-overflow-scrolling: touch; overflow-anchor: none; scroll-padding: 4px; }
+.rogue-terminal .rogue-region-columns .rogue-camp-stocks,
+.rogue-terminal .rogue-region-columns .rogue-camp-village { padding: 8px 4px; margin: 0 0 12px; border: 1px solid var(--adr-border-muted); min-width: 0; }
+.rogue-terminal .rogue-region-columns .rogue-resource-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 0; }
+.rogue-region-stock { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, auto); align-items: baseline; gap: 4px; }
+.rogue-region-stock > span, .rogue-region-stock > strong { min-width: 0; overflow-wrap: anywhere; }
+.rogue-region-stock > strong { text-align: right; font-weight: 400; font-variant-numeric: tabular-nums; }
+.rogue-region-section { min-width: 0; margin-bottom: 8px; }
+@media (max-height: 600px) {
+    .rogue-terminal #rogue-panel-camp > .rogue-panel-heading { margin-bottom: 2px; }
+    .rogue-terminal #rogue-panel-camp > .rogue-panel-heading h2 { line-height: 1.2; }
+}
+.rogue-terminal.rogue-root .rogue-region-toggle { display: flex; justify-content: space-between; gap: 4px; width: 100%; min-height: 44px; padding: 8px 6px; text-align: left; }
+.rogue-region-toggle::after { content: '+'; flex: none; }
+.rogue-region-toggle[aria-expanded='true']::after { content: '−'; }
+.rogue-region-section-content { padding: 8px 2px; min-width: 0; overflow-wrap: anywhere; }
+.rogue-terminal .rogue-region-columns .rogue-button { min-height: 44px; padding: 8px 4px; font-size: inherit; }
+.rogue-terminal .rogue-region-columns .rogue-note,
+.rogue-terminal .rogue-region-columns .rogue-cost,
+.rogue-terminal .rogue-region-columns .rogue-disclosure > summary { font-size: inherit; }
+.rogue-terminal .rogue-region-columns .rogue-camp-daily > .rogue-button,
+.rogue-terminal .rogue-region-section-content > .rogue-button,
+.rogue-terminal .rogue-region-columns .rogue-disclosure-content > .rogue-button,
+.rogue-terminal .rogue-region-columns .rogue-section > .rogue-button { display: flex; width: 100%; margin: 8px 0; }
+.rogue-terminal .rogue-region-columns .rogue-action-grid,
+.rogue-terminal .rogue-region-columns .rogue-context { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.rogue-terminal .rogue-region-columns .rogue-camp-status { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+.rogue-terminal .rogue-region-columns .rogue-worker-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; gap: 2px; }
+.rogue-terminal .rogue-region-columns .rogue-worker-row > div { grid-column: 1 / -1; min-width: 0; overflow-wrap: anywhere; }
+.rogue-terminal .rogue-region-columns .rogue-worker-row > .rogue-button:first-of-type { grid-column: 1; }
+.rogue-terminal .rogue-region-columns .rogue-worker-count { min-width: 0; overflow-wrap: anywhere; }
+.rogue-terminal .rogue-region-columns .rogue-road-row { display: flex; flex-direction: column; align-items: stretch; gap: 6px; }
+.rogue-terminal .rogue-region-columns .rogue-road-row > .rogue-button { width: 100%; }
+.rogue-terminal .rogue-region-columns .rogue-filter-tabs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.rogue-terminal .rogue-region-columns .rogue-priced { gap: 8px; padding-bottom: 12px; margin-bottom: 12px; }
+.rogue-terminal .rogue-region-columns .rogue-next-goal { width: 100%; margin: 12px 0; padding: 8px 4px !important; }
+@media (min-width: 680px) {
+    .rogue-terminal[data-tab='camp'] .rogue-layout { padding-left: 20px; padding-right: 20px; }
+    .rogue-region-columns { gap: 16px; }
+    .rogue-terminal .rogue-region-columns .rogue-camp-stocks,
+    .rogue-terminal .rogue-region-columns .rogue-camp-village { padding: 12px; }
+    .rogue-region-section-content { padding: 12px 6px; }
+    .rogue-terminal .rogue-region-columns .rogue-filter-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

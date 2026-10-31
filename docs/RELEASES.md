@@ -2,13 +2,13 @@
 
 **纯 AI 项目**：Android 移植、移动适配、附加功能、测试脚本、文档与发布整理由 AI 根据用户需求和反馈完成；原作及上游代码、翻译、音效和第三方库保留各自作者署名。
 
-收录 1.0.0–1.3.12 共 24 版。下表日期为实际构建日期；1.0.0–1.3.2 曾统一归档发布，1.3.3 起按实际主线发版。Git 提交没有回填历史开发日期。推荐下载 **1.3.12**。日期使用 Asia/Shanghai（UTC+08:00）；1.3.8–1.3.11 为本地测试版本，不补建公开 Release。
+收录 1.0.0–1.3.14 共 24 版。下表日期为实际构建日期；1.0.0–1.3.2 曾统一归档发布，1.3.3 起按实际主线发版。Git 提交没有回填历史开发日期。推荐下载 **1.3.14**。
 
 ## 下载索引
 
 | 版本 | 构建日期 | 内容 | 状态 | 下载 |
 | --- | --- | --- | --- | --- |
-| [1.3.12](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.12) | 2026-10-31 | 无光之地 · 区域互动与横滑修复 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.12/a-dark-room-offline-1.3.12.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.12/a-dark-room-offline-1.3.12.apk.sha256) |
+| [1.3.14](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.14) | 2026-10-31 | 区域页统一双列布局 | **最新版** | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.14/a-dark-room-offline-1.3.14.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.14/a-dark-room-offline-1.3.14.apk.sha256) |
 | [1.3.7](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.7) | 2026-10-30 | 无光之地 · 探索与建设布局 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.7/a-dark-room-offline-1.3.7.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.7/a-dark-room-offline-1.3.7.apk.sha256) |
 | [1.3.3](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.3) | 2026-10-29 | 无光之地 · 新手目标与补给反馈 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.3/a-dark-room-offline-1.3.3.apk.sha256) |
 | [1.3.2](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/tag/v1.3.2) | 2026-10-29 | 无光之地 · 撤离与整备修复 | 历史版 | [APK](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2.apk) / [SHA-256](https://github.com/kirimarisadaze/a-dark-room-offline-android/releases/download/v1.3.2/a-dark-room-offline-1.3.2.apk.sha256) |
@@ -36,6 +36,7 @@
 ## 产物来源与源码范围
 
 - **1.0.0 / 1.0.1**：当时的已签名分发文件没有保留，从原始 aligned 构建恢复，并用原密钥重新签名；不是原分发文件的逐字节备份。
+- **1.3.14**：本地签名 APK，区域页统一双列布局；未做 Android 真机验证。
 - **1.3.7**：APK 来自原签名 [Actions 41024830216](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/41024830216)，构建提交 `3d58015d9d17aa1b11051ede23b961dd18193391`。发布元数据只改文档，全部 APK 构建输入保持一致；最终源码 ZIP 从 `v1.3.7` 标签重新生成。本地签名的 1.3.4–1.3.6 为未公开测试构建，不补建历史 Release。
 - **1.3.3**：APK 来自已验证的主线 [Actions 40888195897](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/40888195897)，使用原签名。发布准备只改文档与发布元数据，全部 APK 构建输入保持一致；源码 ZIP 从最终 `v1.3.3` 标签重新生成，与标签文件逐字节一致。
 - **1.0.14**：从当前完整工程构建，继续使用原签名；每模式 3 个独立存档，旧进度迁入普通模式存档 1。
@@ -64,7 +65,6 @@
 
 | APK 版本 | 大小（字节） | SHA-256 |
 | --- | ---: | --- |
-| 1.3.12 | 5,797,626 | `afdefd8cb67e0fb9c53abc5e8de5a835ae81c80d226a0ba59af66674c75c5d94` |
 | 1.3.7 | 5,789,349 | `ef490e86cbd13f195aeb0429d2173ee0875b4f9c3de267103ad18d56f1a8a21a` |
 | 1.3.3 | 5,785,253 | `05c79c516aaa7db9b356de13deb86a9f2105c7c107a201efc8436873c5c190c1` |
 | 1.3.2 | 5,781,157 | `71d7b40403a6471e4ae4404375820cd9e13851f9ef8f89bec1bf1c27f4aff076` |
@@ -90,10 +90,6 @@
 | 1.0.0 | 5,750,534 | `b4b10b0ec52a48ed987865ad913215c7f95529ea1efbcf220782939dfc5064a3` |
 
 机器可读清单：[releases.json](releases.json)。逐版文件中也提供 `release.json`。
-
-## 1.3.12 构建来源
-
-原签名 APK 来自 [Actions 41101041734](https://github.com/kirimarisadaze/a-dark-room-offline-android/actions/runs/41101041734)，构建提交 `7496fab438c3502d224c62e055130bce31c22f30`。发布文档不改变 APK 构建输入；完整源码 ZIP 从最终 `v1.3.12` 标签重新导出并逐文件比对，源码哈希见 Release 的校验附件。构建及验证边界见 [核验记录](QA-1.3.12.md)。
 
 ## 使用与维护
 

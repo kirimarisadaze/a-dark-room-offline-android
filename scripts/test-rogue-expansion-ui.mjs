@@ -1,3 +1,4 @@
+import { regionSection } from './test-region-controls.mjs';
 /* SPDX-License-Identifier: MPL-2.0 */
 // Verify late-game management, explored topology and deliberate cargo disposal offline.
 import assert from 'node:assert/strict';
@@ -71,17 +72,17 @@ try {
         await fit(page);
         await page.screenshot({ path: path.join(output, 'explored-world-' + width + '.png') });
         await page.locator('#rogue-tab-camp').evaluate(node => node.click());
-        assert.equal(await page.locator('#rogue-panel-camp .rogue-camp-link').count(), 6);
+        assert.equal(await page.locator('#rogue-panel-camp .rogue-region-toggle').count(), 4);
         const turn = await page.evaluate(() => Rogue.state.current.turn);
-        for (const view of ['stores', 'workers', 'buildings', 'recipes', 'research', 'expansion']) {
-            await page.locator('[data-focus="camp-view:' + view + '"]').click(); await fit(page);
+        for (const view of ['buildings', 'recipes', 'research', 'expansion']) {
+            await regionSection(page, view); await fit(page);
             if (view === 'recipes') {
                 await page.locator('[data-focus="filter:modules"]').click();
                 assert(await page.locator('#rogue-panel-camp .rogue-priced').count() >= 2);
                 await fit(page); await page.screenshot({ path: path.join(output, 'ship-recipes-' + width + '.png') });
             }
             if (view === 'expansion') assert.equal(await page.locator('[data-focus="newCamp:"]').isDisabled(), true);
-            await page.locator('[data-focus="camp-return"]').click();
+            
         }
         assert.equal(await page.evaluate(() => Rogue.state.current.turn), turn);
         await page.locator('#rogue-tab-party').evaluate(node => node.click());
@@ -98,7 +99,7 @@ try {
         assert.equal(await page.evaluate(() => Rogue.state.current.party.bag.wood), 7);
         assert.equal(await page.evaluate(() => Rogue.state.current.turn), turn + 1);
         const after = await page.evaluate(() => JSON.stringify(Rogue.state.current));
-        await page.reload(); await page.waitForFunction(() => Rogue.state.current);
+        await page.reload(); await page.waitForFunction(() => window.Rogue && Rogue.state && Rogue.state.current);
         assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), after);
         assert.equal(await page.evaluate(() => localStorage.gameState), normal);
         assert.equal(await page.evaluate(() => localStorage.getItem('adr.saveSlots.v1')), database);

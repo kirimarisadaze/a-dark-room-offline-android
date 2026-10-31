@@ -1,3 +1,4 @@
+import { regionSection, warehouseFromPack, closeInventory } from './test-region-controls.mjs';
 /* SPDX-License-Identifier: MPL-2.0 */
 // Explicit issue fixtures; the separate button playthrough always starts a real fresh run.
 import assert from 'node:assert/strict';
@@ -144,6 +145,7 @@ async function state(page) {
 }
 /** Verifies actual visible controls, translations, page metadata and fixed footer touchability. */
 async function fit(page, expected, tag) {
+    await page.evaluate(() => Promise.all(document.getAnimations().map(animation => animation.finished.catch(() => {}))));
     assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), expected);
     const issues = await page.evaluate(() => {
         const bad = []; if (document.documentElement.scrollWidth > innerWidth + 1) bad.push('overflow'); if (document.body.innerText.includes('!!')) bad.push('translation');
@@ -173,15 +175,15 @@ try {
         const { page, session } = await setup(); const before = JSON.stringify(await state(page));
         assert.equal(await page.locator('#rogue-panel-map [data-focus="restock:"]').count(), 0);
         await tap(page.locator('#rogue-tab-camp')); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled());
-        await tap(page.locator('[data-focus="camp-view:supplies"]')); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled()); await fit(page, 'camp-supplies', 'ready-supplies');
-        await tap(page.locator('#rogue-camp-back button')); await tap(page.locator('[data-focus="camp-view:stores"]')); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled()); await fit(page, 'camp-stores', 'ready-warehouse');
+        await regionSection(page, 'operations'); assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled()); await fit(page, 'camp-overview', 'ready-supplies');
+        await warehouseFromPack(page); assert(await page.locator('.rogue-dialog-content [data-focus="restock:"]').isDisabled()); await fit(page, 'storage', 'ready-warehouse'); await closeInventory(page);
         await tap(page.locator('#rogue-tab-party')); const turn = (await state(page)).turn;
         for (const key of ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space']) await page.keyboard.press(key);
         assert.equal((await state(page)).turn, turn);
         for (let i = 0; i < 40; i++) { await page.keyboard.press('Tab'); assert(await page.evaluate(() => { const n = document.activeElement; return n === document.body || !!n.getClientRects().length && !n.closest('[hidden],[aria-hidden="true"]'); })); }
         await tap(page.locator('#rogue-tab-camp')); for (const key of ['ArrowUp', 'Space']) await page.keyboard.press(key); assert.equal((await state(page)).turn, turn);
         assert.equal(JSON.stringify(await state(page)), before);
-        await tap(page.locator('#rogue-camp-back button')); await tap(page.locator('[data-focus="camp-view:buildings"]'));
+        await tap(page.locator('[data-focus="camp-view:buildings"]'));
         const names = await page.locator('#rogue-panel-camp .rogue-priced button').evaluateAll(nodes => nodes.map(n => n.getAttribute('aria-label')));
         assert(names.length >= 3 && names.every(Boolean)); assert.equal(new Set(names).size, names.length); assert(names.some(n => n.startsWith('建造：')));
         await tap(page.locator('#rogue-menu')); await fit(page, 'menu', 'menu'); assert.equal(await page.getByRole('button', { name: '立即保存', exact: true }).count(), 0);
@@ -194,7 +196,7 @@ try {
     mark('camp restock entrances disable real no-ops; exploration has no duplicate restock; camp/party keyboard, hidden focus, backup and two-step exit work');
     {
         const { page, session } = await setup('reserves'); const before = await state(page);
-        await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:supplies"]'));
+        await tap(page.locator('#rogue-tab-camp')); await regionSection(page, 'operations');
         assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isEnabled()); await tap(page.locator('#rogue-panel-camp [data-focus="restock:"]'));
         const after = await state(page); assert.equal(after.turn, before.turn + 1); assert.equal(after.party.water, before.party.water); assert.equal(after.party.bag.water, 20); assert.equal(after.party.bag.food, 24);
         assert(await page.locator('#rogue-panel-camp [data-focus="restock:"]').isDisabled());

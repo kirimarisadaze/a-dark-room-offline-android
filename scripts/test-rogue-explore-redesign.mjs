@@ -23,14 +23,30 @@ assert.equal(sample.flags.log.findLast(entry => entry.key === 'log.action.wait')
 assert(game.state.act({ type: 'night' }));
 const night = sample.flags.log.findLast(entry => entry.key === 'log.night');
 assert.equal(night.turn, sample.turn); assert.equal(night.duration, game.NUM.NIGHT_TURNS[sample.speed]);
-for (let index = 0; index < 260; index++) { sample.turn++; game.log(sample, 'log.move', { direction: game.t('ui.north'), n: 1 }); }
+for (let index = 0; index < 260; index++) {
+    for (let step = 0; step < 2; step++) { sample.turn++; game.log(sample, 'log.move', { direction: game.t(index % 2 ? 'ui.east' : 'ui.north'), n: 1 }); }
+}
+for (let index = 0; index < 125; index++) { sample.turn++; game.log(sample, 'log.move', { direction: game.t('ui.north'), n: 1 }); }
 sample.day = Math.floor(sample.turn / game.NUM.TURNS_PER_DAY);
-assert.equal(sample.flags.log.filter(entry => entry.key === 'log.move').length, 260);
+assert.equal(sample.flags.log.filter(entry => entry.key === 'log.move').length, 645);
+const originalHistory = JSON.stringify(sample.flags.log);
+assert.equal(game.journalEntries(sample).filter(entry => entry.key === 'log.move').length, 261);
+assert.equal(JSON.stringify(sample.flags.log), originalHistory);
 assert(sample.flags.log.every((entry, index, entries) => !index || entries[index - 1].turn <= entry.turn));
 assert(game.save.write(sample));
 assert.equal(game.save.load(0).flags.log.length, sample.flags.log.length);
 assert(!sample.flags.log.some(entry => game.t(entry.key, entry.values).includes('!!')));
 Object.assign(sample.party.bag, { wood: 3, stone: 2, fur: 4, medicine: 1, spear: 1, water: 3, food: 2 });
+assert(game.save.validate(sample));
+const region = sample.regions[sample.party.region];
+const nearby = Object.entries(game.map.directions).find(([, delta]) => {
+    const column = sample.party.x + delta[0], row = sample.party.y + delta[1];
+    const tiles = game.rle.decode(region.tiles, region.size);
+    return column > 0 && row > 0 && column < region.size - 1 && row < region.size - 1 && !['#', '~'].includes(tiles[row * region.size + column]);
+});
+assert(nearby);
+sample.party.x += nearby[1][0]; sample.party.y += nearby[1][1];
+game.map.reset(); game.map.reveal(sample);
 assert(game.save.validate(sample));
 const fixture = JSON.stringify(sample);
 const normal = ' {"ordinary":"unchanged"} \n';
@@ -97,8 +113,22 @@ try {
             assert.equal(pack.columns, 3); assert(pack.items.some(([id, quantity]) => id === 'wood' && quantity === '3'));
             const symbols = await page.evaluate(() => ({ map: [...new Set([...document.querySelectorAll('.rogue-grid span')].map(node => node.textContent))].sort(), legend: [...document.querySelectorAll('.rogue-local-symbol')].map(node => node.dataset.symbol).sort() }));
             assert.deepEqual(symbols.legend, symbols.map);
+            const water = page.locator('#rogue-panel-map .rogue-map-viewport > .rogue-return-water');
+            assert.equal(await water.count(), 1);
+            assert.equal(await page.locator('.rogue-travel-stores .rogue-return-water').count(), 0);
+            const waterBox = await water.boundingBox(), mapBox = await page.locator('.rogue-map-viewport').boundingBox(), gridBox = await page.locator('.rogue-grid').boundingBox();
+            assert(waterBox.x >= mapBox.x && waterBox.x - mapBox.x <= 22, tag + '-water-left');
+            assert(waterBox.y >= mapBox.y && waterBox.y + waterBox.height <= gridBox.y, tag + '-water-above-grid');
+            assert(waterBox.x + waterBox.width <= mapBox.x + mapBox.width, tag + '-water-width');
+            const mapBefore = await page.evaluate(() => ({ save: JSON.stringify(Rogue.state.current), stored: localStorage.getItem('rogueSlot0') }));
+            await tap(page.locator('.rogue-grid [data-x]').first());
+            assert.deepEqual(await page.evaluate(() => ({ save: JSON.stringify(Rogue.state.current), stored: localStorage.getItem('rogueSlot0') })), mapBefore);
+            assert.equal(await page.locator('.rogue-map-selected,.rogue-map-route').count(), 0);
+            assert.deepEqual(await page.locator('[data-rogue-action]').evaluateAll(nodes => nodes.filter(node => ['route', 'gate', 'selectSite'].includes(node._rogueAction?.type)).map(node => node.textContent)), []);
             const list = page.locator('#rogue-live-log .rogue-action-journal');
             assert.equal(await list.locator('li').count(), 100);
+            assert((await list.innerText()).includes('向北行进125步'));
+            assert.equal(await page.locator('.rogue-journal-time,.rogue-journal-duration,.rogue-log-turn').count(), 0);
             const before = await page.evaluate(() => JSON.stringify(Rogue.state.current));
             const listHeight = await list.evaluate(node => node.clientHeight);
             assert(Math.abs(listHeight - Math.min(160, Math.max(72, height * .18))) <= 1);
@@ -117,6 +147,7 @@ try {
             }
             await page.keyboard.press('ArrowUp');
             assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), before);
+            assert(!/第\s*\d+\s*天|\d+\s*回合|耗时/.test(await fullscreen.innerText()));
             assert.deepEqual(await inspect(page), [], tag + '-fullscreen');
             if (width === 412 && !dark && font === 16) {
                 const history = fullscreen.locator('.rogue-action-journal');
@@ -150,11 +181,58 @@ try {
             assert.deepEqual(await inspect(page), [], tag + '-movement');
             await page.locator('#rogue-tab-camp').click(); assert(await page.locator('#rogue-back').isVisible());
             await page.locator('#rogue-tab-party').click(); assert(await page.locator('#rogue-back').isVisible());
+            assert.equal(await page.locator('#rogue-live-log .rogue-log-turn').count(), 0);
+            await page.locator('#rogue-live-log button').click();
+            assert(!/第\s*\d+\s*天|\d+\s*回合|耗时/.test(await page.locator('.rogue-journal').innerText()));
+            assert((await page.locator('.rogue-journal').innerText()).includes('向北行进125步'));
+            await page.keyboard.press('Escape');
             await page.locator('#rogue-tab-map').click();
+            assert.deepEqual(await inspect(page), [], tag + '-returned-map');
+            if (width === 412 && font === 16) {
+                const direction = await page.evaluate(() => {
+                    const save = Rogue.state.current, home = save.camps[save.activeCamp];
+                    return Rogue.map.path(save, home.x, home.y)[0];
+                });
+                assert(direction);
+                const position = await page.evaluate(() => ({ x: Rogue.state.current.party.x, y: Rogue.state.current.party.y, turn: Rogue.state.current.turn }));
+                await page.keyboard.press({ north: 'ArrowUp', east: 'ArrowRight', south: 'ArrowDown', west: 'ArrowLeft' }[direction]);
+                assert.equal(await page.evaluate(() => Rogue.state.current.turn), position.turn + 1);
+                await page.keyboard.press({ north: 's', east: 'a', south: 'w', west: 'd' }[direction]);
+                assert.deepEqual(await page.evaluate(() => ({ x: Rogue.state.current.party.x, y: Rogue.state.current.party.y, turn: Rogue.state.current.turn })), { ...position, turn: position.turn + 2 });
+            }
+            for (const direction of ['north', 'east', 'south', 'west']) {
+                const control = page.locator('.rogue-' + direction);
+                await control.evaluate(node => node.scrollIntoView({ block: 'center' }));
+                const reach = await control.evaluate(node => {
+                    const box = node.getBoundingClientRect();
+                    const hit = document.elementFromPoint(box.x + box.width / 2, box.y + box.height / 2);
+                    return { reachable: node.contains(hit), box: box.toJSON(), hit: hit?.outerHTML, scroll: scrollY, bottom: document.querySelector('.rogue-bottom').getBoundingClientRect().toJSON() };
+                });
+                assert(reach.reachable, tag + '-reachable-' + direction + ': ' + JSON.stringify(reach));
+            }
+            if (height < 600) await page.screenshot({ path: path.join(output, tag + '-controls.png') });
+            const waterScenario = await page.evaluate(() => JSON.stringify(Rogue.state.current));
+            for (const variant of ['short', 'unknown', 'camp']) {
+                await page.evaluate(({ raw, variant }) => {
+                    const save = JSON.parse(raw); Rogue.state.current = save;
+                    if (variant === 'short') { save.party.water = 0; delete save.party.bag.water; }
+                    if (variant === 'unknown') save.regions[save.party.region].mask = Rogue.mask.empty(Rogue.NUM.REGION_SIZE);
+                    if (variant === 'camp') Object.assign(save.party, { x: save.camps[0].x, y: save.camps[0].y });
+                    Rogue.map.reset(); Rogue.ui.render();
+                }, { raw: waterScenario, variant });
+                if (variant === 'camp') assert.equal(await water.count(), 0);
+                else {
+                    assert.equal(await water.getAttribute('data-route'), variant);
+                    const bounds = await water.boundingBox(), grid = await page.locator('.rogue-grid').boundingBox();
+                    assert(bounds.y + bounds.height <= grid.y, tag + '-' + variant + '-water-above-map');
+                    assert.deepEqual(await inspect(page), [], tag + '-' + variant);
+                }
+            }
+            await page.evaluate(raw => { Rogue.state.current = JSON.parse(raw); Rogue.map.reset(); Rogue.ui.render(); }, waterScenario);
             assert.equal(await page.evaluate(() => localStorage.gameState), normal);
             assert.equal(await page.evaluate(() => localStorage.getItem('adr.saveSlots.v1')), database);
             await page.evaluate(() => window.scrollTo(0, 0));
-            if (font === 16) await page.screenshot({ path: path.join(output, tag + '.png'), fullPage: true });
+            await page.screenshot({ path: path.join(output, tag + '.png'), fullPage: true });
             if (width === 412 && dark && font === 16) {
                 await page.setViewportSize({ width, height: 1100 });
                 await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -164,11 +242,11 @@ try {
             const count = await page.evaluate(() => Rogue.state.current.flags.log.length);
             await page.reload(); await page.waitForFunction(() => window.Rogue?.state.current);
             assert.equal(await page.evaluate(() => Rogue.state.current.flags.log.length), count);
-            assert(count > 260); layouts++; await session.close();
+            assert(count > 645); layouts++; await session.close();
             console.log('PASS', tag);
         }
     }
     assert.deepEqual({ errors, warnings, missing, remote }, { errors: [], warnings: [], missing: [], remote: [] });
-    fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({ passed: true, layouts, model: 'cross-day timestamps, multi-turn duration, unmerged full history, persistence', hashes, errors, warnings, missing, remote }, null, 2));
-    console.log('PASS exploration redesign: 20 layouts, fullscreen journal, lazy history, save isolation and model chronology');
+    fs.writeFileSync(path.join(output, 'report.json'), JSON.stringify({ passed: true, layouts, model: 'legacy movement projection, cross-day timestamps, internal duration, persistence', hashes, errors, warnings, missing, remote }, null, 2));
+    console.log('PASS exploration redesign: 20 layouts, inert map, return-water header, action-only grouped journals, lazy history and save isolation');
 } finally { await browser.close(); }

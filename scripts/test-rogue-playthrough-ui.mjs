@@ -1,3 +1,4 @@
+import { regionSection } from './test-region-controls.mjs';
 /* SPDX-License-Identifier: MPL-2.0 */
 // Complete a fresh campaign with physical browser clicks only; state reads plan routes.
 import assert from 'node:assert/strict';
@@ -83,10 +84,8 @@ async function tab(name) {
 /** Enters the chosen camp subpage through the dashboard. */
 async function camp(view) {
     await tab('camp');
-    const current = await page.locator('#rogue-panel-camp').getAttribute('data-camp-view');
-    if (current === view) return;
-    if (current !== 'overview') await click(page.locator('[data-focus="camp-return"]'));
-    if (view !== 'overview') await click(page.locator('[data-focus="camp-view:' + view + '"]'));
+    if (['buildings', 'recipes', 'research', 'expansion'].includes(view)) await regionSection(page, view);
+    else if (view !== 'workers') await regionSection(page, 'operations');
 }
 /** Finds a real recipe or management control by stepping through its explicit pagination. */
 async function paged(token) {

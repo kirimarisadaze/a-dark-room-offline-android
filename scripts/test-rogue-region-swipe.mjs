@@ -1,3 +1,4 @@
+import { regionSection } from './test-region-controls.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -49,7 +50,7 @@ function fixture(kind = 'camp') {
         Object.assign(save.party, { x: tile % region.size, y: Math.floor(tile / region.size) });
     }
     if (kind === 'journal') {
-        for (let index = 0; index < 160; index++) { save.turn++; game.log(save, 'log.move', { direction: game.t('ui.north'), n: 1 }); }
+        for (let index = 0; index < 160; index++) { save.turn++; game.log(save, 'log.move', { direction: game.t(index % 2 ? 'ui.east' : 'ui.north'), n: 1 }); }
         save.day = Math.floor(save.turn / game.NUM.TURNS_PER_DAY);
     }
     if (kind === 'combat') { game.state.current = save; game.combat.encounter(save, { kind: 'wild' }); }
@@ -169,7 +170,7 @@ try {
             assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'camp');
             assert(await page.evaluate(() => document.getAnimations().length > 0), 'tab changes have a real animation');
             await inspect(page, tag + '-region');
-            assert(await page.locator('[data-focus="camp-view:buildings"]').isVisible());
+            assert.equal(await page.locator('[data-focus="camp-view:buildings"]').count(), 1);
             if (width === 412 && dark && font === 16) { await page.screenshot({ path: path.join(output, 'region-camp.png'), fullPage: true }); }
             await drag(session, -100, 0, false, await touchPoint(page, '#rogue-live-log')); assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'party'); await inspect(page, tag + '-party');
             await drag(session, -100); assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'party');
@@ -206,13 +207,13 @@ try {
             assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), before, selector + ' must not act');
             assert.equal(await page.evaluate(() => localStorage.getItem('rogueSlot0')), session.raw);
         }
-        await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:buildings"]'));
-        for (const selector of ['#rogue-panel-camp button:disabled', '#rogue-panel-camp summary']) {
+        await tap(page.locator('#rogue-tab-camp')); await regionSection(page, 'buildings');
+        for (const selector of ['#rogue-panel-camp button:disabled:visible', '#rogue-panel-camp summary:visible']) {
             const expanded = await page.locator('#rogue-panel-camp details[open]').count();
             await drag(session, 100, 0, false, await touchPoint(page, selector));
             assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'map', selector);
             await tap(page.locator('#rogue-tab-camp'));
-            assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-buildings');
+            assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-overview');
             assert.equal(await page.locator('#rogue-panel-camp details[open]').count(), expanded);
         }
         await tap(page.locator('#rogue-tab-map'));
@@ -233,8 +234,9 @@ try {
         const point = await page.evaluate(() => {
             const layout = document.querySelector('#rogue-layout').getBoundingClientRect();
             const footer = document.querySelector('#rogue-bottom').getBoundingClientRect();
-            const point = { x: innerWidth / 2, y: (layout.bottom + footer.top) / 2 };
-            if (layout.bottom >= footer.top || !document.querySelector('#rogue-root').contains(document.elementFromPoint(point.x, point.y))) throw new Error('Short-page blank space must belong to the gesture surface');
+            const column = document.querySelector('[data-region-scroll="right"]').getBoundingClientRect();
+            const point = { x: column.x + column.width / 2, y: column.bottom - 16 };
+            if (!document.querySelector('#rogue-root').contains(document.elementFromPoint(point.x, point.y))) throw new Error('Region blank space must belong to the gesture surface');
             return point;
         });
         await drag(session, -100, 0, false, point);
@@ -257,10 +259,11 @@ try {
     {
         const session = await setup('camp'); const { page } = session;
         const before = await page.evaluate(() => JSON.stringify(Rogue.state.current));
-        await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:buildings"]'));
+        await tap(page.locator('#rogue-tab-camp')); await regionSection(page, 'buildings');
         await page.evaluate(() => window.scrollTo(0, 0));
-        await drag(session, 0, -100, false, { x: 220, y: 400 });
-        await page.waitForFunction(() => window.scrollY > 0);
+        const column = await page.locator('[data-region-scroll="left"]').boundingBox();
+        await drag(session, 0, -100, false, { x: column.x + column.width / 2, y: column.y + column.height * .7 });
+        await page.waitForFunction(() => document.querySelector('[data-region-scroll="left"]').scrollTop > 0);
         assert.equal(await page.locator('#rogue-root').getAttribute('data-tab'), 'camp');
         assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), before);
         await inspect(page, 'native-page-scrolling'); await session.context.close();
@@ -305,12 +308,12 @@ try {
     {
         const session = await setup('camp', 360, 740); const { page } = session;
         const before = await page.evaluate(() => JSON.stringify(Rogue.state.current));
-        await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:buildings"]'));
-        await page.evaluate(() => window.scrollTo(0, 180)); const reading = await page.evaluate(() => window.scrollY);
+        await tap(page.locator('#rogue-tab-camp')); await regionSection(page, 'buildings');
+        await page.locator('[data-region-scroll="left"]').evaluate(node => { node.scrollTop = 180; }); const reading = await page.locator('[data-region-scroll="left"]').evaluate(node => node.scrollTop);
         assert(reading > 0);
         await tap(page.locator('#rogue-tab-party')); await drag(session, 100); await settled(page);
-        assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-buildings');
-        assert(Math.abs(await page.evaluate(() => window.scrollY) - reading) <= 1, 'swiping back restores the region subpage reading position');
+        assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-overview');
+        assert(Math.abs(await page.locator('[data-region-scroll="left"]').evaluate(node => node.scrollTop) - reading) <= 1, 'swiping back restores the region subpage reading position');
         assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), before);
         await page.locator('#rogue-tab-map').tap(); await settled(page);
         await page.locator('.rogue-dpad-center').scrollIntoViewIfNeeded();
@@ -325,7 +328,7 @@ try {
         const before = await page.evaluate(() => JSON.stringify(Rogue.state.current));
         await tap(page.locator('#rogue-tab-camp')); await inspect(page, kind);
         assert.equal(await page.locator('[data-focus^="selectCamp:"]').count(), 0);
-        if (kind !== 'second') assert.equal(await page.locator('[data-focus="camp-view:buildings"]').count(), 0);
+        if (kind !== 'second') assert.equal(await page.locator('#rogue-region-buildings button').count(), 0);
         assert.equal(await page.evaluate(() => JSON.stringify(Rogue.state.current)), before);
         if (kind === 'resource') {
             const turn = await page.evaluate(() => Rogue.state.current.turn);
@@ -342,7 +345,7 @@ try {
             await tap(button); assert.equal(await page.evaluate(() => Rogue.map.here(Rogue.state.current).workers), 1);
         } else if (kind === 'second') {
             assert.match(await page.locator('#rogue-panel-camp h2').innerText(), /2/);
-            await tap(page.locator('[data-focus="camp-view:buildings"]')); await tap(page.locator('[data-focus="fire:"]'));
+            await regionSection(page, 'buildings'); await tap(page.locator('[data-focus="fire:"]'));
             assert.equal(await page.evaluate(() => Rogue.state.current.camps[0].fire), 1);
             assert.equal(await page.evaluate(() => Rogue.state.current.camps[1].fire), 2);
         } else if (kind === 'dungeon') {

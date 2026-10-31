@@ -1,3 +1,4 @@
+import { regionSection } from './test-region-controls.mjs';
 /* SPDX-License-Identifier: MPL-2.0 */
 // Focused model and offline UI fixtures; full-button playthroughs stay in their separate fresh-run test.
 import assert from 'node:assert/strict';
@@ -182,17 +183,17 @@ try {
     await tap(page.locator('#rogue-panel-camp [data-focus="next-goal"]'));
     assert.match(await page.getByRole('dialog').innerText(), /仓库 35 \/ 需要 12/);
     await tap(page.getByRole('button', { name: '查看石刃长矛配方', exact: true }));
-    assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-recipes');
+    assert.equal(await page.locator('#rogue-root').getAttribute('data-page'), 'camp-overview');
     assert.equal((await state(page)).turn, 0);
     await tap(page.locator('[data-focus="craft:spear"]')); assert.equal((await state(page)).party.weapon, 'spear');
-    await tap(page.locator('[data-focus="camp-return"]')); await tap(page.locator('#rogue-panel-camp [data-focus="next-goal"]'));
+     await tap(page.locator('#rogue-panel-camp [data-focus="next-goal"]'));
     assert.match(await page.getByRole('dialog').innerText(), /水袋不需要工坊/);
     await tap(page.getByRole('button', { name: '查看水袋配方', exact: true }));
     assert.equal(await page.locator('[data-focus="filter:tools"]').getAttribute('aria-pressed'), 'true');
     assert(await page.locator('[data-focus="craft:waterskin"]').isDisabled());
     assert.match(await page.locator('#rogue-panel-camp').innerText(), /缺少.*皮毛/);
     assert.equal((await state(page)).turn, 1);
-    await tap(page.locator('[data-focus="camp-return"]')); await tap(page.locator('[data-focus="camp-view:buildings"]'));
+     await tap(page.locator('[data-focus="camp-view:buildings"]'));
     await tap(page.locator('[data-focus="build:workshop"]'));
     assert((await state(page)).flags.log.some(l => l.key === 'log.workshopNext'));
     await page.reload(); await page.waitForFunction(() => Rogue.state.current);
@@ -209,10 +210,10 @@ try {
     assert.equal((await state(skinUI.page)).party.water, 10);
     assert((await state(skinUI.page)).flags.log.some(l => l.key === 'log.waterskinNext'));
     assert(await skinUI.page.locator('[data-focus="craft:waterskin"]').isDisabled());
-    await tap(skinUI.page.locator('[data-focus="camp-return"]'));
+    
     await tap(skinUI.page.locator('#rogue-panel-camp [data-focus="next-goal"]'));
     await tap(skinUI.page.getByRole('button', { name: '查看工坊配方', exact: true }));
-    assert.equal(await skinUI.page.locator('#rogue-root').getAttribute('data-page'), 'camp-buildings');
+    assert.equal(await skinUI.page.locator('#rogue-root').getAttribute('data-page'), 'camp-overview');
     await skinUI.session.close();
     mark('a declared material fixture crafts one waterskin through its guide, keeps it locked and moves on to workshop construction');
 

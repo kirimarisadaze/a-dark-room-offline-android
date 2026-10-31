@@ -1,3 +1,4 @@
+import { warehouseFromPack, closeInventory } from './test-region-controls.mjs';
 /* SPDX-License-Identifier: MPL-2.0 */
 // Declared inventory scenarios; test-rogue-playthrough-ui.mjs separately clicks a fresh run to completion.
 import assert from 'node:assert/strict';
@@ -85,12 +86,12 @@ async function fit(page, tag) {
     assert.deepEqual(bad, [], tag); await state(page);
 }
 /** Opens the manifest directly from the main camp dashboard. */
-async function warehouse(page) { await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:stores"]')); }
+async function warehouse(page) { await warehouseFromPack(page); }
 /** Records one verified behavior group. */
 function mark(text) { checks.push(text); console.log('PASS ' + text); }
 try {
     {
-        const { page, session } = await setup(); await warehouse(page); assert.equal(await page.getByRole('dialog').count(), 0);
+        const { page, session } = await setup(); await warehouse(page); assert.equal(await page.getByRole('dialog').count(), 1);
         await page.screenshot({ path: path.join(output, 'warehouse-direct.png') });
         await tap(page.locator('[data-focus="storage-filter:materials"]'));
         const initial = await state(page); await tap(page.locator('[data-focus="store-put:wood"]'));
@@ -104,7 +105,7 @@ try {
         await tap(page.locator('[data-focus="store-put:wood"]')); s = await state(page); assert.equal(s.party.companions[0].bag.wood, 0);
         const before = JSON.stringify(s); await tap(page.locator('[data-focus="storage-filter:gear"]')); await tap(page.locator('[data-focus="storage-quantity:10"]'));
         assert.equal(JSON.stringify(await state(page)), before); await fit(page, 'direct-warehouse');
-        await tap(page.locator('[data-focus="camp-return"]')); assert.equal(await page.locator('#rogue-root').getAttribute('data-camp-view'), 'overview'); await session.close();
+        await closeInventory(page); await tap(page.locator('#rogue-tab-camp')); assert.equal(await page.locator('#rogue-root').getAttribute('data-camp-view'), 'overview'); await session.close();
     }
     mark('warehouse uses one direct manifest, clamps requested counts to stock and remaining capacity, selects companion packs and returns to the dashboard without advancing time');
     {
@@ -125,29 +126,29 @@ try {
         await fit(page, 'remote-read-only'); await session.close();
     }
     {
-        const { page, session } = await setup('temp'); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="storageView:"]'));
+        const { page, session } = await setup('temp'); await warehouseFromPack(page);
         await page.screenshot({ path: path.join(output, 'temp-storage.png') });
         assert.match(await page.getByRole('dialog').innerText(), /80/); await tap(page.locator('[data-focus="storage-filter:materials"]'));
         const old = await state(page); await tap(page.locator('[data-focus="store-put:wood"]')); let s = await state(page);
         assert.equal(s.flags.tempCamp.stores.wood, 25); assert.equal(s.camps[0].stores.wood, old.camps[0].stores.wood);
-        await page.reload(); await page.waitForFunction(() => Rogue.state.current); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="storageView:"]'));
+        await page.reload(); await page.waitForFunction(() => Rogue.state.current); await warehouseFromPack(page);
         await tap(page.locator('[data-focus="storage-filter:materials"]')); await tap(page.locator('[data-focus="storage-quantity:1"]')); await tap(page.locator('[data-focus="store-take:wood"]'));
         s = await state(page); assert.equal(s.flags.tempCamp.stores.wood, 24); assert.equal(s.party.bag.wood, 1);
-        await tap(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:expansion"]'));
+        await closeInventory(page); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="camp-view:expansion"]'));
         await tap(page.locator('[data-focus="confirmPack:"]')); const before = JSON.stringify(await state(page)); await tap(page.getByRole('button', { name: '取消', exact: true })); assert.equal(JSON.stringify(await state(page)), before);
         await tap(page.locator('[data-focus="confirmPack:"]')); await tap(page.getByRole('button', { name: '确认', exact: true }));
         s = await state(page); assert(!s.flags.tempCamp); assert.equal(s.flags.caches[0].stores.wood, 24);
-        await tap(page.locator('[data-focus="camp-return"]')); await tap(page.locator('[data-focus="storageView:"]'));
+        await closeInventory(page); await warehouseFromPack(page);
         assert.equal(await page.locator('[data-focus^="store-put:"]').count(), 0); await tap(page.locator('[data-focus="storage-quantity:all"]')); await tap(page.locator('[data-focus="store-take:wood"]'));
         assert.equal((await state(page)).flags.caches.length, 0); await fit(page, 'empty-cache'); await session.close();
     }
     {
-        const { page, session } = await setup('expiry'); await tap(page.locator('#rogue-tab-camp')); await tap(page.locator('[data-focus="storageView:"]'));
+        const { page, session } = await setup('expiry'); await warehouseFromPack(page);
         await tap(page.locator('[data-focus="storage-filter:materials"]')); await tap(page.locator('[data-focus="store-put:wood"]'));
         const s = await state(page); assert(!s.flags.tempCamp); assert.equal(s.flags.caches[0].stores.wood, 25);
         assert.match(await page.getByRole('dialog').innerText(), /现场|所在位置|营地/);
         assert.equal(await page.locator('[data-focus="store-take:wood"]').count(), 0);
-        await tap(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); await tap(page.locator('[data-focus="storageView:"]')); assert.match(await page.getByRole('dialog').innerText(), /遗留物资/); await session.close();
+        await tap(page.locator('.rogue-dialog-footer [data-focus="closeModal:"]')); await warehouseFromPack(page); assert.match(await page.getByRole('dialog').innerText(), /遗留物资/); await session.close();
     }
     mark('remote stores are read-only; shelter supplies survive reload, confirmed dismantling and expiry, remain at the original tile and are picked up without duplication');
     {
@@ -177,7 +178,7 @@ try {
             await warehouse(page); await fit(page, tag + '-warehouse'); await page.screenshot({ path: path.join(output, 'warehouse-' + tag + '.png'), fullPage: true });
             const turn = (await state(page)).turn; await tap(page.locator('[data-focus="storage-filter:gear"]')); await tap(page.locator('[data-focus="storage-quantity:1"]')); await tap(page.locator('[data-focus="store-take:spear"]'));
             assert.equal((await state(page)).turn, turn + 1); await fit(page, tag + '-withdraw');
-            if (width < 1100) { await tap(page.locator('[data-focus="camp-return"]')); assert.equal(await page.locator('#rogue-root').getAttribute('data-camp-view'), 'overview'); }
+            if (width < 1100) { await closeInventory(page); await tap(page.locator('#rogue-tab-camp')); assert.equal(await page.locator('#rogue-root').getAttribute('data-camp-view'), 'overview'); }
             await session.close();
         }
     }
